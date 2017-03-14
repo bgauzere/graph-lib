@@ -1,0 +1,249 @@
+/*
+ * @file SymbolicGraph.cpp
+ * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @version     0.0.1 - Sat Feb  4 2017
+ * 
+ * @todo the list of improvements suggested for the file.
+ * @bug the list of known bugs.
+ *  
+ * Description of the program objectives.
+ * All necessary references.
+ *
+ */
+#include <string>
+#include "SymbolicGraph.h"
+
+static
+std::map<std::string, int> AtomTable;
+
+void fillAtomTable(std::map<std::string, int> & AtomTable){
+  AtomTable["H"] = 1;
+  AtomTable["He"] = 2;
+  AtomTable["Li"] = 3;
+  AtomTable["Be"] = 4;
+  AtomTable["B"] = 5;
+  AtomTable["C"] = 6;
+  AtomTable["N"] = 7;
+  AtomTable["O"] = 8;
+  AtomTable["F"] = 9;
+  AtomTable["Ne"] = 10;
+  AtomTable["Na"] = 11;
+  AtomTable["Mg"] = 12;
+  AtomTable["Al"] = 13;
+  AtomTable["Si"] = 14;
+  AtomTable["P"] = 15;
+  AtomTable["S"] = 16;
+  AtomTable["Cl"] = 17;
+  AtomTable["Ar"] = 18;
+  AtomTable["K"] = 19;
+  AtomTable["Ca"] = 20;
+  AtomTable["Sc"] = 21;
+  AtomTable["Ti"] = 22;
+  AtomTable["V"] = 23;
+  AtomTable["Cr"] = 24;
+  AtomTable["Mn"] = 25;
+  AtomTable["Fe"] = 26;
+  AtomTable["Co"] = 27;
+  AtomTable["Ni"] = 28;
+  AtomTable["Cu"] = 29;
+  AtomTable["Zn"] = 30;
+  AtomTable["Ga"] = 31;
+  AtomTable["Ge"] = 32;
+  AtomTable["As"] = 33;
+  AtomTable["Se"] = 34;
+  AtomTable["Br"] = 35;
+  AtomTable["Kr"] = 36;
+  AtomTable["Rb"] = 37;
+  AtomTable["Sr"] = 38;
+  AtomTable["Y"] = 39;
+  AtomTable["Zr"] = 40;
+  AtomTable["Nb"] = 41;
+  AtomTable["Mo"] = 42;
+  AtomTable["Tc"] = 43;
+  AtomTable["Ru"] = 44;
+  AtomTable["Rh"] = 45;
+  AtomTable["Pd"] = 46;
+  AtomTable["Ag"] = 47;
+  AtomTable["Cd"] = 48;
+  AtomTable["In"] = 49;
+  AtomTable["Sn"] = 50;
+  AtomTable["Sb"] = 51;
+  AtomTable["Te"] = 52;
+  AtomTable["I"] = 53;
+  AtomTable["Xe"] = 54;
+  AtomTable["Cs"] = 55;
+  AtomTable["Ba"] = 56;
+  AtomTable["La"] = 57;
+  AtomTable["Ce"] = 58;
+  AtomTable["Pr"] = 59;
+  AtomTable["Nd"] = 60;
+  AtomTable["Pm"] = 61;
+  AtomTable["Zr"] = 62;
+  AtomTable["Eu"] = 63;
+  AtomTable["Gd"] = 64;
+  AtomTable["Tb"] = 65;
+  AtomTable["Dy"] = 66;
+  AtomTable["Ho"] = 67;
+  AtomTable["Er"] = 68;
+  AtomTable["Tm"] = 69;
+  AtomTable["Yb"] = 70;
+  AtomTable["Lu"] = 71;
+  AtomTable["Hf"] = 72;
+  AtomTable["Ta"] = 73;
+  AtomTable["W"] = 74;
+  AtomTable["Re"] = 75;
+  AtomTable["Os"] = 76;
+  AtomTable["Ir"] = 77;
+  AtomTable["Pt"] = 78;
+  AtomTable["Au"] = 79;
+  AtomTable["Hg"] = 80;
+  AtomTable["Tl"] = 81;
+  AtomTable["Pb"] = 82;
+  AtomTable["Bi"] = 83;
+  AtomTable["Po"] = 84;
+  AtomTable["At"] = 85;
+  AtomTable["Rn"] = 86;
+  AtomTable["Fr"] = 87;
+  AtomTable["Ra"] = 88;
+  AtomTable["Ac"] = 89;
+  AtomTable["Th"] = 90;
+  AtomTable["Pa"] = 91;
+  AtomTable["U"] = 92;
+  AtomTable["Np"] = 93;
+  AtomTable["Pu"] = 94;
+  AtomTable["Am"] = 95;
+  AtomTable["Cm"] = 96;
+  AtomTable["Bk"] = 97;
+  AtomTable["Cf"] = 98;
+  AtomTable["Es"] = 99;
+  AtomTable["Fm"] = 100;
+  AtomTable["Md"] = 101;
+  AtomTable["No"] = 102;
+  AtomTable["Lr"] = 103;
+  AtomTable["Rf"] = 104;
+  AtomTable["Db"] = 105;
+  AtomTable["Sg"] = 106;
+  AtomTable["Bh"] = 107;
+  AtomTable["Hs"] = 108;
+  AtomTable["Mt"] = 109;
+  AtomTable["Ds"] = 110;
+  AtomTable["Rg"] = 111;
+  AtomTable["Cn"] = 112;
+  AtomTable["Uut"] = 113;
+  AtomTable["Uuq"] = 114;
+  AtomTable["Uup"] = 115;
+  AtomTable["Uuh"] = 116;
+  AtomTable["Uus"] = 117;
+  AtomTable["Uuo"] = 118;
+  AtomTable["D"] = 119; // Deuterium (isotope de H)
+}
+
+
+int SymbolicGraph::readChemicalEdgeLabel(TiXmlElement *elem){
+  int bond_type = -1;
+  TiXmlElement* child = elem->FirstChildElement();
+  while ( child ){
+    std::string childName =  child->Attribute("name");
+    TiXmlElement * child2 = child->FirstChildElement();
+    if ( child2 ){
+      if(childName.compare("valence")==0){
+	bond_type = std::stoi(child2->GetText());
+      }
+    }
+    child = child->NextSiblingElement(); // iteration
+  }
+  return bond_type;
+}
+
+int SymbolicGraph::readChemicalNodeLabel(TiXmlElement *elem){
+  int atom = -1;
+  TiXmlElement* child = elem->FirstChildElement();
+  while ( child ){
+    std::string childName =  child->Attribute("name");
+    TiXmlElement * child2 = child->FirstChildElement();
+    if ( child2 ){
+      if(childName.compare("chem")==0){
+	atom = AtomTable[child2->GetText()];
+      }
+    }
+    child = child->NextSiblingElement(); // iteration au prochain attribut
+  }
+  return atom;
+}
+
+
+
+SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
+  fillAtomTable(AtomTable);
+  const char * ext = strrchr(filename,'.'); 
+  if (strcmp(ext,".ct") == 0){
+  
+    std::ifstream file(filename,std::ios::in);
+    std::vector<char*> v;
+    if (file.is_open()) 
+      {		
+  	 char * s = new char[255];
+  	 file.getline(s, 255); // The first line is useless
+  	 file.getline(s, 255); // Second line = NumberOfAtoms NumberOfBonds
+  	 v = split(s, " ");
+  	 int  mynbNodes = atoi(v[0]);
+  	 int mynbEdges = atoi(v[1]);
+
+  	 for(int i=0; i<mynbNodes; i++)
+  	    {
+  	       file.getline(s,255); // s = x y z AtomLabel
+  	       v = split(s," ");
+	       
+  	       int index;
+  	       std::string atom = v[3];
+  	       index = AtomTable[atom];
+  	       Add(new GNode<int,int>(i,index));
+  	    }
+  	 // Creation of the edges
+  	 for (int i=0; i<mynbEdges; i++)
+  	    {
+  	       file.getline(s,255); // s = Atom1 Atom2 BondType BondType
+  	       v = split(s," ");
+  	       int start = atoi(v[0])-1;
+  	       int end = atoi(v[1])-1;
+  	       int label = (int)(v[2][0]);
+  	       Link(start,end,label);	       
+  	    }
+      }
+  }else if (strcmp(ext,".gxl") == 0){
+    GraphLoadGXL(filename,readChemicalNodeLabel,readChemicalEdgeLabel);
+  }else{
+    std::cerr << "Unsupported file format."<< std::endl;
+  }
+}
+
+SymbolicGraph::SymbolicGraph(int * am, int nb_nodes, bool directed):Graph<int,int>(directed){
+  for(int n = 0; n<nb_nodes; n++){
+    Add(new GNode<int,int>(n,am[sub2ind(n,n, nb_nodes)]));
+  }
+   
+  for(int n = 0; n<nb_nodes; n++){
+    int start= (directed)?0:n+1;
+    for(int m = start; m<nb_nodes; m++) {
+      int edge = am[n+nb_nodes*m];
+      if(edge > 0){
+	Link(n,m,edge);
+      }
+    }
+  }
+}
+
+int * SymbolicGraph::getLabeledAdjacencyMatrix(){
+  int * am=new int[Size()*Size()];
+  memset(am,0,sizeof(int)*Size()*Size());
+  for(int i=0;i<Size();i++){
+    am[sub2ind(i,i,Size())] = (*this)[i]->attr;
+    GEdge<int> * e = (*this)[i]->getIncidentEdges();
+    while(e){
+      int j = e->IncidentNode();
+      am[sub2ind(i,j,Size())] = e->attr;
+      e=e->Next();
+    }
+  }
+  return am;
+}
