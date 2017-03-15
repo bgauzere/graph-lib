@@ -26,11 +26,12 @@ class IPFPGraphEditDistance:
 protected:
   
 private:
-  int maxIter = 100;
   
+  int maxIter = 20;
+  GraphEditDistance<NodeAttribute,EdgeAttribute> * _ed_init;
   void (*_MappingInit)(Graph<NodeAttribute,EdgeAttribute> * g1,
-		      Graph<NodeAttribute,EdgeAttribute> * g2,
-		      int * G1_to_G2, int * G2_to_G2);
+		       Graph<NodeAttribute,EdgeAttribute> * g2,
+		       int * G1_to_G2, int * G2_to_G2);
   double * C;
   void NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		      Graph<NodeAttribute,EdgeAttribute> * g2);
@@ -51,8 +52,9 @@ private:
 
 
 public:
-  IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
-    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction){};
+  IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
+			GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init):
+    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),_ed_init(ed_init){};
 
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
@@ -102,6 +104,7 @@ double * IPFPGraphEditDistance<NodeAttribute,
     }
   if (! XkD)
     XkD=new double[(n+1)*(m+1)];
+
   
   return this->QuadraticTerm(g1,g2,mappings, XkD);
     
@@ -153,68 +156,67 @@ double * IPFPGraphEditDistance<NodeAttribute,
   for(int j = 0; j < n+1; j++){ // Attention : dans le papier sspr, condition sur x_jl /= 0. En effet, inutile pour le cas ou on multiplie a droite par le mapping. Mais nécessaire quand on utilise XtD dans le sous probleme
     for(int l = 0; l < m+1;l++){
       
-	 double sum = 0.;
-	 std::vector<std::pair<std::pair<int,int>,double> >::iterator it = mappings.begin();
-	 for(;it != mappings.end();it++){
-	   int i = it->first.first;
-	   int k = it->first.second;
-	   bool eps_i,eps_j,eps_k,eps_l; 
-	   eps_i = (i >= n);eps_j = (j >= n);eps_k = (k >= m);eps_l = (l >= m);
+      std::vector<std::pair<std::pair<int,int>,double> >::iterator it = mappings.begin();
+      for(;it != mappings.end();it++){
+	int i = it->first.first;
+	int k = it->first.second;
+	bool eps_i,eps_j,eps_k,eps_l; 
+	eps_i = (i >= n);eps_j = (j >= n);eps_k = (k >= m);eps_l = (l >= m);
 	   
-	   bool delta_e1 = false;
-	   if(!eps_i)
-	     delta_e1 = (g1->getEdge(i,j) != NULL); // false if j>n
-	   bool delta_e2 = false;
-	   if(! eps_k)
-	     delta_e2 = (g2->getEdge(k,l) != NULL);// false if l>m
-	   double cost = 0.0;
-	   //TODO : Optimize if sequence
- 	   //If (i,j) and (k,l) are both same nodes,
-	   //no edges between them, so delta_e1 and delta_e2 are both 0, and so the cost
-	   double ced = 0.0;
-	   if(! eps_i)
-	     ced =this->cf->EdgeDeletionCost(g1->getEdge(i,j),g1);
-	   double cei = 0.0;
-	   if(! eps_k)
-	     cei = this->cf->EdgeInsertionCost(g2->getEdge(k,l),g2);
+	bool delta_e1 = false;
+	if(!eps_i)
+	  delta_e1 = (g1->getEdge(i,j) != NULL); // false if j>n
+	bool delta_e2 = false;
+	if(! eps_k)
+	  delta_e2 = (g2->getEdge(k,l) != NULL);// false if l>m
+	double cost = 0.0;
+	//TODO : Optimize if sequence
+	//If (i,j) and (k,l) are both same nodes,
+	//no edges between them, so delta_e1 and delta_e2 are both 0, and so the cost
+	double ced = 0.0;
+	if(! eps_i)
+	  ced =this->cf->EdgeDeletionCost(g1->getEdge(i,j),g1);
+	double cei = 0.0;
+	if(! eps_k)
+	  cei = this->cf->EdgeInsertionCost(g2->getEdge(k,l),g2);
 
-	   if( ((i != j) || eps_i) && ((k != l) || eps_k)){
-	     if ( (!eps_i) && (!eps_j) && (!eps_k) && (!eps_l)){
-	       if (delta_e1 && delta_e2) // sub
-		 cost = this->cf->EdgeSubstitutionCost(g2->getEdge(k,l), g1->getEdge(i,j),g2,g1);
-	       else if ((delta_e1) && (!delta_e2)) //deletion
-		 cost = ced;
-	       else if ((! delta_e1) && delta_e2)
-		 cost = cei;
-	     }	  
-	     //l is epsilon, (k,l) do not exist => deletion of (i,j)
-	     else if (i < n && j < n && k < m && l >= m){
-	       cost = ced*delta_e1;
-	     }
-	     //k is epsilon => (k,l) do not exist so delete (i,j) if exists
-	     else if (i < n && j < n && k >= m && l < m){
-	       cost = ced*delta_e1;
-	     }
-	     //(k,l) do not exists, del (i,j) if exists (factorizable with previous case)
-	     else if (i < n && j < n && k >= m && l >= m){
-	       cost = ced*delta_e1;
-	     }
-	     //i is epsilon => add (k,l) if exists
-	     else if (i >= n && j < n && k < m && l < m){
-	       cost = cei*delta_e2;
-	     }
-	     //j is epsilon => add (k,l) if exists
-	     else if (i < n && j >= n && k < m && l < m){
-	       cost = cei*delta_e2;
-	     }
-	     //i,j are epsilon, (i,j) do not exists, add (k,l) if it exists
-	     else if (i >= n && j >= n && k < m && l < m){
-	       cost = cei*delta_e2;
-	     }
-	     quadraticTerm[sub2ind(j,l,n+1)] +=  cost*it->second;
+	if( ((i != j) || eps_i) && ((k != l) || eps_k)){
+	  if ( (!eps_i) && (!eps_j) && (!eps_k) && (!eps_l)){
+	    if (delta_e1 && delta_e2) // sub
+	      cost = this->cf->EdgeSubstitutionCost(g2->getEdge(k,l), g1->getEdge(i,j),g2,g1);
+	    else if ((delta_e1) && (!delta_e2)) //deletion
+	      cost = ced;
+	    else if ((! delta_e1) && delta_e2)
+	      cost = cei;
+	  }	  
+	  //l is epsilon, (k,l) do not exist => deletion of (i,j)
+	  else if (i < n && j < n && k < m && l >= m){
+	    cost = ced*delta_e1;
+	  }
+	  //k is epsilon => (k,l) do not exist so delete (i,j) if exists
+	  else if (i < n && j < n && k >= m && l < m){
+	    cost = ced*delta_e1;
+	  }
+	  //(k,l) do not exists, del (i,j) if exists (factorizable with previous case)
+	  else if (i < n && j < n && k >= m && l >= m){
+	    cost = ced*delta_e1;
+	  }
+	  //i is epsilon => add (k,l) if exists
+	  else if (i >= n && j < n && k < m && l < m){
+	    cost = cei*delta_e2;
+	  }
+	  //j is epsilon => add (k,l) if exists
+	  else if (i < n && j >= n && k < m && l < m){
+	    cost = cei*delta_e2;
+	  }
+	  //i,j are epsilon, (i,j) do not exists, add (k,l) if it exists
+	  else if (i >= n && j >= n && k < m && l < m){
+	    cost = cei*delta_e2;
+	  }
+	  quadraticTerm[sub2ind(j,l,n+1)] +=  cost*it->second;
 	
-	   }
-	 }
+	}
+      }
     }
   }
   return quadraticTerm;
@@ -228,15 +230,14 @@ void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2,
 		  int * G1_to_G2, int * G2_to_G1){
-  int n = g1->Size();
-  int m = g2->Size();
+  const int n = g1->Size();
+  const int m = g2->Size();
   
   NodeCostMatrix(g1,g2);
   Map<MatrixXd> m_C(this->C,n+1,m+1);
   
   //Compute Mapping init
-  BipartiteGraphEditDistance<NodeAttribute,EdgeAttribute> *ed = new BipartiteGraphEditDistance<NodeAttribute,EdgeAttribute>(this->cf);
-  ed->getOptimalMapping(g1,g2,G1_to_G2, G2_to_G1);
+  this->_ed_init->getOptimalMapping(g1,g2,G1_to_G2, G2_to_G1);
   
   double * XkD = this->QuadraticTerm(g1,g2,G1_to_G2, G2_to_G1,NULL);
   Map<MatrixXd> m_XkD(XkD,n+1,m+1);
@@ -263,12 +264,19 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   double * bkp1 = new double [(n+1) * (m+1)];
   Map<MatrixXd> m_bkp1 (bkp1,n+1,m+1);
 
-
-  while((k < this->maxIter) && 1){ //(norm(Xk - Xkm1,1) > 0.0001)
+  bool flag_continue = true;
+  while((k < this->maxIter) && flag_continue){ //TODO : fixer un epsilon, param ?
     if(k!= 0)
       XkD = QuadraticTerm(g1,g2,Xk,XkD);
-    else
+    else{ 
       XkD = QuadraticTerm(g1,g2,G1_to_G2,G2_to_G1,XkD);
+      memset(Xk,0,sizeof(double)*(n+1)*(m+1));
+      for (int i =0;i<n;i++)
+	Xk[sub2ind(i,G1_to_G2[i],n+1)] = 1;
+      for (int j =0;j<m;j++)
+	if (G2_to_G1[j] >= n)
+	  Xk[sub2ind(G2_to_G1[j],j,n+1)] = 1;
+    }
     
     m_linearSubProblem = 2*m_XkD + m_C;
     hungarianLSAPE(linearSubProblem,n+1,m+1, G1_to_G2,G2_to_G1, u,v,false);
@@ -290,27 +298,40 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
     memset(bkp1,0,sizeof(double)*((n+1)*(m+1)));
     for(int i = 0;i<n;i++)
       bkp1[sub2ind(i,G1_to_G2[i],n+1)] = 1.;
-    for(int j = 0;j<n;j++)
+    for(int j = 0;j<m;j++)
       if(G2_to_G1[j]>=n)      
 	bkp1[sub2ind(G2_to_G1[j],j,n+1)] = 1.;
     
     if ((beta < 0.00001) || (t0 >= 1) || ( k +1 == maxIter)){
-      //convert mapping to matrix
-      m_Xk = m_bkp1; //Copie ?
+      //Check if Xk evolves
+      if((m_Xk - m_bkp1).norm() < 0.0001)
+	flag_continue = false;
+      else
+	memcpy(Xk,bkp1,sizeof(double)*(n+1)*(m+1));
+      
       Lterm = Lterm_new;
     }else{
       //Line search
-      m_Xk = m_Xk + t0*(m_bkp1 - m_Xk); 
-      S[k+1] = S[k] - ((pow(alpha,2))/(4*beta));
-      Lterm = linearCost(this->C, Xk, n,m);
+      MatrixXd maj_matrix(n+1,m+1);
+      maj_matrix = t0*(m_bkp1 - m_Xk);
+      if(maj_matrix.norm() < 0.0001)
+	flag_continue = false;
+      else{
+	m_Xk = m_Xk + t0*(m_bkp1 - m_Xk); 
+	S[k+1] = S[k] - ((pow(alpha,2))/(4*beta));
+	Lterm = linearCost(this->C, Xk, n,m);
+      }
     }
     k++;    
   }
+  m_Xk= m_Xk *-1;
+  hungarianLSAPE(Xk,n+1,m+1, G1_to_G2,G2_to_G1, u,v,false);
+  
   delete [] Xkp1tD;
   delete [] linearSubProblem;
   delete [] XkD;
   delete this->C;
-  delete ed;
+  //  delete ed;
   delete [] u;
   delete [] v;
 }
@@ -335,7 +356,7 @@ linearCost(double * CostMatrix, double * X, int n, int m){
   double sum = 0.0;
   for(int i=0;i<n+1;i++)
     for(int j=0;j<m+1;j++)    
-    sum += CostMatrix[sub2ind(i,j,n+1)] * X[sub2ind(i,j,n+1)];
+      sum += CostMatrix[sub2ind(i,j,n+1)] * X[sub2ind(i,j,n+1)];
 
   return sum;
 }

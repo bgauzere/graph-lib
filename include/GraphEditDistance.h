@@ -148,7 +148,7 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
 	  // edge_sub ++;
 	  ;
 	}else{
-	    //Edge does not exist in G1 -> Insertion
+	  //Edge does not exist in G1 -> Insertion
 	  cost_edges += cf->EdgeInsertionCost(p,g2);
 	  edge_ins ++;
 	}
