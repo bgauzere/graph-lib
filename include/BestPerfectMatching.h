@@ -53,22 +53,23 @@ private:
 
   // Ressources for Tarjan (bipartite)
 
-  static int num;       //!< num of the current node
-  static int access;    //!< numAccess of the current node
+  int num;       //!< num of the current node
+  int access;    //!< numAccess of the current node
 
-  static std::vector<int> vnum;     //!< list of number of nodes (first X then Y) @see offset
-  static std::vector<int> vaccess;
-  static std::vector<bool> instack;
-  static std::stack<int> tarjanStack;
-  static std::vector<BipartiteSCC> scc;
+  std::vector<int> vnum;     //!< list of number of nodes (first X then Y) @see offset
+  std::vector<int> vaccess;
+  std::vector<bool> instack;
+  std::stack<int> tarjanStack;
+  std::stack<bool> setstack; //!< in which subset is each elem of tarjanStack (true <=> X)
+  std::vector<BipartiteSCC> scc;
 
-  //static bool inX; //!< true if we are looking in X, false for Y
-  static int offset; //!< offset to access the right subset (0 if X, n if Y)
-  static int offsize; //!< size of the offset
+  //bool inX; //!< true if we are looking in X, false for Y
+  int offset; //!< offset to access the right subset (0 if X, n if Y)
+  int offsize; //!< size of the offset
 
 private:
   // Iter of Tarjan
-  static void
+  void
   strongConnect( const Eigen::MatrixXi& gm, int v );
 
 public:
@@ -84,20 +85,29 @@ public:
    * @return  The SCCs in the graph
    * @see BipartiteSCC
    */
-  static const std::vector<BipartiteSCC>&
+  const std::vector<BipartiteSCC>&
   findSCC( const Eigen::MatrixXi& gm );
 
 
   /**
    * @brief Removes all edges in the graph denoted by gm that are
    *      out a scc (edges between SCC).
+   * @long Applies for all potential edge in gm :
+   *     $$ gm[i,j] := gm[i,j] * \sum_{(u,v) \in scc} u_i v_j $$
    * @param gm  [inout] The graph
-   * @param scc List of the SCCs in the graph
+   * @param scc_in List of the SCCs in the graph
    * @see findSCC
    */
-  static void
-  rmUnnecessaryEdges( Eigen::MatrixXi& gm, const std::vector<BipartiteSCC>& scc );
+  void
+  rmUnnecessaryEdges( Eigen::MatrixXi& gm, const std::vector<BipartiteSCC>& scc_in );
 
+  /**
+   * @brief Alias of rmUnnecessaryEdges(Eigen::MatrixXi&)
+   * @long The current state of scc is used
+   * @see scc
+   */
+  void
+  rmUnnecessaryEdges( Eigen::MatrixXi& gm);
 
   //TODO EnumPerfectMatching
   //TODO KBestPerfectMatching
