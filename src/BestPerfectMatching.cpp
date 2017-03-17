@@ -4,7 +4,7 @@
  */
 
 #include "BestPerfectMatching.h"
-
+#include <iostream>
 
 
 BipartiteSCC::BipartiteSCC(unsigned int size_u, unsigned int size_v):
@@ -21,7 +21,8 @@ BestPerfectMatching::strongConnect( const Eigen::MatrixXi& gm, int v ){
   vaccess[v+offset] = num;
   num += 1;
 
-  tarjanStack.push(v+offset);
+  tarjanStack.push(v);
+  setstack.push(!(bool)(offset));
   instack[v+offset] = true;
 
   // For each w successor of v
@@ -31,17 +32,22 @@ BestPerfectMatching::strongConnect( const Eigen::MatrixXi& gm, int v ){
 
   int w=0;
   if (offset == 0){ // v in X : find the 1
-    while(gm(v,w) != 1) w++;
-
-    if (vnum[w+offsize] == -1){ // if num(w) not defined
-      // explore w
-      offset = offsize; // w is in Y
-      strongConnect(gm, w);
-      offset = 0; // we are back in X
-      vaccess[v] = std::min(vaccess[v], vaccess[w+offsize]);
-    }
-    else if(instack[w+offsize]){
-      vaccess[v] = std::min(vaccess[v], vnum[w+offsize]);
+    while(w < gm.cols()){
+      if (gm(v,w) == 1){
+        if (vnum[w+offsize] == -1){ // if num(w) not defined
+          // explore w
+          offset = offsize; // w is in Y
+          strongConnect(gm, w);
+          offset = 0; // we are back in X
+          vaccess[v] = std::min(vaccess[v], vaccess[w+offsize]);
+        }
+        else if(instack[w+offsize]){
+          vaccess[v] = std::min(vaccess[v], vnum[w+offsize]);
+        }
+        //bypass the rest of search (there is max one successor)
+        w = gm.cols();
+      }
+      w++;
     }
   }
   else{ // v in Y : find all the -1
@@ -64,18 +70,24 @@ BestPerfectMatching::strongConnect( const Eigen::MatrixXi& gm, int v ){
   // If v is a root (v.access == v.num)
   if (vaccess[v+offset] == vnum[v+offset]){
     scc.emplace_back(gm.rows(), gm.cols());
-    int offbakup = offset;
+    bool inX;
     do{
-      offset = offsize-offset; //swap offset into 0 or offsize
-      w = tarjanStack.top();
-      tarjanStack.pop();
-      if(offset)
-        scc.back().v[w] = true;
-      else
-        scc.back().u[w] = true;
-    }while(w != v || offset != offbakup);
+      if (!tarjanStack.empty()){
+        w = tarjanStack.top();
+        tarjanStack.pop();
+
+        inX = setstack.top();
+        setstack.pop();
+        instack[w+offset] = false;
+
+        if(inX)
+          scc.back().u[w] = true;
+        else
+          scc.back().v[w] = true;
+      }
+    }while(w != v || !(bool)(offset) != inX);
   }
-}
+} // end strongConnect()
 
 
 const std::vector<BipartiteSCC>&
@@ -88,7 +100,6 @@ BestPerfectMatching::findSCC( const Eigen::MatrixXi& gm ){
   vaccess.clear();
   instack.clear();
 
-  scc.clear();
   scc.clear();
 
   vnum.resize(gm.rows()+gm.cols(), -1);
@@ -103,6 +114,7 @@ BestPerfectMatching::findSCC( const Eigen::MatrixXi& gm ){
   // For each vertice in X (rows of gm)
   for (int i=0; i<gm.rows(); i++){
     if (vnum[i] != -1)
+      offset = 0;
       strongConnect(gm, i);
   }
 
@@ -111,7 +123,20 @@ BestPerfectMatching::findSCC( const Eigen::MatrixXi& gm ){
 
 
 void
-BestPerfectMatching::rmUnnecessaryEdges( Eigen::MatrixXi& gm, const std::vector<BipartiteSCC>& scc ){
-  //TODO
+BestPerfectMatching::rmUnnecessaryEdges( Eigen::MatrixXi& gm, const std::vector<BipartiteSCC>& scc_in ){
+  for (int i=0; i<gm.rows(); i++){
+    for (int j=0; j<gm.cols(); j++){
+      bool inSomeSCC = false;
+      for (int s=0; s<scc_in.size(); s++){
+        inSomeSCC = inSomeSCC || (scc_in[s].u[i] && scc_in[s].v[j]);
+      }
+      gm(i,j) = gm(i,j) * inSomeSCC;
+    }
+  }
 }
 
+
+void
+BestPerfectMatching::rmUnnecessaryEdges( Eigen::MatrixXi& gm){
+  rmUnnecessaryEdges(gm, scc);
+}
