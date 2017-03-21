@@ -42,7 +42,7 @@ public :
   
   virtual double EdgeInsertionCost(GEdge<EdgeAttribute> * e2,
 				   Graph<NodeAttribute,EdgeAttribute> * g2)=0;
-  
+  virtual ~EditDistanceCost(){};
 };
 
 template<class NodeAttribute, class EdgeAttribute>
@@ -63,6 +63,7 @@ public:
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
 				 int * G1_to_G2, int * G2_to_G2)=0;
+  virtual ~GraphEditDistance(){};
 };
 
 //TODO mapping a éclaicir. Voir la methode de seb sur hungarian LSAPE
@@ -187,7 +188,10 @@ operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
   int * G1_to_G2 = new int[n];
   int * G2_to_G1 = new int[m];
   this->getOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
-  return this->GedFromMapping(g1,g2,G1_to_G2,n,G2_to_G1,m);
+  double ged = this->GedFromMapping(g1,g2,G1_to_G2,n,G2_to_G1,m);
+  delete [] G1_to_G2;
+  delete [] G2_to_G1;
+  return ged;
 }
 
 

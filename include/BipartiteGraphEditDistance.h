@@ -45,8 +45,7 @@ public:
 				 int * G1_to_G2, int * G2_to_G2);
   
   virtual ~BipartiteGraphEditDistance(){
-    if (C != NULL)
-      delete [] C;
+    if (this->C != NULL) delete [] this->C;
   }
 };
 
@@ -61,6 +60,7 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   int n=g1->Size();
   int m=g2->Size();
   // Compute C
+  delete [] this->C;
   computeCostMatrix(g1,g2);
   // for (int i=0;i<n+1;i++){
   //   for (int j=0;j<m+1;j++)
@@ -71,6 +71,9 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   double *u = new double[n+1];
   double *v = new double[m+1];
   hungarianLSAPE(C,n+1,m+1, G1_to_G2,G2_to_G1, u,v,false);
+  delete [] u;
+  delete [] v;
+  
 }
 
 
@@ -136,7 +139,9 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
     cost += u[i];
   for (int j =0;j<m+1;j++)
     cost += v[j];	 
-  
+  delete [] u;delete [] v;
+  delete [] rho;delete [] varrho;
+  delete [] local_C;
   return cost + this->cf->NodeSubstitutionCost(v1,v2,g1,g2);
 }
 

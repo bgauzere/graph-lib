@@ -39,7 +39,6 @@ private:
 public:
   RandomWalksGraphEditDistance(ConstantEditDistanceCost * costFunction, int k):
     BipartiteGraphEditDistance<int,int>(costFunction),cf(costFunction),_k(k){};
-  
 };
 
 #endif // __RANDOMWALKSGRAPHEDITDISTANCE_H__
