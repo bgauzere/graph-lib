@@ -8,7 +8,7 @@ TESTDIR = ./test
 
 ODIR = ./obj
 SRCDIR = ./src
-_DEPS = graph.h  utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h BipartiteGraphEditDistance.h RandomWalksGraphEditDistance.h IPFPGraphEditDistance.h
+_DEPS = graph.h  utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h BipartiteGraphEditDistance.h RandomWalksGraphEditDistance.h IPFPGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _SRCDEPS = utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp

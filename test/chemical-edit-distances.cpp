@@ -23,6 +23,7 @@
 #include "BipartiteGraphEditDistance.h"
 #include "RandomWalksGraphEditDistance.h"
 #include "IPFPGraphEditDistance.h"
+#include "GNCCPGraphEditDistance.h"
 #include "utils.h"
 using namespace std;
 
@@ -134,6 +135,8 @@ int main (int argc, char** argv)
   } else if(options->method == string("ipfpe_rw")){
     RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,options->k);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
+  } else if(options->method == string("gnccp")){
+    ed = new GNCCPGraphEditDistance<int,int>(cf);
   } else{
     cerr << "Undefined graph edit distance algorithm "<< endl;
     usage(argv[0]);

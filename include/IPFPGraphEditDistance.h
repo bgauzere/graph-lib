@@ -22,9 +22,9 @@ using namespace Eigen;
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPGraphEditDistance:
   public GraphEditDistance<NodeAttribute, EdgeAttribute>{
+private:
 protected:
   
-private:
   int maxIter = 20;
   
   GraphEditDistance<NodeAttribute,EdgeAttribute> * _ed_init;
@@ -38,8 +38,8 @@ private:
   double oldLterm;
   double * Xkp1tD;
   double * bkp1;
-  int n;
-  int m;
+  int _n;
+  int _m;
   int k;
   std::vector<double> S;
   std::vector<double> R;
@@ -62,7 +62,9 @@ private:
 			 std::vector<std::pair<std::pair<int,int>,double> > mappings, double * XkD);
 
   //This linearCost is efficient for sparse Xk matrices
+  // n is nb rows of matrices, m is nb columns
   double linearCost(double * CostMatrix, int * G1_to_G2,int * G2_to_G1, int n, int m);
+  // n is nb rows of matrices, m is nb columns
   double linearCost(double * CostMatrix, double * Xk, int n, int m);
 
   // Fill this->linearSubProblem with appropriatelinear problem
@@ -71,21 +73,29 @@ private:
   double getAlpha();
   double getBeta();
 
+  double * mappingsToMatrix(int * G1_to_G2,int * G2_to_G1, int n, int m, double * Matrix);
   
-
-
 public:
   IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
 			GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init):
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),_ed_init(ed_init){};
+  IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
+    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),_ed_init(NULL){};
 
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G1_to_G2G2_to_G1);
+				 int * G1_to_G2, int * G2_to_G1);
   
-  ~IPFPGraphEditDistance(){
-    if (C != NULL)
-      delete [] C;
+  void IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
+		     Graph<NodeAttribute,EdgeAttribute> * g2,
+		     int * G1_to_G2, int * G2_to_G1); // initial mappings
+  virtual ~IPFPGraphEditDistance(){
+    if (this->C != NULL) delete [] this->C;
+    if (this->linearSubProblem != NULL) delete [] this->linearSubProblem;
+    if (this->XkD != NULL) delete [] this->XkD;
+    if (this->Xk != NULL) delete [] this->Xk;
+    if (this->Xkp1tD != NULL) delete [] this->Xkp1tD;
+    if (this->bkp1 != NULL) delete [] this->bkp1;
   }
 
 };
@@ -161,6 +171,8 @@ double * IPFPGraphEditDistance<NodeAttribute,
   return this->QuadraticTerm(g1,g2,mappings,XkD);
   
 }
+
+
 
 template<class NodeAttribute, class EdgeAttribute>
 double * IPFPGraphEditDistance<NodeAttribute,
@@ -248,70 +260,89 @@ double * IPFPGraphEditDistance<NodeAttribute,
 }
 
 
+
+
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2,
 		  int * G1_to_G2, int * G2_to_G1){
+  //Compute Mapping init
+  if (this->_ed_init)
+    this->_ed_init->getOptimalMapping(g1,g2,G1_to_G2, G2_to_G1);
   
-  this->n = g1->Size();
-  this->m = g2->Size();
+  this->IPFPalgorithm(g1,g2,G1_to_G2,G2_to_G1);
+  
+  Map<MatrixXd> m_Xk(this->Xk, this->_n+1,this->_m+1);
+  m_Xk= m_Xk *-1;
+  double *u = new double[this->_n+1];
+  double *v = new double[this->_m+1];
+  hungarianLSAPE(this->Xk,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+  delete [] this->Xk; this->Xk=0;
+  delete [] u;
+  delete [] v;
+}
+
+template<class NodeAttribute, class EdgeAttribute>
+void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
+IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
+	      Graph<NodeAttribute,EdgeAttribute> * g2,
+	      int * G1_to_G2, int * G2_to_G1){
+  
+  this->_n = g1->Size();
+  this->_m = g2->Size();
 
   S.clear();
   R.clear();
   
   NodeCostMatrix(g1,g2);
-  Map<MatrixXd> m_C(this->C,n+1,m+1);
-  
-  //Compute Mapping init
-  this->_ed_init->getOptimalMapping(g1,g2,G1_to_G2, G2_to_G1);
+  Map<MatrixXd> m_C(this->C,this->_n+1,this->_m+1);
+
+  this->bkp1 = new double [(  this->_n+1) * (  this->_m+1)];
+  Map<MatrixXd> m_bkp1 (this->bkp1,  this->_n+1,  this->_m+1);
+  this->bkp1 = mappingsToMatrix(G1_to_G2,G2_to_G1,  this->_n,  this->_m,this->bkp1);
   
   this->XkD = this->QuadraticTerm(g1,g2,G1_to_G2, G2_to_G1,NULL);
-  Map<MatrixXd> m_XkD(XkD,n+1,m+1);
+  Map<MatrixXd> m_XkD(XkD,  this->_n+1,  this->_m+1);
   
-  this->Xk = new double[(n+1)*(m+1)];
-  Map<MatrixXd> m_Xk(Xk,n+1,m+1);
+  this->Xk = new double[(this->_n+1)*(  this->_m+1)];
+  Map<MatrixXd> m_Xk(Xk,  this->_n+1,  this->_m+1);
   
-  Lterm = linearCost(this->C,G1_to_G2, G2_to_G1,n,m); 
-  S.push_back(getCost(G1_to_G2, G2_to_G1,n,m));
+  Lterm = linearCost(this->C,G1_to_G2, G2_to_G1,  this->_n,  this->_m); 
+  S.push_back(this->getCost(G1_to_G2, G2_to_G1,  this->_n,  this->_m));
 
   k=0;
-  this->linearSubProblem = new double [(n+1) * (m+1)];
-  Map<MatrixXd> m_linearSubProblem(linearSubProblem,n+1,m+1);
+  this->linearSubProblem = new double [(  this->_n+1) * (  this->_m+1)];
+  Map<MatrixXd> m_linearSubProblem(linearSubProblem,  this->_n+1,  this->_m+1);
 
-  double *u = new double[n+1];
-  double *v = new double[m+1];
+  double *u = new double[this->_n+1];
+  double *v = new double[this->_m+1];
   //double Lterm_new = 0.0;
 
-  this->Xkp1tD = new double [(n+1) * (m+1)];
-  Map<MatrixXd> m_Xkp1tD (this->Xkp1tD,n+1,m+1);
+  this->Xkp1tD = new double [(  this->_n+1) * (  this->_m+1)];
+  Map<MatrixXd> m_Xkp1tD (this->Xkp1tD,  this->_n+1,  this->_m+1);
 
-  this->bkp1 = new double [(n+1) * (m+1)];
-  Map<MatrixXd> m_bkp1 (this->bkp1,n+1,m+1);
 
   bool flag_continue = true;
   while((k < this->maxIter) && flag_continue){ //TODO : fixer un epsilon, param ?
     if(k!= 0)
-      XkD = QuadraticTerm(g1,g2,Xk,XkD);
+      this->XkD = QuadraticTerm(g1,g2,Xk,this->XkD);
     else{ 
-      XkD = QuadraticTerm(g1,g2,G1_to_G2,G2_to_G1,XkD);
-      memset(Xk,0,sizeof(double)*(n+1)*(m+1));
-      for (int i =0;i<n;i++)
-	Xk[sub2ind(i,G1_to_G2[i],n+1)] = 1;
-      for (int j =0;j<m;j++)
-	if (G2_to_G1[j] >= n)
-	  Xk[sub2ind(G2_to_G1[j],j,n+1)] = 1;
+      this->XkD = QuadraticTerm(g1,g2,G1_to_G2,G2_to_G1,this->XkD);
+      this->Xk = this->mappingsToMatrix(G1_to_G2,G2_to_G1,  this->_n,  this->_m,this->Xk);
     }
     
     
     this->LinearSubProblem();//    2*m_XkD + m_C;
-    hungarianLSAPE(linearSubProblem,n+1,m+1, G1_to_G2,G2_to_G1, u,v,false);
+    hungarianLSAPE(linearSubProblem,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+    //bkp1 is the matrix version of mapping G1_to_G2 and G2_to_G1
+    this->bkp1 = mappingsToMatrix(G1_to_G2,G2_to_G1,  this->_n,  this->_m,this->bkp1);
 
-    R.push_back(linearCost(linearSubProblem,G1_to_G2, G2_to_G1,n,m));
+    R.push_back(linearCost(linearSubProblem,G1_to_G2, G2_to_G1,  this->_n,  this->_m));
     this->oldLterm = Lterm;
-    this->Lterm= linearCost(this->C,G1_to_G2, G2_to_G1,n,m);
+    this->Lterm= linearCost(this->C,G1_to_G2, G2_to_G1,  this->_n,  this->_m);
     XkD = QuadraticTerm(g1,g2,G1_to_G2, G2_to_G1,XkD);
-    S.push_back(this->getCost(G1_to_G2, G2_to_G1,n,m));
+    S.push_back(this->getCost(G1_to_G2, G2_to_G1,  this->_n,  this->_m));
 
     double alpha = getAlpha();
     double beta= getBeta();
@@ -320,43 +351,35 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
       t0 = -alpha / (2.*beta);
     //Built a new Xk matrix (possibly not permutation)
 
-    memset(bkp1,0,sizeof(double)*((n+1)*(m+1)));
-    for(int i = 0;i<n;i++)
-      bkp1[sub2ind(i,G1_to_G2[i],n+1)] = 1.;
-    for(int j = 0;j<m;j++)
-      if(G2_to_G1[j]>=n)      
-	bkp1[sub2ind(G2_to_G1[j],j,n+1)] = 1.;
     
     if ((beta < 0.00001) || (t0 >= 1) || ( k +1 == maxIter)){
       //Check if Xk evolves
       if((m_Xk - m_bkp1).norm() < 0.0001)
 	flag_continue = false;
       else
-	memcpy(Xk,bkp1,sizeof(double)*(n+1)*(m+1));
+	memcpy(Xk,bkp1,sizeof(double)*(  this->_n+1)*(  this->_m+1));
       
       //Lterm = Lterm_new;
     }else{
       //Line search
-      MatrixXd maj_matrix(n+1,m+1);
+      MatrixXd maj_matrix(  this->_n+1,  this->_m+1);
       maj_matrix = t0*(m_bkp1 - m_Xk);
       if(maj_matrix.norm() < 0.0001)
 	flag_continue = false;
       else{
 	m_Xk = m_Xk + t0*(m_bkp1 - m_Xk); 
 	S[k+1] = S[k] - ((pow(alpha,2))/(4*beta));
-	this->Lterm = linearCost(this->C, Xk, n,m);
+	this->Lterm = linearCost(this->C, Xk,   this->_n+1,  this->_m+1);
       }
     }
     this->k++;    
   }
-  m_Xk= m_Xk *-1;
-  hungarianLSAPE(this->Xk,n+1,m+1, G1_to_G2,G2_to_G1, u,v,false);
   
-  delete [] Xkp1tD;
-  delete [] linearSubProblem;
-  delete [] XkD;
-  delete this->C;
-  //  delete ed;
+  delete [] this->Xkp1tD;this->Xkp1tD=0;
+  delete [] this->linearSubProblem;this->linearSubProblem=0;
+  delete [] this->XkD;this->XkD = 0;
+  delete [] this->C;this->C = 0;
+  delete [] this->bkp1;this->bkp1 = 0;
   delete [] u;
   delete [] v;
 }
@@ -378,21 +401,21 @@ linearCost(double * CostMatrix, int * G1_to_G2,int * G2_to_G1, int n, int m){
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 linearCost(double * CostMatrix, double * X, int n, int m){
+  //Todo : optimiser avec dot product ?
   double sum = 0.0;
-  for(int i=0;i<n+1;i++)
-    for(int j=0;j<m+1;j++)    
-      sum += CostMatrix[sub2ind(i,j,n+1)] * X[sub2ind(i,j,n+1)];
-
+  for(int i=0;i<n;i++)
+    for(int j=0;j<m;j++)    
+      sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)];
   return sum;
 }
 
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 LinearSubProblem(){
-  Map<MatrixXd> m_linearSubProblem(this->linearSubProblem,this->n+1,this->m+1);
+  Map<MatrixXd> m_linearSubProblem(this->linearSubProblem,this->_n+1,this->_m+1);
 
-  Map<MatrixXd> m_XkD(this->XkD,this->n+1,this->m+1);
-  Map<MatrixXd> m_C(this->C,this->n+1,this->m+1);
+  Map<MatrixXd> m_XkD(this->XkD,this->_n+1,this->_m+1);
+  Map<MatrixXd> m_C(this->C,this->_n+1,this->_m+1);
   
   m_linearSubProblem = 2*m_XkD + m_C;
   
@@ -416,6 +439,19 @@ template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getBeta(){
   return S.back() + S[k] -R.back() - this->oldLterm;
+}
+
+
+template<class NodeAttribute, class EdgeAttribute>
+double * IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
+mappingsToMatrix(int * G1_to_G2,int * G2_to_G1, int n, int m, double * Matrix){
+  memset(Matrix,0,sizeof(double)*(n+1)*(m+1));
+  for (int i =0;i<n;i++)
+    Matrix[sub2ind(i,G1_to_G2[i],n+1)] = 1;
+  for (int j =0;j<m;j++)
+    if (G2_to_G1[j] >= n)
+      Matrix[sub2ind(G2_to_G1[j],j,n+1)] = 1;
+  return Matrix;
 }
 
 
