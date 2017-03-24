@@ -56,8 +56,11 @@ double * Dataset<NodeAttribute,EdgeAttribute,PropertyType>::computeGraphEditDist
   double * distances = new double[size()*size()];
   for (int i=0;i<N;i++)
     for (int j=0;j<N;j++)
+      {
       distances[sub2ind(i,j,N)] = (*ed)(graphs[i],graphs[j]);
-
+      std::cout << i << "," << j << '\r';
+      }
+  std::cout << std::endl;
   return distances;
 }
 
