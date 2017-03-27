@@ -3,11 +3,10 @@
  * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
  * @version     0.0.1 - Sat Feb  4 2017
  * 
- * @todo the list of improvements suggested for the file.
- * @bug the list of known bugs.
+ * @todo see TODO marks
+ * @bug see XXX marks
  *  
- * Description of the program objectives.
- * All necessary references.
+ * @brief The class Symbolic Graph implements a special case of graph where both edge and node attributes are symbolic. 
  */
 
 #ifndef __SYMBOLICGRAPH_H__
@@ -16,13 +15,32 @@
 class SymbolicGraph: public Graph<int,int>
 {
 private:
+  /* Function to read Edge Attribute from a GXL file, according to K. Riesen's datasets
+   * @return the label read from file from elem
+   */
   static int readChemicalEdgeLabel(TiXmlElement *elem);
+  /* Function to read Node Attribute from a GXL file, according to K. Riesen's datasets
+   * @return the label read from file from elem
+   */
   static int readChemicalNodeLabel(TiXmlElement *elem);
 
 
 public:
+  /* Constructor to fill a Symbolic graph from a ct file (ChemDraw Connection Table format)
+   * @param filename path to a ct file.
+   */
   SymbolicGraph(const char * filename);
+  
+  /* Constructor to fill a Symbolic graph from an adjacency matrix encoded as a n * n int array. Diagonals elements embed node's labels
+   * @param am adjacency matrix encoded as a int array
+   * @param nb_nodes specify the graph size
+   * @param directed TRUE if graph encoded by am is directed, FALSE otherwise
+   */
   SymbolicGraph(int * am, int nb_nodes, bool directed);
+  
+  /* Return a n*n int array encoding the adjacency matrix corresponding to current graph.
+   * @return a pointer to adjacency matrix
+   */  
   int * getLabeledAdjacencyMatrix();
 };
 

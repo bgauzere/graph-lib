@@ -2,19 +2,15 @@
  * @file SymbolicGraph.cpp
  * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
  * @version     0.0.1 - Sat Feb  4 2017
- * 
- * @todo the list of improvements suggested for the file.
- * @bug the list of known bugs.
- *  
- * Description of the program objectives.
- * All necessary references.
  *
  */
 #include <string>
 #include "SymbolicGraph.h"
 
-static
-std::map<std::string, int> AtomTable;
+/*
+ * Map to convert atom symbol to int
+ */
+static std::map<std::string, int> AtomTable; 
 
 void fillAtomTable(std::map<std::string, int> & AtomTable){
   AtomTable["H"] = 1;
@@ -218,7 +214,7 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
 }
 
 SymbolicGraph::SymbolicGraph(int * am, int nb_nodes, bool directed):Graph<int,int>(directed){
-  for(int n = 0; n<nb_nodes; n++){
+  for(int n = 0; n<nb_nodes; n++){ //We traverse diagonal for node labels
     Add(new GNode<int,int>(n,am[sub2ind(n,n, nb_nodes)]));
   }
    
