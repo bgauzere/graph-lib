@@ -1,6 +1,6 @@
 /*
  * @file test_graph.cpp
- * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Wed Feb  1 2017
  * 
  * @todo the list of improvements suggested for the file.

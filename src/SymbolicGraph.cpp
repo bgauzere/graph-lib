@@ -1,6 +1,6 @@
 /*
  * @file SymbolicGraph.cpp
- * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Sat Feb  4 2017
  *
  */
