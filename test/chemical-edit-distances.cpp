@@ -94,7 +94,7 @@ double * computeGraphEditDistance(Dataset< NodeAttribute, EdgeAttribute, Propert
   if(shuffle)
     dataset->shuffleize();
 
-  double * distances =  dataset->computeGraphEditDistance(ed);
+  double * distances =  dataset->computeGraphEditDistance(ed, true);
   int N = dataset->size();
   double sum =0.0;
   for(int i=0;i<N;i++)

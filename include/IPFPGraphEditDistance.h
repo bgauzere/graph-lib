@@ -142,7 +142,6 @@ double * IPFPGraphEditDistance<NodeAttribute,
   if (! XkD)
     XkD=new double[(n+1)*(m+1)];
 
-  
   return this->QuadraticTerm(g1,g2,mappings, XkD);
     
 }
@@ -256,6 +255,8 @@ double * IPFPGraphEditDistance<NodeAttribute,
 	
 	}
       }
+      if(! this->_directed)
+	quadraticTerm[sub2ind(j,l,n+1)] *= 0.5; 
     }
   }
   return quadraticTerm;
@@ -472,15 +473,14 @@ LinearSubProblem(){
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getCost(double * Matrix, int n, int m){
-  double coeff = (this->_directed)?1:0.5;
-  return coeff*linearCost(this->XkD,Matrix,n+1,m+1)+ this->Lterm;
+  return linearCost(this->XkD,Matrix,n+1,m+1)+ this->Lterm;
 }
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getCost(int * G1_to_G2,int * G2_to_G1, int n, int m){
-  double coeff = (this->_directed)?1:0.5;
-  return coeff*linearCost(this->XkD,G1_to_G2, G2_to_G1,n,m)+ this->Lterm;
+
+  return linearCost(this->XkD,G1_to_G2, G2_to_G1,n,m)+ this->Lterm;
 }
 
 template<class NodeAttribute, class EdgeAttribute>

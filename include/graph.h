@@ -335,7 +335,7 @@ public :
     std::vector<int> perm;
     for (int i=0; i<nbNodes; ++i) perm.push_back(i);
     // using built-in random generator:
-    std::random_shuffle ( perm.begin(), perm.end() );
+    std::random_shuffle ( perm.begin(), perm.end() ); //seed ?
     std::vector<GNode<int,int>*> new_tnode;
     std::vector<int> inv_tnode(Size());
     for(int i=0;i<nbNodes;i++){

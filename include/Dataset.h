@@ -38,7 +38,7 @@ public:
 
   int size(){return graphs.size();};
 
-  double * computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed);
+  double * computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed, bool quiet = true);
   void shuffleize();
 };
 
@@ -51,16 +51,18 @@ void Dataset<NodeAttribute,EdgeAttribute,PropertyType>::shuffleize(){
 }
 
 template<class NodeAttribute,class EdgeAttribute, class PropertyType>
-double * Dataset<NodeAttribute,EdgeAttribute,PropertyType>::computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed){
+double * Dataset<NodeAttribute,EdgeAttribute,PropertyType>::computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed, bool quiet){
   int N = size();
   double * distances = new double[size()*size()];
   for (int i=0;i<N;i++)
     for (int j=0;j<N;j++)
       {
       distances[sub2ind(i,j,N)] = (*ed)(graphs[i],graphs[j]);
-      std::cout << i << "," << j << '\r';
+      if(!quiet)
+	std::cout << i << "," << j << '\r';
       }
-  std::cout << std::endl;
+  if(!quiet)
+    std::cout << std::endl;
   return distances;
 }
 

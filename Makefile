@@ -18,13 +18,17 @@ _OBJ = utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditD
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 # all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
-all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances
+all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances $(TESTDIR)/benchmark 
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
 
 optim: CXXFLAGS += -O3
 optim: all
+
+
+$(TESTDIR)/benchmark: $(DEPS) $(OBJ) $(TESTDIR)/benchmark.cpp
+	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
 
 $(TESTDIR)/chemical-edit-distances: $(DEPS) $(OBJ) $(TESTDIR)/chemical-edit-distances.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
