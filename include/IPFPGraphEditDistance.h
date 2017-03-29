@@ -200,23 +200,31 @@ double * IPFPGraphEditDistance<NodeAttribute,
 	int k = it->first.second;
 	bool eps_i,eps_j,eps_k,eps_l; 
 	eps_i = (i >= n);eps_j = (j >= n);eps_k = (k >= m);eps_l = (l >= m);
-	   
+
+	GEdge<EdgeAttribute> * e1 = NULL;
 	bool delta_e1 = false;
-	if(!eps_i)
-	  delta_e1 = (g1->getEdge(i,j) != NULL); // false if j>n
+	if ((!eps_i) && (!eps_j)){
+	  e1 = g1->getEdge(i,j);
+	  delta_e1 = (e1 !=NULL);
+	}
+
+	GEdge<EdgeAttribute> * e2 = NULL;
 	bool delta_e2 = false;
-	if(! eps_k)
-	  delta_e2 = (g2->getEdge(k,l) != NULL);// false if l>m
+	if((! eps_k) && (! eps_l)){
+	  e2=g2->getEdge(k,l);
+	  delta_e2 = (e2 != NULL);// false if l>m
+	}
 	double cost = 0.0;
 	//TODO : Optimize if sequence
 	//If (i,j) and (k,l) are both same nodes,
 	//no edges between them, so delta_e1 and delta_e2 are both 0, and so the cost
 	double ced = 0.0;
-	if(! eps_i)
-	  ced =this->cf->EdgeDeletionCost(g1->getEdge(i,j),g1);
+	if(delta_e1)
+	  ced =this->cf->EdgeDeletionCost(e1,g1);
+
 	double cei = 0.0;
-	if(! eps_k)
-	  cei = this->cf->EdgeInsertionCost(g2->getEdge(k,l),g2);
+	if(delta_e2)
+	  cei = this->cf->EdgeInsertionCost(e2,g2);
 
 	if( ((i != j) || eps_i) && ((k != l) || eps_k)){
 	  if ( (!eps_i) && (!eps_j) && (!eps_k) && (!eps_l)){
