@@ -3,45 +3,51 @@
 
 #include <vector>
 #include <map>
-
 #include <fstream>
 #include <cstdlib>
-#include <algorithm>    // std::random_shuffle
+#include <algorithm>    // for std::random_shuffle
 #include <iostream>
 
 #include <tinyxml.h>
+
 #include "utils.h"
 
+/** @brief An oriented edge of a graph.
+ *
+ * The class <code>GEdge</code> defines an oriented graph.
+ * An edge points towards a Node identified by its id. Each edge is associated to a templated attribute.
+ */
+
+// GEdge is a class encoding edges within a graph. The label associated to each edge is templeted by EdgeAttribute
 template<class EdgeAttribute>
 class GEdge{
 private: 
   /** The next neighbourhood node. */
   GEdge *next; 
-   /** The rank of the node in the graph array. */
-  int incident_node; //GNode ?
-  /** The number which identifies the object. */
+  /** The rank of the node in the graph array. */
+  int incident_node; //XXX : How is it difficult to link a GNode ?
+  /** The number identifiing a given edge. */
    int edge_id;
 
 public:
-   /** The attribute of the edge */
-  EdgeAttribute attr;
+   /** Attribute of the edge */
+  EdgeAttribute attr; //TODO : remove from public
   
    /**
-    * Creates a new edge to the specified node, with
-    * the specified weight and the specified next edge.
-    * @param n	the connected node.
-    * @param adj the next edge.
+    * Creates a new edge towards node with id n, attributed by attr and connecting to the GEdge list adj. Note that an edge is always oriented. Non oriented edges are encoded by two symmetric edges
+    * @param n	the incident node.
+    * @param adj the next edge (in a list).
     * @param attr the label.
     */
    GEdge( int n, GEdge *adj, EdgeAttribute attr ): next(adj), incident_node(n), edge_id(-1), attr(attr) {};
 
+  
    /**
-    * Creates a new edge to the specified incident_node, with
-    * the specified weight and the specified next edge.
-    * @param n	the connected incident_node.
-    * @param adj	the next edge.
-    * @param i       the identifier of the edge
-    * @param w	the weight.
+    * Creates a new edge with id i towards node with id n, with attributed by attr and connecting to the GEdge list adj. Note that an edge is always oriented. Non oriented edges are encoded by two symmetric edges
+    * @param n	the incident node.
+    * @param i the identifier of edge.
+    * @param adj the next edge (in a list).
+    * @param attr the label.
     */
    GEdge( int n, GEdge *adj, int i, EdgeAttribute attr): next(adj), incident_node(n), edge_id(i), attr(attr) {};
 
@@ -56,29 +62,33 @@ public:
     */
    int IncidentNode() const { return incident_node; };
 
+  /**
+   * Sets the incident node for a given edge.
+   * @param new_node	the number of the connected incident_node.
+   * XXX: take care of symmetric edges
+   */
   void  setIncidentNode(int new_node)  {  this->incident_node = new_node; };
 
    /**
-    * Returns the next neighbourhood incident_node.
+    * Returns the next edge in the list of edge. Useful to traverse all incident edges from a node (const version).
     * @return	the next edge.
     */
   GEdge<EdgeAttribute>* Next() const { return next; };
 
    /**
-    * Sets a new neighbourhood incident_node.
-    * @param n	the  neighbourhood edge.
-    * @return	the neighbourhood edge.
+    * Returns the next edge in the list of edge. Useful to traverse all incident edges from a node.
+    * @return	the next edge.
     */
   GEdge<EdgeAttribute>* Next( GEdge<EdgeAttribute>* n ) { return next=n; };
 
    /**
-    * Returns the index of the referenced object.
+    * Returns the index of the referenced edge.
     * @return	the index.
     */
    int EdgeId() const { return edge_id; }
 
    /**
-    * Sets the new index of the referenced object.
+    * Sets the new index of the referenced edge.
     * @param i	the new index.
     * @return	the new index of the object.
     */
@@ -88,36 +98,33 @@ public:
 /** @brief A node of a graph.
  *
  * The class <code>GNode</code> defines a node.
- * A node indexes an object in a separate array of objects
- * at specified coordinates in the related image.
- * It is characterized by a value and a list
- * of connected nodes.
+ * A node corresponds to an element of a graph. Each Node is associated to an templated attribute and linked to other nodes through <code><GEdge/code>.
  */
 template <class NodeAttribute, class EdgeAttribute>
 class GNode{
 private:
-  /** The list of the adjacent nodes. */
+  /** The list of incident edges. */
   GEdge<EdgeAttribute> *adjacents;
-  /** The number which identifies the object. */
+  /** The id of the node in the graph. */
   int item;
 
 public :
-  /** The valuation of the node. */
+  /** The attribute of the node.
+   * TODO: remove from public
+   */
   NodeAttribute attr;	
 
   /**
-   * Creates a new node with the specified index,
-   * and the specified coordinates.
-   * @param i	the index of the referenced object.
-   * @param p	the specified coordinates.
+   * Creates a new node with the specified id,
+   * and the specified attribute.
+   * @param i	the identifier of the node in the graph.
+   * @param attr  the label associated to the node.
    */
   GNode<NodeAttribute, EdgeAttribute>( int i, NodeAttribute attr ): adjacents(0), item(i), attr(attr) { };
 
   /*
    * Node destructor.
-   * -> Destroy the list of adjacent node,
-   * without worrying about linked nodes.
-   * What about attr ?
+   * XXX: -> Destroy the list of adjacent node, without worrying about linked nodes.  What about attr ?
    */
   ~GNode(){
     GEdge<EdgeAttribute> *q,*p=adjacents;
@@ -129,36 +136,58 @@ public :
   };
 
   /**
-   * Returns the list of all the connected nodes.
-   * @return	the list of connected nodes.
+   * Returns the list of all incident edges.
+   * @return	the list of incident edges.
    */
   GEdge<EdgeAttribute> * getIncidentEdges() const { return adjacents; };
 
+  /** 
+   * Connect the current node to another node identified by incidentNode. Specify the label of corresponding edge
+   * @param incidentNode The identified to the node to be connected
+   * @param label  The label of new edge
+   * XXX: Check for directed graphs.
+   * XXX: Only manage GNode ?
+   */
   GEdge<EdgeAttribute> * Connect( int incidentNode, EdgeAttribute label ) { //XXX: Check for link already here
     return ( adjacents=new GEdge<EdgeAttribute>( incidentNode, adjacents, label ) );
   };
   
+
+  /** 
+   * Connect the current node to another node identified by incidentNode. Specify the label of corresponding edge. 
+   * @param incidentNode The identified to the node to be connected
+   * @param edge_id  The identifier of new edge
+   * @param label  The label of new edge
+   * XXX: Check for directed graphs.
+   * XXX: Only manage GNode ?
+   * XXX: Check for integrity of edge_id
+   */
   GEdge<EdgeAttribute> * Connect( int incidentNode, int edge_id, EdgeAttribute attr){
     return ( adjacents=new GEdge<EdgeAttribute>( incidentNode, adjacents, edge_id, attr ) );
   };
 
+  /**
+   * Returns the degree of a node 
+   * @return the degree
+   */
   int Degree(){
     int degree = 0;
     GEdge<EdgeAttribute>* p = adjacents;
     while(p) {degree ++;p=p->Next();}
     return degree;	       
   };
+  
   /**
-   * Deletes the specified node from the list of connected nodes.
-   * @param n	the specified node.
-   * @return the new list of edges.
+   * Deletes the specified node from the list of connected nodes by deleting corresponding edge.
+   * @param incidentNode  the specified node to unlink.
+   * @return the updated list of edges.
    */
   GEdge<EdgeAttribute>* UnConnect( int incidentNode ){
     GEdge<EdgeAttribute> *p = getIncidentEdges();
     GEdge<EdgeAttribute> *q;
    
     if (!p) return NULL;
-    if(p->IncidentNode() == incidentNode){
+    if(p->IncidentNode() == incidentNode){ //First edge is the one; we delete it (special case).
       adjacents = p->Next();
       delete p;
     }
@@ -166,7 +195,7 @@ public :
    
     while (p->Next())
       {
-	if(p->Next()->IncidentNode() == incidentNode){
+	if(p->Next()->IncidentNode() == incidentNode){//We found corresponding edge; we delete it.
 	  q = p->Next();
 	  p->Next(q->Next());
 	  delete q;
@@ -192,20 +221,13 @@ public :
 
 /** @brief A 2D graph.
  *
- * A graph is a set of nodes connected to some other nodes.
- * The two types of graph are supported: directed and undirected;
- * the type must be specified with the constructor.
- * A node is characterized by a value which determines if the
- * node is active in the representation of the graph or not.
- * A node can be any of the Pandore object. It indexes an 
- * item in a separate array of items. (The secret is to use an
- * item as a pointer to a specific objet in an array [no type]).
- * <br>For the use of Graph2d see @ref graph_page.
+ * A graph is a set of nodes connected together. A graph can be directed and undirected;
+ * The graph is associated to two templated parameters : Edge and Node attributes.
  */
 template< class NodeAttribute, class EdgeAttribute>
 class Graph {
 private :
-  std::vector<GNode<NodeAttribute, EdgeAttribute> *> tnode;
+  std::vector<GNode<NodeAttribute, EdgeAttribute> *> tnode; //List of nodes. tnode[i] corresponds to node with id i
   int nbNodes;
   int nbEdges;
   bool _directed;
@@ -214,12 +236,22 @@ private :
   
 public :
   /**
-   * Constructor from a gxl file
+   * Constructor from a gxl file. GXL file corresponds to a generic file format for graphs. See ?? for a complete description
+   * @param GXL filename
+   * @param readNodeLabel function to read a Node attribute node in gxl file. Must be specific to NodeAttribute type 
+   * @param readEdgeLabel function to read an Edge attribute node in gxl file. Must be specific to EdgeAttribute type
+   * XXX: find reference for gxl
    */
-  Graph(const char * filename, NodeAttribute (*readNodeLabel)(TiXmlElement *elem),
+  Graph(const char * filename,
+	NodeAttribute (*readNodeLabel)(TiXmlElement *elem),
 	EdgeAttribute (*readEdgeLabel)(TiXmlElement *elem));
   
-  
+  /**
+   * Fills current graph with contents read from a gxl file
+   * @param GXL filename
+   * @param readNodeLabel function to read a Node attribute node in gxl file. Must be specific to NodeAttribute type 
+   * @param readEdgeLabel function to read an Edge attribute node in gxl file. Must be specific to EdgeAttribute type
+   */
   void GraphLoadGXL(const char * filename,
 		    NodeAttribute (*readNodeLabel)(TiXmlElement *elem),
 		    EdgeAttribute (*readEdgeLabel)(TiXmlElement *elem));
@@ -235,6 +267,7 @@ public :
   };
   
   /**
+   * 
    * @return true if the graph is directed.
    */
   bool isDirected() const { return _directed; }
@@ -243,6 +276,12 @@ public :
    * @return	the size.
    */
   int Size() { return nbNodes; };
+  /**
+   * Returns the number of edges.
+   * @return	the number of edges.
+   * XXX: Accord it with graph theory terms order and size
+   */
+  
   int getNbEdges() const { return _directed?nbEdges:nbEdges/2; }
   /**
    * Creates a new graph with no data.
@@ -250,30 +289,25 @@ public :
    */
   Graph( bool directed =false): tnode(0), nbNodes(0), nbEdges(0), _directed(directed) { }
 
-  
+      
   /**
-   * Build a graph according to information encoded in filename.
-   * The file corresponding to filename must be in ct (chemDraw) format.
+   * Returns the node with the  specified identifier.
+   * @param id	the identifier.
+   * @return	the corresponding node.
    */
-    
-  /**
-   * Returns the node at the specified coordinates.
-   * @param pos	the coordinates.
-   * @return	the node at the specified coordinates.
-   */
-  GNode<NodeAttribute, EdgeAttribute> *operator[]( int pos ){ return(tnode[pos]); }
+  GNode<NodeAttribute, EdgeAttribute> *operator[]( int id ){ return(tnode[id]); }
 
   /**
-   * Returns the node at the specified coordinates.
-   * @param pos	the coordinates.
-   * @return	the node at the specified coordinates.
+   * Returns the node with the  specified identifier (const version).
+   * @param id	the identifier.
+   * @return	the corresponding node.
    */
   const GNode<NodeAttribute, EdgeAttribute> *operator[]( int pos ) const { return(tnode[pos]); }
    
   /**
-   * Adds the specified node that references the specified item. 
-   * @param node	the new Node
-   * @return	index du noeud.
+   * Adds a new node to the graph. 
+   * @param node the new Node
+   * @return  id of the node.
    */
   int Add( GNode<NodeAttribute, EdgeAttribute>* node ){
     tnode.push_back(node);
@@ -294,7 +328,15 @@ public :
     nbNodes --;
     return oldNode;
   };
-
+  
+  /**
+   * Connects two nodes in the graph. Unlike <code>Connect</code> method, if the graph is undirected, creates the symmetric edge
+   * @param firstNode first node to be connected
+   * @param secondNode second node to be connected   
+   * @param label the attribute associated to created edge(s)
+   * @return created <code>GEdge</code>.
+   */
+  
   GEdge<EdgeAttribute> * Link(int firstNode, int secondNode , EdgeAttribute label){
     GEdge<EdgeAttribute> * e = NULL;
     if (tnode[firstNode] != NULL && tnode[secondNode] != NULL){
@@ -309,10 +351,20 @@ public :
   };
   //TODO : UnLink !
 
+  /*
+   * Returns true if both nodes are linked.
+   * @return TRUE if edge exists, FALSE otherwise.
+   */
   bool isLinked(int firstNode, int secondNode){
    return (getEdge(firstNode,secondNode) != NULL);      
   };
-  
+
+  /*
+   * Retrieves <code>GEdge</code> between two nodes.
+   * @param firstNode first incident node connecting the desired edge
+   * @param secondNode sedond incident node connecting the desired edge
+   * @return TRUE if edge exists, FALSE otherwise.
+   */
   GEdge<EdgeAttribute> * getEdge(int firstNode, int secondNode){
     GEdge<EdgeAttribute> *p = tnode[firstNode]->getIncidentEdges();
     while(p){
@@ -324,12 +376,21 @@ public :
     return NULL;      
   };
   
+  /*
+   * Retrieves the symmetric <code>GEdge</code> of a given edge emaning from a node.
+   * @param nodeId Node incident to desired Edge.
+   * @param p the edge
+   * @return the symmetric <code>GEdge</code> of p. NULL if not found.
+   */
   GEdge<EdgeAttribute> * getSymmetricEdge(int nodeId,const GEdge<EdgeAttribute> * p){
    if(!_directed){
       return getEdge(p->IncidentNode(), nodeId);
    }
    return NULL;
   };
+  /* Compute a random permutation of the list of nodes contained in the graph. Modify the underlying structure according to this permutatation
+   *
+   */
   void shuffleize(){
     // set some values:
     std::vector<int> perm;
@@ -338,10 +399,12 @@ public :
     std::random_shuffle ( perm.begin(), perm.end() ); //seed ?
     std::vector<GNode<int,int>*> new_tnode;
     std::vector<int> inv_tnode(Size());
+    //Modification of list nodes
     for(int i=0;i<nbNodes;i++){
       new_tnode.push_back(tnode[perm[i]]);
       inv_tnode[perm[i]] = i;
     }
+    //Application of node permuations to graph'edges
     for(int i=0;i<nbNodes;i++){
       GEdge<EdgeAttribute> *p = tnode[i]->getIncidentEdges();
       while(p){
@@ -349,9 +412,10 @@ public :
 	p = p->Next();
       }
     }
+    //Update the list of nodes
     for(int i=0;i<nbNodes;i++)tnode[i] = new_tnode[i];
   }
-};
+}; //End of class graph
 
 template < class NodeAttribute, class EdgeAttribute>
 void Graph<NodeAttribute,EdgeAttribute>::GraphLoadGXL(const char * filename,
@@ -359,10 +423,11 @@ void Graph<NodeAttribute,EdgeAttribute>::GraphLoadGXL(const char * filename,
 						       EdgeAttribute (*readEdgeLabel)(TiXmlElement *elem)){
   std::ifstream file(filename,std::ios::in);
   std::vector<char*> v;
+  //XXX: find gxl property for this point
   _directed = false;
   TiXmlDocument doc(filename );
   if(!doc.LoadFile()){
-    std::cerr << "erreur lors du chargement" << std::endl;
+    std::cerr << "Error while loading file" << std::endl;
     std::cerr << "error #" << doc.ErrorId() << " : " << doc.ErrorDesc() << std::endl;
   }
    
@@ -375,16 +440,13 @@ void Graph<NodeAttribute,EdgeAttribute>::GraphLoadGXL(const char * filename,
       NodeAttribute label = readNodeLabel(elem);
       id_to_index[id] = nbNodes;
       Add(new GNode<NodeAttribute, EdgeAttribute>(id,label));
-      
     }else if (strcmp(elem->Value(),"edge") == 0){
         int from=-1;
         int to=-1;
-
 	from = std::stoi(elem->Attribute("from"));
 	to = std::stoi(elem->Attribute("to"));
 	EdgeAttribute label = readEdgeLabel(elem);
 	Link(id_to_index[from], id_to_index[to],label);	      
-	
     }
     elem = elem->NextSiblingElement(); // iteration
   }
@@ -394,16 +456,5 @@ template<class NodeAttribute, class EdgeAttribute>
 Graph<NodeAttribute,EdgeAttribute>::Graph(const char * filename, NodeAttribute (*readNodeLabel)(TiXmlElement *elem),EdgeAttribute (*readEdgeLabel)(TiXmlElement *elem)){
   GraphLoadGXL(filename, readNodeLabel,readEdgeLabel);
 }
-
-
-/**
- * Initialize a graph nb_nodes and corresponding to adjacency matrix am
- * the format of am is the following : 
- * am[i][j] : label of edge between nodes i and j, 0 if no edge
- * am[i][i] : label of node i
- */
-// static
-// 
-
 
 #endif // __PGRAPHH__

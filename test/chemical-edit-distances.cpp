@@ -147,8 +147,8 @@ int main (int argc, char** argv)
     RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,options->k);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
   } else if(options->method == string("gnccp")){
-    RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,3 );
-    ed = new GNCCPGraphEditDistance<int,int>(cf,ed_init);
+    //RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,3 );
+    ed = new GNCCPGraphEditDistance<int,int>(cf);//,ed_init);
   } else{
     cerr << "Undefined graph edit distance algorithm "<< endl;
     usage(argv[0]);

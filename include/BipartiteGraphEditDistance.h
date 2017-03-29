@@ -26,8 +26,8 @@ protected:
 
 protected:
   virtual void computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
-			 Graph<NodeAttribute,EdgeAttribute> * g2);
-
+				 Graph<NodeAttribute,EdgeAttribute> * g2);
+         
   double SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
 			  GNode<NodeAttribute,EdgeAttribute> * v2,
 			  Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -42,7 +42,7 @@ protected:
 public:
   BipartiteGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction){};
-    
+
   // virtual double operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
   // 			    Graph<NodeAttribute,EdgeAttribute> * g2);
 
