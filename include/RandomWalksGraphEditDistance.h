@@ -1,11 +1,11 @@
 /**
  * @file RandomWalksGraphEditDistance.h
- * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>>
  * @version     0.0.1 - Wed Feb  8 2017
- * 
+ *
  * @todo the list of improvements suggested for the file.
  * @bug the list of known bugs.
- *  
+ *
  * Description of the program objectives.
  * All necessary references.
  */
@@ -24,10 +24,10 @@ using namespace Eigen;
 class RandomWalksGraphEditDistance:
   public BipartiteGraphEditDistance<int, int>
 {
-private:
+protected:
   ConstantEditDistanceCost * cf;
   int _k;
-  
+
   static int * labeledKron(int *m1, int nb_rows_m1,int nb_cols_m1,
 			   int * m2, int nb_rows_m2, int nb_cols_m2,
 			   int sizeWx[2]);
@@ -35,7 +35,7 @@ private:
 
   void computeCostMatrix(Graph<int,int> * g1,
 			 Graph<int,int> * g2);
-  
+
 public:
   RandomWalksGraphEditDistance(ConstantEditDistanceCost * costFunction, int k):
     BipartiteGraphEditDistance<int,int>(costFunction),cf(costFunction),_k(k){};

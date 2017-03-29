@@ -23,6 +23,7 @@
 #include "BipartiteGraphEditDistance.h"
 #include "BipartiteGraphEditDistanceMulti.h"
 #include "RandomWalksGraphEditDistance.h"
+#include "RandomWalksGraphEditDistanceMulti.h"
 #include "IPFPGraphEditDistance.h"
 #include "GNCCPGraphEditDistance.h"
 #include "utils.h"
@@ -140,6 +141,8 @@ int main (int argc, char** argv)
     ed = new BipartiteGraphEditDistanceMulti<int,int>(cf, options->nep);
   else if( options->method == string("lsape_rw"))
     ed = new RandomWalksGraphEditDistance(cf,options->k);
+  else if( options->method == string("lsape_rw_multi") )
+    ed = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
   else if(options->method == string("ipfpe_bunke")){
     BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);

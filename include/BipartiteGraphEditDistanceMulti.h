@@ -8,7 +8,7 @@
 #define __BIPARTITEGRAPHEDITDISTANCEMULTI_H__
 
 #include "BipartiteGraphEditDistance.h"
-#include "AllPerfectMatchings.h"
+#include "AllPerfectMatchings-ec.h"
 
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistanceMulti :
@@ -121,6 +121,7 @@ operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
     for (int j=0; j<m; j++) G2_to_G1[j] = 0; // deconnect all
     for (int i=0; i<n; i++) G2_to_G1[G1_to_G2[i]] = i; // construct G2_to_G1
     nged = this->GedFromMapping(g1, g2, G1_to_G2,n, G2_to_G1,m);
+    std::cout << nged << std::endl;
 
     if (ged > nged || ged == -1)
       ged = nged;
@@ -129,6 +130,7 @@ operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
   for (it=mappings.begin(); it!=mappings.end(); it++)
     delete[] *it;
 
+  std::cout << std::endl;
   delete [] G2_to_G1;
   return ged;
 }
