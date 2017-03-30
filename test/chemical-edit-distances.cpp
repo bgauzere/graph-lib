@@ -2,10 +2,10 @@
  * @file test_graph.cpp
  * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Wed Feb  1 2017
- * 
+ *
  * @todo the list of improvements suggested for the file.
  * @bug the list of known bugs.
- *  
+ *
  * Description of the program objectives.
  * All necessary references.
  *
@@ -21,7 +21,9 @@
 #include "SymbolicGraph.h"
 #include "ConstantGraphEditDistance.h"
 #include "BipartiteGraphEditDistance.h"
+#include "BipartiteGraphEditDistanceMulti.h"
 #include "RandomWalksGraphEditDistance.h"
+#include "RandomWalksGraphEditDistanceMulti.h"
 #include "IPFPGraphEditDistance.h"
 #include "GNCCPGraphEditDistance.h"
 #include "utils.h"
@@ -37,6 +39,8 @@ void usage (char * s)
   cerr << "\t \t Specify a filename for outputing gram matrix" << endl;
   cerr << "\t -c cns,cni,cnd,ces,cei,ced " << endl;
   cerr << "\t \t Specify edit operation costs" << endl;
+  cerr << "\t -p n_edit_paths " << endl;
+  cerr << "\t \t Specify the number of edit paths to compute GED (lsape_multi)" << endl;
 }
 
 struct Options{
@@ -51,14 +55,15 @@ struct Options{
   double ced = 3;
   bool shuffle = false;
   int k = 3;
+  int nep = 100; // number of edit paths for allsolution
 };
-  
+
 struct Options * parseOptions(int argc, char** argv){
   struct Options * options = new struct Options();
   options->dataset_file = string(argv[1]);
   int opt;
   stringstream sstream;
-  while ((opt = getopt(argc, argv, "m:o:c:s")) != -1) {
+  while ((opt = getopt(argc, argv, "m:o:c:sp:")) != -1) {
     switch (opt) {
     case 'm':
       options->method = string(optarg);
@@ -78,6 +83,10 @@ struct Options * parseOptions(int argc, char** argv){
     case 's':
       options->shuffle=true;
       break;
+    case 'p':
+      sstream << optarg;
+      sstream >> options->nep;
+      break;
     default: /* '?' */
       cerr << "Options parsing failed."  << endl;
       usage(argv[0]);
@@ -86,7 +95,7 @@ struct Options * parseOptions(int argc, char** argv){
   }
   return options;
 }
-  
+
 template <class NodeAttribute, class EdgeAttribute, class PropertyType>
 double * computeGraphEditDistance(Dataset< NodeAttribute, EdgeAttribute, PropertyType> * dataset,
 				  GraphEditDistance<NodeAttribute, EdgeAttribute> * ed,
@@ -107,7 +116,7 @@ double * computeGraphEditDistance(Dataset< NodeAttribute, EdgeAttribute, Propert
 
 int main (int argc, char** argv)
 {
-  
+
   struct Options * options =   parseOptions(argc,argv);
   cout << "dataset : " << options->dataset_file << endl;
   cout << "methods : " << options->method << endl;
@@ -120,6 +129,7 @@ int main (int argc, char** argv)
   cout << "\t ced : " << options->ced << endl;
   cout << "Shuffle : " << options->shuffle << endl;
   cout << "k : " << options->k << endl;
+  cout << "nep : " << options->nep << endl;
 
   options->k = 3;
   ConstantEditDistanceCost * cf = new ConstantEditDistanceCost(options->cns,options->cni, options->cnd,
@@ -127,8 +137,12 @@ int main (int argc, char** argv)
   GraphEditDistance<int,int>* ed;
   if(options->method == string("lsape_bunke"))
     ed = new BipartiteGraphEditDistance<int,int>(cf);
+  else if( options->method == string("lsape_multi") )
+    ed = new BipartiteGraphEditDistanceMulti<int,int>(cf, options->nep);
   else if( options->method == string("lsape_rw"))
     ed = new RandomWalksGraphEditDistance(cf,options->k);
+  else if( options->method == string("lsape_rw_multi") )
+    ed = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
   else if(options->method == string("ipfpe_bunke")){
     BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
@@ -143,12 +157,12 @@ int main (int argc, char** argv)
     usage(argv[0]);
     return EXIT_FAILURE;
   }
-  
+
   ChemicalDataset<double> * dataset = new ChemicalDataset<double>(options->dataset_file.c_str());
   double * distances = computeGraphEditDistance(dataset,ed,options->shuffle);
 
   //Saving distance matrix if required
-  //Output average distances 
+  //Output average distances
   cout << mean(distances,dataset->size()*dataset->size())<< endl;
 
   return 0;

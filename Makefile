@@ -20,6 +20,9 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 # all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
 all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances $(TESTDIR)/benchmark 
 
+profile: CXXFLAGS += -pg -O3
+profile: all
+
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
 

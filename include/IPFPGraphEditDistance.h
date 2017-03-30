@@ -230,23 +230,23 @@ double * IPFPGraphEditDistance<NodeAttribute,
 	  quadraticTerm[sub2ind(j,l,n+1)] +=  cost*it->second;
 	  
 	}
-#if DEBUG
-	std::cout << "i : " << i<< std::endl;
-	std::cout << "j : " << j<< std::endl;
-	std::cout << "k : " << k<< std::endl;
-	std::cout << "l : " << l<< std::endl;
+// #if DEBUG
+// 	std::cout << "i : " << i<< std::endl;
+// 	std::cout << "j : " << j<< std::endl;
+// 	std::cout << "k : " << k<< std::endl;
+// 	std::cout << "l : " << l<< std::endl;
 
-	std::cout << "eps i : " << eps_i<< std::endl;
-	std::cout << "eps j : " << eps_j<< std::endl;
-	std::cout << "eps k : " << eps_k<< std::endl;
-	std::cout << "eps l : " << eps_l<< std::endl;
+// 	std::cout << "eps i : " << eps_i<< std::endl;
+// 	std::cout << "eps j : " << eps_j<< std::endl;
+// 	std::cout << "eps k : " << eps_k<< std::endl;
+// 	std::cout << "eps l : " << eps_l<< std::endl;
 
-	std::cout << "delta_e1 : " << delta_e1<< std::endl;
-	std::cout << "delta_e2 : " << delta_e2<< std::endl;
+// 	std::cout << "delta_e1 : " << delta_e1<< std::endl;
+// 	std::cout << "delta_e2 : " << delta_e2<< std::endl;
 
-	std::cout << "cost : " << cost << std::endl;
+// 	std::cout << "cost : " << cost << std::endl;
 
-#endif
+// #endif
       } 
       if(! this->_directed)
       	quadraticTerm[sub2ind(j,l,n+1)] *= 0.5;
