@@ -11,10 +11,10 @@ SRCDIR = ./src
 _DEPS = graph.h  utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h BipartiteGraphEditDistance.h RandomWalksGraphEditDistance.h IPFPGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_SRCDEPS = utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp
+_SRCDEPS = utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp RandomWalksGraphEditDistanceMulti.cpp  
 DEPS_SRC += $(patsubst %,$(SRCDIR)/%,$(_DEPS_SRC))
 
-_OBJ = utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o
+_OBJ = utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o RandomWalksGraphEditDistanceMulti.o  
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 # all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
