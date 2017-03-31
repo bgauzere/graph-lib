@@ -75,17 +75,20 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   IOFormat OctaveFmt(StreamPrecision, 0, ", ", ";\n", "", "", "[", "]");
   std::cout << m_Xk.format(OctaveFmt) << std::endl;
 #endif
-  
-  while(this->_zeta > -1){
+  bool flag = true;
+  while((this->_zeta > -1) && flag){
     this->sub_algo->setZeta(this->_zeta);
     this->sub_algo->IPFPalgorithm(g1,g2);
 #if DEBUG
+    std::cout << "zeta : " << this->_zeta << std::endl;
     std::cout << m_Xk.format(OctaveFmt) << std::endl;
 #endif
     this->_zeta -= this->_d;
+    flag = (m_Xk.array().round() - m_Xk.array()).abs().sum();
   }
 
 #if DEBUG
+  std::cout << "zeta final : " << this->_zeta << std::endl;
   std::cout << m_Xk.format(OctaveFmt) << std::endl;
 #endif
   m_Xk= m_Xk * -1;
