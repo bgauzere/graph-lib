@@ -5,7 +5,10 @@
  *
  */
 #include <string>
+#include <map>
+
 #include "SymbolicGraph.h"
+using namespace std;
 
 /*
  * Map to convert atom symbol to int
@@ -232,8 +235,14 @@ SymbolicGraph::SymbolicGraph(int * am, int nb_nodes, bool directed):Graph<int,in
 int * SymbolicGraph::getLabeledAdjacencyMatrix(){
   int * am=new int[Size()*Size()];
   memset(am,0,sizeof(int)*Size()*Size());
+  map<int,int> conv_nodes;
+  int index = 1;
+  for(int i=0;i<Size();i++)
+    if(conv_nodes.find((*this)[i]->attr) == conv_nodes.end())
+      conv_nodes[(*this)[i]->attr] = index++;
+  
   for(int i=0;i<Size();i++){
-    am[sub2ind(i,i,Size())] = (*this)[i]->attr;
+    am[sub2ind(i,i,Size())] = conv_nodes[(*this)[i]->attr];
     GEdge<int> * e = (*this)[i]->getIncidentEdges();
     while(e){
       int j = e->IncidentNode();
