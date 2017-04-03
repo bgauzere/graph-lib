@@ -165,5 +165,9 @@ int main (int argc, char** argv)
   //Output average distances
   cout << mean(distances,dataset->size()*dataset->size())<< endl;
 
+  delete ed;
+  delete dataset;
+  delete cf;
+
   return 0;
 }

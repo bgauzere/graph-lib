@@ -16,6 +16,7 @@ class RandomWalksGraphEditDistanceMulti :
 {
 private:
   int nep;
+  double* Clsap;
 
 public:
 
@@ -23,6 +24,13 @@ public:
     RandomWalksGraphEditDistance(costFunction, k),
     nep(nep)
   {}
+
+protected:
+
+    /**
+     * @brief Compute the cost matrix corresponding to the lsap given C
+     */
+    virtual void computeCostMatrixLSAP(int n, int m);
 
 public:
 
@@ -51,6 +59,8 @@ public:
   virtual double operator() (Graph<int,int> * g1,
                              Graph<int,int> * g2);
   //*/
+
+  virtual ~RandomWalksGraphEditDistanceMulti();
 };
 
 #endif // __RANDOMWALKSGRAPHEDITDISTANCEMULTI_H__
