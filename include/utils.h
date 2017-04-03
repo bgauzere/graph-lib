@@ -1,6 +1,6 @@
 /**
  * @file utils.h
- * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Thu Feb  2 2017
  * 
  * @todo the list of improvements suggested for the file.

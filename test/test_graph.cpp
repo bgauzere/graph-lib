@@ -1,6 +1,6 @@
 /*
  * @file test_graph.cpp
- * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Wed Feb  1 2017
  * 
  * @todo the list of improvements suggested for the file.
@@ -104,7 +104,11 @@ int main (int argc, char** argv)
   ChemicalDataset<double> AcyclicDataset("/home/bgauzere/work/Datasets/Acyclic/dataset_bps.ds");
   //AcyclicDataset.shuffleize();
   //  cout << "Distance : " << (*ed_gnccp)(AcyclicDataset[1],AcyclicDataset[81])  << endl;
-  cout << "Distance : " << (*ed_gnccp_rw)(AcyclicDataset[1],AcyclicDataset[81])  << endl;
+  // for (int i = 100;i<110;i++)
+  //   for (int j = 100;j<110;j++)
+  //     cout << "Distance : " << (*ed_gnccp)(AcyclicDataset[i],AcyclicDataset[j])  << endl;
+  cout << "Distance : " << (*ed_rw)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
+  
   return 0;
 
 

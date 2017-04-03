@@ -1,6 +1,6 @@
 /**
  * @file RandomWalksGraphEditDistance.h
- * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>>
+ * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Wed Feb  8 2017
  *
  * @todo the list of improvements suggested for the file.

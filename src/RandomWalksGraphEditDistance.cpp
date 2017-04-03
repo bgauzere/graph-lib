@@ -1,6 +1,6 @@
 /*
  * @file RandomWalksGraphEditDistance.cpp
- * @author Benoit <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Wed Feb  8 2017
  * 
  * @todo the list of improvements suggested for the file.
@@ -170,6 +170,17 @@ MatrixXi RandomWalksGraphEditDistance::histoLab(int nbLab,  RowVectorXi IL, Matr
   for (int i=0;i<nbLab;i++)
     for(int j=0;j<W.rows();j++)
       L(i,j) = (IL(j)-1== i);
+#if DEBUG
+  IOFormat OctaveFmt(StreamPrecision, 0, ", ", ";\n", "", "", "[", "]");
+  std::cout << "IL" << std::endl;
+  std::cout << IL.format(OctaveFmt) << std::endl;
+  std::cout << "L" << std::endl;
+  std::cout << L.format(OctaveFmt) << std::endl;
+  std::cout << "W" << std::endl;
+  std::cout << W.format(OctaveFmt) << std::endl;
+  std::cout << "L*W" << std::endl;
+  std::cout << (L*W).format(OctaveFmt) << std::endl;
+#endif
   return L * W;
     
 }

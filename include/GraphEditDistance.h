@@ -1,6 +1,6 @@
 /**
  * @file GraphEditDistance.h
- * @author Benoit Gaüzère <<benoit.gauzere@greyc.ensicaen.fr>> 
+ * @author Benoit Gaüzère <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Tue Jan 26 2016
  * 
  * @todo the list of improvements suggested for the file.
