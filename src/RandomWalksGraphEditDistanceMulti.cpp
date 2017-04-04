@@ -109,21 +109,19 @@ getKOptimalMappings(Graph<int,int> * g1,
 }
 
 
-
- double RandomWalksGraphEditDistanceMulti::
- operator() (Graph<int,int> * g1,
-             Graph<int,int> * g2,
-             const int& k)
+void RandomWalksGraphEditDistanceMulti::
+getOptimalMapping (Graph<int,int> * g1,
+                   Graph<int,int> * g2,
+                   int * G1_to_G2, int * G2_to_G1 )
 {
   int n=g1->Size();
   int m=g2->Size();
 
-  std::list<int*> mappings = getKOptimalMappings(g1, g2, k);
+  std::list<int*> mappings = getKOptimalMappings(g1, g2, nep);
 
   // Get the min of ged;
-  double ged = -1;  double nged;
-  int* G1_to_G2 = new int[n+1];
-  int* G2_to_G1 = new int[m+1];
+  ged = -1.0;
+  double nged;
 
   typename std::list<int*>::const_iterator it;
   for (it=mappings.begin(); it!=mappings.end(); it++){
@@ -157,6 +155,22 @@ getKOptimalMappings(Graph<int,int> * g1,
 
   for (it=mappings.begin(); it!=mappings.end(); it++)
     delete[] *it;
+
+}
+
+
+ double RandomWalksGraphEditDistanceMulti::
+ operator() (Graph<int,int> * g1,
+             Graph<int,int> * g2,
+             const int& k)
+{
+  int n=g1->Size();
+  int m=g2->Size();
+
+  int* G1_to_G2 = new int[n+1];
+  int* G2_to_G1 = new int[m+1];
+
+  getOptimalMapping(g1, g2, G1_to_G2, G2_to_G1);
 
   delete [] G1_to_G2;
   delete [] G2_to_G1;

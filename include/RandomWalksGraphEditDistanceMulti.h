@@ -17,12 +17,14 @@ class RandomWalksGraphEditDistanceMulti :
 private:
   int nep;
   double* Clsap;
+  double ged;
 
 public:
 
   RandomWalksGraphEditDistanceMulti(ConstantEditDistanceCost * costFunction, int k, int nep):
     RandomWalksGraphEditDistance(costFunction, k),
-    nep(nep)
+    nep(nep),
+    ged(-1.0)
   {}
 
 protected:
@@ -33,6 +35,18 @@ protected:
     virtual void computeCostMatrixLSAP(int n, int m);
 
 public:
+
+  double getGED() {return ged; } //!< if the returned value is -1, the ged has not been computed @see getOptimalMapping
+
+  /**
+   * @brief compute an optimal mapping between <code>g1</code> and <code>g2</code>
+   *        from k different optimal mappings by minimizing the ged optained
+   * @note The GED is computed and set in <code>ged</code>
+   */
+  virtual void getOptimalMapping( Graph<int,int> * g1,
+                                  Graph<int,int> * g2,
+                                  int * G1_to_G2, int * G2_to_G1 );
+
 
   /**
    * @brief Allocate and retruns $k$ optimal mappings between <code>g1</code> and <code>g2</code>
