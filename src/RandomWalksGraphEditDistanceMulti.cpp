@@ -42,8 +42,19 @@ getKOptimalMappings(Graph<int,int> * g1,
   // Compute C
   delete [] this->C;     this->C = NULL;
   delete [] this->Clsap; this->Clsap = NULL;
+
+#if XP_OUTPUT
+  auto start = std::chrono::steady_clock::now();
+#endif
   this->computeCostMatrix(g1, g2);
   this->computeCostMatrixLSAP(n,m);
+#if XP_OUTPUT
+  auto end = std::chrono::steady_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << elapsed.count() << ":";
+
+  start = std::chrono::steady_clock::now();
+#endif
 
   // Compute an optimal assignement
   double *u = new double[n+1];
@@ -87,6 +98,10 @@ getKOptimalMappings(Graph<int,int> * g1,
   for (int j=0; j<m; j++) lv[j] = v[j];
   for (int j=m; j<n+m; j++) lv[j] = 0;
 
+#if XP_OUTPUT
+  // perform XP_TIME_SAMPLES mesures
+  for (int _nts=0; _nts<XP_TIME_SAMPLES; _nts++){
+#endif
 
   // Compute the k optimal mappings
   cDigraph<int> edg = equalityDigraph<double,int> (this->Clsap, n+m, n+m, rhoperm, lu, lv);
@@ -96,6 +111,13 @@ getKOptimalMappings(Graph<int,int> * g1,
 
   // Add the first one to the list
   mappings.push_front(rhoperm);
+
+#if XP_OUTPUT
+  } // end for 1..XP_TIME_SAMPLES
+  end = std::chrono::steady_clock::now();
+  elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << elapsed.count() / XP_TIME_SAMPLES << ":";
+#endif
 
   delete [] epsAssign;
   delete [] u;
@@ -118,6 +140,10 @@ getOptimalMapping (Graph<int,int> * g1,
   int m=g2->Size();
 
   std::list<int*> mappings = getKOptimalMappings(g1, g2, nep);
+
+#if XP_OUTPUT
+  auto start = std::chrono::steady_clock::now();
+#endif
 
   // Get the min of ged;
   ged = -1.0;
@@ -153,6 +179,13 @@ getOptimalMapping (Graph<int,int> * g1,
       ged = nged;
   }
 
+#if XP_OUTPUT
+  auto end = std::chrono::steady_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << elapsed.count() << ":";
+  std::cout << (mappings.size() == nep) << ":";
+#endif
+
   for (it=mappings.begin(); it!=mappings.end(); it++)
     delete[] *it;
 
@@ -166,11 +199,63 @@ getOptimalMapping (Graph<int,int> * g1,
 {
   int n=g1->Size();
   int m=g2->Size();
+  std::list<int*> mappings = getKOptimalMappings(g1, g2, k);
 
+#if XP_OUTPUT
+  auto start = std::chrono::steady_clock::now();
+#endif
+
+  ged = -1;  double nged;
   int* G1_to_G2 = new int[n+1];
   int* G2_to_G1 = new int[m+1];
 
-  getOptimalMapping(g1, g2, G1_to_G2, G2_to_G1);
+  //XXX There is a bug here :
+  //    if getKOptimalMappings is called after the allocation of G1_to_G2 and G2_to_G1
+  //    then the cost matrix computed is (sometimes) false
+  //    This happens even if getKOptimalMappings is called from another member function as getOptimalMapping
+  //TODO fix this bug so we can avoid code pasting like this
+  //this->nep=k;
+  //this->getOptimalMapping(g1, g2, G1_to_G2, G2_to_G1);
+
+  typename std::list<int*>::const_iterator it;
+  for (it=mappings.begin(); it!=mappings.end(); it++){
+    int* lsapMapping = *it;
+
+    // computation of G1_to_G2 and G2_to_G1
+    for (int j=0; j<m; j++){ // connect all to epsilon by default
+      G2_to_G1[j] = n;
+    }
+
+    for (int i=0; i<n; i++){
+      if (lsapMapping[i] >= m)
+        G1_to_G2[i] = m; // i -> epsilon
+      else{
+        G1_to_G2[i] = lsapMapping[i];
+        G2_to_G1[lsapMapping[i]] = i;
+      }
+    }
+
+    for (int j=0; j<m; j++){
+      if (lsapMapping[n+j] < m){
+        G2_to_G1[j] = n; // epsilon -> j
+      }
+    }
+
+    nged = this->GedFromMapping(g1, g2, G1_to_G2,n, G2_to_G1,m);
+
+    if (ged > nged || ged == -1)
+      ged = nged;
+  }
+
+#if XP_OUTPUT
+  auto end = std::chrono::steady_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << elapsed.count() << ":";
+  std::cout << (mappings.size() == k) << ":";
+#endif
+
+  for (it=mappings.begin(); it!=mappings.end(); it++)
+    delete[] *it;
 
   delete [] G1_to_G2;
   delete [] G2_to_G1;
