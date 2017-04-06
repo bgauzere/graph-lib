@@ -10,6 +10,15 @@
 #include <list>
 #include "RandomWalksGraphEditDistance.h"
 
+// activate output for experiments
+#define XP_OUTPUT 1
+// Perform xx time tests to get an average
+#define XP_TIME_SAMPLES 20
+
+#if XP_OUTPUT
+#include <ctime>
+#include <chrono>
+#endif
 
 class RandomWalksGraphEditDistanceMulti :
       public RandomWalksGraphEditDistance

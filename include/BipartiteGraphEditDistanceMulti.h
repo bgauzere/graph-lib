@@ -149,6 +149,15 @@ getKOptimalMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
   start = std::chrono::steady_clock::now();
 #endif
 
+// the returned mappings
+std::list<int*> mappings;
+
+#if XP_OUTPUT
+  // perform XP_TIME_SAMPLES mesures
+  for (int _nts=0; _nts<XP_TIME_SAMPLES; _nts++){
+  mappings.clear();
+#endif
+
   // Compute an optimal assignement
   double *u = new double[n+1];
   double *v = new double[m+1];
@@ -191,26 +200,15 @@ getKOptimalMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
   for (int j=0; j<m; j++) lv[j] = v[j];
   for (int j=m; j<n+m; j++) lv[j] = 0;
 
-#if XP_OUTPUT
-  // perform XP_TIME_SAMPLES mesures
-  for (int _nts=0; _nts<XP_TIME_SAMPLES; _nts++){
-#endif
 
   // Compute the k optimal mappings
   cDigraph<int> edg = equalityDigraph<double,int> (this->Clsap, n+m, n+m, rhoperm, lu, lv);
   AllPerfectMatchings<int> apm(edg);
   apm.enumPerfectMatchings(edg,k);
-  std::list<int*> mappings = apm.getPerfectMatchings();
+  mappings = apm.getPerfectMatchings();
 
   // Add the first one to the list
   mappings.push_front(rhoperm);
-
-#if XP_OUTPUT
-  } // end for 1..XP_TIME_SAMPLES
-  end = std::chrono::steady_clock::now();
-  elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  std::cout << elapsed.count() / XP_TIME_SAMPLES << ":";
-#endif
 
   delete [] epsAssign;
   delete [] u;
@@ -219,6 +217,15 @@ getKOptimalMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
   delete [] lv;
   delete [] G2_to_G1;
   delete [] G1_to_G2;
+
+#if XP_OUTPUT
+  if (_nts < XP_TIME_SAMPLES-1) delete [] rhoperm;
+  } // end for 1..XP_TIME_SAMPLES
+  end = std::chrono::steady_clock::now();
+  elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << elapsed.count() / XP_TIME_SAMPLES << ":";
+#endif
+
 
   return mappings;
 }
@@ -235,6 +242,8 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
 
   std::list<int*> mappings = getKOptimalMappings(g1, g2, k);
 
+  typename std::list<int*>::const_iterator it;
+
 #if XP_OUTPUT
   auto start = std::chrono::steady_clock::now();
   for (int _nts=0; _nts<XP_TIME_SAMPLES; _nts++){
@@ -244,7 +253,6 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
   ged = -1;
   double nged;
 
-  typename std::list<int*>::const_iterator it;
   for (it=mappings.begin(); it!=mappings.end(); it++){
     int* lsapMapping = *it;
 
