@@ -259,34 +259,44 @@ computeOptimalMapping ( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdi
   _ged = -1;
   double nged;
 
+  int* local_G1_to_G2 = new int[n+1];
+  int* local_G2_to_G1 = new int[m+1];
+
   for (it=mappings.begin(); it!=mappings.end(); it++){
     int* lsapMapping = *it;
 
     // computation of G1_to_G2 and G2_to_G1
     for (int j=0; j<m; j++){ // connect all to epsilon by default
-      G2_to_G1[j] = n;
+      local_G2_to_G1[j] = n;
     }
 
     for (int i=0; i<n; i++){
       if (lsapMapping[i] >= m)
-        G1_to_G2[i] = m; // i -> epsilon
+        local_G1_to_G2[i] = m; // i -> epsilon
       else{
-        G1_to_G2[i] = lsapMapping[i];
-        G2_to_G1[lsapMapping[i]] = i;
+        local_G1_to_G2[i] = lsapMapping[i];
+        local_G2_to_G1[lsapMapping[i]] = i;
       }
     }
 
     for (int j=0; j<m; j++){
       if (lsapMapping[n+j] < m){
-        G2_to_G1[j] = n; // epsilon -> j
+        local_G2_to_G1[j] = n; // epsilon -> j
       }
     }
 
-    nged = graphdistance->GedFromMapping(g1, g2, G1_to_G2,n, G2_to_G1,m);
+    nged = graphdistance->GedFromMapping(g1, g2, local_G1_to_G2,n, local_G2_to_G1,m);
 
-    if (_ged > nged || _ged == -1)
+    // if nged is better : save the mapping and the ged
+    if (_ged > nged || _ged == -1){
       _ged = nged;
+      for (int i=0; i<n; i++) G1_to_G2[i] = local_G1_to_G2[i];
+      for (int j=0; j<m; j++) G2_to_G1[j] = local_G2_to_G1[j];
+    }
   }
+
+  delete [] local_G1_to_G2;
+  delete [] local_G2_to_G1;
 
 #if XP_OUTPUT
   } // end for 1..XP_TIME_SAMPLES

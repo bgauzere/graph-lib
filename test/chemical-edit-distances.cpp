@@ -1,6 +1,6 @@
 /*
  * @file test_graph.cpp
- * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
+ * @author Benoit <<benoit.gauzere@insa-rouen.fr>>
  * @version     0.0.1 - Wed Feb  1 2017
  *
  * @todo the list of improvements suggested for the file.
@@ -25,6 +25,7 @@
 #include "RandomWalksGraphEditDistance.h"
 #include "RandomWalksGraphEditDistanceMulti.h"
 #include "IPFPGraphEditDistance.h"
+#include "IPFPGraphEditDistanceMulti.h"
 #include "GNCCPGraphEditDistance.h"
 #include "utils.h"
 using namespace std;
@@ -146,9 +147,15 @@ int main (int argc, char** argv)
   else if(options->method == string("ipfpe_bunke")){
     BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
+  } else if(options->method == string("ipfpe_multi_bunke")){
+    BipartiteGraphEditDistanceMulti<int,int> *ed_init = new BipartiteGraphEditDistanceMulti<int,int>(cf, options->nep);
+    ed = new IPFPGraphEditDistanceMulti<int,int>(cf, ed_init, options->nep);
   } else if(options->method == string("ipfpe_rw")){
     RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,options->k);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
+  } else if(options->method == string("ipfpe_multi_rw")){
+    RandomWalksGraphEditDistanceMulti *ed_init = new RandomWalksGraphEditDistanceMulti(cf,options->k, options->nep);
+    ed = new IPFPGraphEditDistanceMulti<int,int>(cf, ed_init, options->nep);
   } else if(options->method == string("gnccp")){
     //RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,3 );
     ed = new GNCCPGraphEditDistance<int,int>(cf);//,ed_init);
