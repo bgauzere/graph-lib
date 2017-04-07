@@ -108,10 +108,13 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
   int m=v2->Degree();
 
   GEdge<EdgeAttribute> * e1 = v1->getIncidentEdges();
-  GEdge<EdgeAttribute> * e2 = v2->getIncidentEdges();
+  GEdge<EdgeAttribute> * _e2 = v2->getIncidentEdges();
+
+  GEdge<EdgeAttribute> * e2 = NULL;
 
   double * local_C = new double[(n+1) * (m+1)];
   for (int i=0;e1;i++){
+    e2 = _e2;
     for (int j=0;e2;j++){
       local_C[sub2ind(i,j,n+1)] = this->cf->NodeSubstitutionCost((*g1)[e1->IncidentNode()],
 								 (*g2)[e2->IncidentNode()],
