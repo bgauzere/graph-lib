@@ -20,7 +20,7 @@ using namespace Eigen;
 
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPGraphEditDistanceMulti:
-  public IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>,
+  public virtual IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>,
   public MultiGed<NodeAttribute, EdgeAttribute>
 {
 
@@ -28,6 +28,12 @@ public:
 
   virtual void IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
                               Graph<NodeAttribute,EdgeAttribute> * g2 );
+
+
+  virtual void getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
+				                          Graph<NodeAttribute,EdgeAttribute> * g2,
+				                          int * G1_to_G2, int * G2_to_G1 );
+
 
 
   IPFPGraphEditDistanceMulti( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
@@ -43,6 +49,30 @@ public:
 
 //---
 
+
+template<class NodeAttribute, class EdgeAttribute>
+void IPFPGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
+getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
+		               Graph<NodeAttribute,EdgeAttribute> * g2,
+		               int * G1_to_G2, int * G2_to_G1)
+{
+  //Compute Mapping init
+  if (this->_ed_init)
+    this->_ed_init->getOptimalMapping(g1,g2,G1_to_G2, G2_to_G1);
+  this->_n = g1->Size();
+  this->_m = g2->Size();
+
+  this->Xk = new double[(this->_n+1)*(  this->_m+1)];
+  Map<MatrixXd> m_Xk(this->Xk,  this->_n+1,  this->_m+1);
+  this->Xk = this->mappingsToMatrix(G1_to_G2, G2_to_G1, this->_n, this->_m, this->Xk);
+
+  this->IPFPalgorithm(g1, g2);
+
+
+  m_Xk = m_Xk *-1;
+  this->computeOptimalMapping(this, g1, g2, this->Xk, G1_to_G2, G2_to_G1);
+  delete [] this->Xk; this->Xk = NULL;
+}
 
 
 

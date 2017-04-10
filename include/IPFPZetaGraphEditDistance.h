@@ -21,7 +21,7 @@ using namespace Eigen;
 
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPZetaGraphEditDistance:
-  public IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>{
+  public virtual IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>{
 protected:
   
 private:

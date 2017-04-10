@@ -24,7 +24,6 @@ class GNCCPGraphEditDistance:
   public GraphEditDistance<NodeAttribute, EdgeAttribute>{
 protected:
   
-private:
   double _d = 0.1;
   double _zeta;
   IPFPZetaGraphEditDistance<NodeAttribute,EdgeAttribute> * sub_algo;
