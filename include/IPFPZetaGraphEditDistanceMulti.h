@@ -26,40 +26,22 @@ class IPFPZetaGraphEditDistanceMulti:
 public: /* CONSTRUCTORS AND ACCESSORS */
 
   IPFPZetaGraphEditDistanceMulti( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
-			                            GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init,
-			                            double zeta, int nep ):
+                                  GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init,
+                                  double zeta, int nep ):
     IPFPZetaGraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction, ed_init, zeta),
     IPFPGraphEditDistanceMulti<NodeAttribute,EdgeAttribute>(costFunction, ed_init, nep)
   {}
 
 
   IPFPZetaGraphEditDistanceMulti( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
-			                            double zeta, int nep ):
+                                  double zeta, int nep ):
     IPFPGraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction, NULL),
     IPFPZetaGraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction, zeta),
     IPFPGraphEditDistanceMulti<NodeAttribute,EdgeAttribute>(costFunction, NULL, nep)
   {}
 
 
-public: /* PUBLIC MEMBER FUNCTIONS */
-/*
-  virtual void IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
-                              Graph<NodeAttribute,EdgeAttribute> * g2 );
-//*/
-
 };
 
-
-//---
-
-/*
-template<class NodeAttribute, class EdgeAttribute>
-void IPFPZetaGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
-IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
-              Graph<NodeAttribute,EdgeAttribute> * g2)
-{
-  IPFPGraphEditDistanceMulti<NodeAttribute,EdgeAttribute>::IPFPalgorithm(g1, g2);
-}
-//*/
 
 #endif // __IPFPZETAGRAPHEDITDISTANCEMULTI_H__

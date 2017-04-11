@@ -31,8 +31,8 @@ public:
 
 
   virtual void getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
-				                          Graph<NodeAttribute,EdgeAttribute> * g2,
-				                          int * G1_to_G2, int * G2_to_G1 );
+                                  Graph<NodeAttribute,EdgeAttribute> * g2,
+                                  int * G1_to_G2, int * G2_to_G1 );
 
 
 
@@ -53,8 +53,8 @@ public:
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
 getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
-		               Graph<NodeAttribute,EdgeAttribute> * g2,
-		               int * G1_to_G2, int * G2_to_G1)
+                   Graph<NodeAttribute,EdgeAttribute> * g2,
+                   int * G1_to_G2, int * G2_to_G1)
 {
   //Compute Mapping init
   if (this->_ed_init)
@@ -79,7 +79,8 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
 IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
-              Graph<NodeAttribute,EdgeAttribute> * g2){
+              Graph<NodeAttribute,EdgeAttribute> * g2)
+{
 
   this->_directed = (g1->isDirected() && g2->isDirected());
   //We assume that Xk is filled with a matrix, binary or not
@@ -170,9 +171,9 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
     if ((beta < 0.00001) || (t0 >= 1)){
       //Check if Xk evolves
       if((m_Xk - m_bkp1).norm() < 0.0001){
-	flag_continue = false;
+  flag_continue = false;
       }else{
-	memcpy(this->Xk, this->bkp1,sizeof(double)*(  this->_n+1)*(  this->_m+1));
+        memcpy(this->Xk, this->bkp1,sizeof(double)*(  this->_n+1)*(  this->_m+1));
       }
       //Lterm = Lterm_new;
     }else{
@@ -184,11 +185,11 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
       std::cout << "Norm de la maj : " << maj_matrix.norm() << std::endl;
 #endif
       if(maj_matrix.norm() < 0.0001){
-	flag_continue = false;
+        flag_continue = false;
       }else {
-	m_Xk = m_Xk + t0*(m_bkp1 - m_Xk);
-	this->S[this->k+1] = this->S[this->k] - ((pow(alpha,2))/(4*beta));
-	this->Lterm = this->linearCost(this->C, this->Xk,   this->_n+1,  this->_m+1);
+        m_Xk = m_Xk + t0*(m_bkp1 - m_Xk);
+        this->S[this->k+1] = this->S[this->k] - ((pow(alpha,2))/(4*beta));
+        this->Lterm = this->linearCost(this->C, this->Xk,   this->_n+1,  this->_m+1);
       }
     }
 #if DEBUG

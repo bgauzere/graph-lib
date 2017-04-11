@@ -52,7 +52,7 @@ public:
    * @param k  The number of edit paths to compute
    */
   virtual double operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
-   	                         Graph<NodeAttribute,EdgeAttribute> * g2,
+                              Graph<NodeAttribute,EdgeAttribute> * g2,
                              const int& k=-1);
 
   /**

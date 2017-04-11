@@ -31,7 +31,7 @@ public: /* CONSTRUCTORS AND ACCESSORS */
   {}
 
   GNCCPGraphEditDistanceMulti( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
-			                         GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init,
+                               GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init,
                                int n_edit_paths ):
     GNCCPGraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction, ed_init),
     MultiGed<NodeAttribute,EdgeAttribute>(n_edit_paths)
@@ -41,8 +41,8 @@ public: /* CONSTRUCTORS AND ACCESSORS */
 public: /* PUBLIC MEMBER FUNCTIONS */
 
     virtual void getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
-				                            Graph<NodeAttribute,EdgeAttribute> * g2,
-				                            int * G1_to_G2, int * G2_to_G1 );
+                                    Graph<NodeAttribute,EdgeAttribute> * g2,
+                                    int * G1_to_G2, int * G2_to_G1 );
 
 
 };
@@ -54,8 +54,8 @@ public: /* PUBLIC MEMBER FUNCTIONS */
 template<class NodeAttribute, class EdgeAttribute>
 void GNCCPGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
 getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
-			             Graph<NodeAttribute,EdgeAttribute> * g2,
-			             int * G1_to_G2, int * G2_to_G1)
+                   Graph<NodeAttribute,EdgeAttribute> * g2,
+                   int * G1_to_G2, int * G2_to_G1)
 {
   int n = g1->Size();
   int m = g2->Size();
