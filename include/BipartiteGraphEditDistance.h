@@ -41,7 +41,9 @@ protected:
 
 public:
   BipartiteGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
-    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction){};
+    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
+    C(NULL)
+  {};
 
   // virtual double operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
   // 			    Graph<NodeAttribute,EdgeAttribute> * g2);

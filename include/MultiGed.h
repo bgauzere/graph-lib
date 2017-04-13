@@ -223,7 +223,10 @@ std::list<int*> mappings;
   delete [] G1_to_G2;
 
 #if XP_OUTPUT
-  if (_nts < XP_TIME_SAMPLES-1) delete [] rhoperm;
+  if (_nts < XP_TIME_SAMPLES-1){
+     delete [] rhoperm;
+     apm.deleteMatching();
+   }
   } // end for 1..XP_TIME_SAMPLES
   end = std::chrono::steady_clock::now();
   elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -306,8 +309,9 @@ computeOptimalMapping ( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdi
   std::cout << (mappings.size() == _nep) << ":";
 #endif
 
-  for (it=mappings.begin(); it!=mappings.end(); it++)
-    delete[] *it;
+  typename std::list<int*>::iterator it_del;
+  for (it_del=mappings.begin(); it_del!=mappings.end(); it_del++)
+    delete[] *it_del;
 
   return _ged;
 }

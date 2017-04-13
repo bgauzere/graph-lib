@@ -208,6 +208,7 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
   	       int label = (int)(v[2][0]);
   	       Link(start,end,label);	       
   	    }
+  	  delete [] s;
       }
   }else if (strcmp(ext,".gxl") == 0){
     GraphLoadGXL(filename,readChemicalNodeLabel,readChemicalEdgeLabel);

@@ -178,6 +178,9 @@ int main (int argc, char** argv)
   delete ed;
   delete dataset;
   delete cf;
+  delete options;
+
+  delete [] distances;
 
   return 0;
 }

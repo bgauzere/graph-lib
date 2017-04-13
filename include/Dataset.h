@@ -68,6 +68,11 @@ public:
   /* Apply shuffleization procedure on all graphs composing the dataset.
    */
   void shuffleize();
+  
+  ~Dataset(){
+    for (int i=0; i<graphs.size(); i++) 
+      delete graphs[i];
+  }
 };
 
 
@@ -131,6 +136,8 @@ void ChemicalDataset<PropertyType>::loadDS(const char* filename){
       }
   }
   f_tmp.close();
+
+  delete[] unconst_filename;
   
 }
 template<class PropertyType>
