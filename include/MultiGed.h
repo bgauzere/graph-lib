@@ -143,15 +143,14 @@ getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
   delete [] this->_Clsap; this->_Clsap = NULL;
 
 #if XP_OUTPUT
-  auto start = std::chrono::steady_clock::now();
+  clock_t t = clock();
 #endif
   this->computeCostMatrixLSAP(C, n, m);
 #if XP_OUTPUT
-  auto end = std::chrono::steady_clock::now();
-  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  std::cout << elapsed.count() << ":";
+  t = clock() - t;
+  std::cout << ((float)t) / CLOCKS_PER_SEC << ":";
 
-  start = std::chrono::steady_clock::now();
+  t = clock();
 #endif
 
 // the returned mappings
@@ -228,9 +227,8 @@ std::list<int*> mappings;
      apm.deleteMatching();
    }
   } // end for 1..XP_TIME_SAMPLES
-  end = std::chrono::steady_clock::now();
-  elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  std::cout << elapsed.count() / XP_TIME_SAMPLES << ":";
+  t = clock() - t;
+  std::cout << (((float)t) / CLOCKS_PER_SEC) / XP_TIME_SAMPLES << ":";
 #endif
 
 
@@ -254,7 +252,7 @@ computeOptimalMapping ( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdi
   typename std::list<int*>::const_iterator it;
 
 #if XP_OUTPUT
-  auto start = std::chrono::steady_clock::now();
+  clock_t t = clock();
   for (int _nts=0; _nts<XP_TIME_SAMPLES; _nts++){
 #endif
 
@@ -303,9 +301,8 @@ computeOptimalMapping ( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdi
 
 #if XP_OUTPUT
   } // end for 1..XP_TIME_SAMPLES
-  auto end = std::chrono::steady_clock::now();
-  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  std::cout << elapsed.count() / XP_TIME_SAMPLES << ":";
+  t = clock() - t;
+  std::cout << (((float)t) / CLOCKS_PER_SEC) / XP_TIME_SAMPLES << ":";
   std::cout << (mappings.size() == _nep) << ":";
 #endif
 
