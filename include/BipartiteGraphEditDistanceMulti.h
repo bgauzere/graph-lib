@@ -16,7 +16,6 @@
 
 #include "BipartiteGraphEditDistance.h"
 #include "MultiGed.h"
-#include "AllPerfectMatchings-ec.h"
 #include "hungarian-lsap.hh"
 
 
@@ -93,7 +92,7 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
 
 #if XP_OUTPUT
   t = clock() - t;
-  std::cout << ((float)t) / CLOCKS_PER_SEC << ":";
+  _xp_out_ << ((float)t) / CLOCKS_PER_SEC << ":";
 #endif
 
   this->computeOptimalMapping(this, g1, g2, this->C, G1_to_G2, G2_to_G1);

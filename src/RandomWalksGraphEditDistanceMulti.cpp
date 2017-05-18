@@ -18,14 +18,13 @@ getOptimalMapping (Graph<int,int> * g1,
   delete [] this->C;     //this->C = NULL;
 
 #if XP_OUTPUT
-  auto start = std::chrono::steady_clock::now();
+  clock_t t = clock();
 #endif
   this->computeCostMatrix(g1, g2);
 
 #if XP_OUTPUT
-  auto end = std::chrono::steady_clock::now();
-  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  std::cout << elapsed.count() << ":";
+  t = clock() - t;
+  _xp_out_ << ((float)t) / CLOCKS_PER_SEC << ":";
 #endif
 
   this->computeOptimalMapping(this, g1, g2, this->C, G1_to_G2, G2_to_G1);

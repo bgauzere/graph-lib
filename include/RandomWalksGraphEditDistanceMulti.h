@@ -18,7 +18,6 @@
 
 #if XP_OUTPUT
 #include <ctime>
-#include <chrono>
 #endif
 
 class RandomWalksGraphEditDistanceMulti :

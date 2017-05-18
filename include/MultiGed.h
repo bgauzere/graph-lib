@@ -11,11 +11,11 @@
 
 #if XP_OUTPUT
 #include <ctime>
-#include <chrono>
+#include "xp_output.h"
 #endif
 
 #include "GraphEditDistance.h"
-#include "AllPerfectMatchings-ec.h"
+#include "AllPerfectMatchingsEC.h"
 #include "hungarian-lsap.hh"
 
 
@@ -148,7 +148,7 @@ getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
   this->computeCostMatrixLSAP(C, n, m);
 #if XP_OUTPUT
   t = clock() - t;
-  std::cout << ((float)t) / CLOCKS_PER_SEC << ":";
+  _xp_out_ << ((float)t) / CLOCKS_PER_SEC << ":";
 
   t = clock();
 #endif
@@ -206,7 +206,7 @@ std::list<int*> mappings;
 
   // Compute the k optimal mappings
   cDigraph<int> edg = equalityDigraph<double,int> (this->_Clsap, n+m, n+m, rhoperm, lu, lv);
-  AllPerfectMatchings<int> apm(edg);
+  AllPerfectMatchingsEC<int> apm(edg);
   apm.enumPerfectMatchings(edg,k);
   mappings = apm.getPerfectMatchings();
 
@@ -228,7 +228,7 @@ std::list<int*> mappings;
    }
   } // end for 1..XP_TIME_SAMPLES
   t = clock() - t;
-  std::cout << (((float)t) / CLOCKS_PER_SEC) / XP_TIME_SAMPLES << ":";
+  _xp_out_ << (((float)t) / CLOCKS_PER_SEC) / XP_TIME_SAMPLES << ":";
 #endif
 
 
@@ -302,8 +302,8 @@ computeOptimalMapping ( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdi
 #if XP_OUTPUT
   } // end for 1..XP_TIME_SAMPLES
   t = clock() - t;
-  std::cout << (((float)t) / CLOCKS_PER_SEC) / XP_TIME_SAMPLES << ":";
-  std::cout << (mappings.size() == _nep) << ":";
+  _xp_out_ << (((float)t) / CLOCKS_PER_SEC) / XP_TIME_SAMPLES << ":";
+  _xp_out_ << (mappings.size() == _nep) << ":";
 #endif
 
   typename std::list<int*>::iterator it_del;
