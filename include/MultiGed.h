@@ -206,7 +206,7 @@ std::list<int*> mappings;
 
   // Compute the k optimal mappings
   cDigraph<int> edg = equalityDigraph<double,int> (this->_Clsap, n+m, n+m, rhoperm, lu, lv);
-  AllPerfectMatchingsEC<int> apm(edg);
+  AllPerfectMatchingsEC<int> apm(edg, n, m);
   apm.enumPerfectMatchings(edg,k);
   mappings = apm.getPerfectMatchings();
 

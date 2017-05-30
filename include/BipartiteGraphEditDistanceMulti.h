@@ -80,9 +80,6 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
                    int * G1_to_G2, int * G2_to_G1 )
 {
-  int n=g1->Size();
-  int m=g2->Size();
-
   delete [] this->C;     //this->C = NULL;
 
 #if XP_OUTPUT
