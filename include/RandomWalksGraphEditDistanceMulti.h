@@ -9,7 +9,7 @@
 
 #include <list>
 #include "RandomWalksGraphEditDistance.h"
-#include "MultiGed.h"
+#include "BipartiteGraphEditDistanceMulti.h"
 
 // activate output for experiments
 //#define XP_OUTPUT 1
@@ -22,37 +22,18 @@
 
 class RandomWalksGraphEditDistanceMulti :
       public RandomWalksGraphEditDistance,
-      public MultiGed<int,int>
+      public BipartiteGraphEditDistanceMulti<int,int>
 {
 
 public:
 
   RandomWalksGraphEditDistanceMulti(ConstantEditDistanceCost * costFunction, int k, int nep):
+    BipartiteGraphEditDistance<int,int>(costFunction),
     RandomWalksGraphEditDistance(costFunction, k),
-    MultiGed<int,int>(nep)
+    BipartiteGraphEditDistanceMulti<int,int>(costFunction, nep)
   {}
 
 
-public:
-
-  /**
-   * @brief compute an optimal mapping between <code>g1</code> and <code>g2</code>
-   *        from k different optimal mappings by minimizing the ged optained
-   * @note The GED is computed and set in <code>ged</code>
-   */
-  virtual void getOptimalMapping( Graph<int,int> * g1,
-                                  Graph<int,int> * g2,
-                                  int * G1_to_G2, int * G2_to_G1 );
-
-  /**
-   * @brief Compute the Graph Edit Distance between <code>g1</code> and <code>g2</code> considering $k$ edit paths
-   * @param k  The number of edit paths to compute
-   */
-  virtual double operator() (Graph<int,int> * g1,
-                             Graph<int,int> * g2);
-
-
-  virtual ~RandomWalksGraphEditDistanceMulti();
 };
 
 #endif // __RANDOMWALKSGRAPHEDITDISTANCEMULTI_H__

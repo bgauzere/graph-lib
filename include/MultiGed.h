@@ -288,6 +288,10 @@ computeOptimalMapping ( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdi
 
     nged = graphdistance->GedFromMapping(g1, g2, local_G1_to_G2,n, local_G2_to_G1,m);
 
+    #if PRINT_ALL_APPROX
+      _xp_out_ << (int)nged << ", ";
+    #endif
+
     // if nged is better : save the mapping and the ged
     if (_ged > nged || _ged == -1){
       _ged = nged;
@@ -304,6 +308,10 @@ computeOptimalMapping ( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdi
   t = clock() - t;
   _xp_out_ << (((float)t) / CLOCKS_PER_SEC) / XP_TIME_SAMPLES << ":";
   _xp_out_ << (mappings.size() == _nep) << ":";
+#endif
+
+#if PRINT_ALL_APPROX
+  for (int i=mappings.size(); i<_nep; i++) _xp_out_ << -1 << ", ";
 #endif
 
   typename std::list<int*>::iterator it_del;

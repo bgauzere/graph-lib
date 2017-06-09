@@ -21,7 +21,7 @@
 
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistanceMulti :
-      public BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>,
+      public virtual BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>,
       public MultiGed<NodeAttribute, EdgeAttribute>
 {
 
@@ -45,6 +45,10 @@ public:
                                   Graph<NodeAttribute,EdgeAttribute> * g2,
                                   int * G1_to_G2, int * G2_to_G1 );
 
+
+  virtual std::list<int*> getOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
+                                               Graph<NodeAttribute,EdgeAttribute> * g2,
+                                               int k = -1 );
   /**
    * @brief Compute the Graph Edit Distance between <code>g1</code> and <code>g2</code> considering $k$ edit paths
    * @param k  The number of edit paths to compute
@@ -93,6 +97,18 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
 #endif
 
   this->computeOptimalMapping(this, g1, g2, this->C, G1_to_G2, G2_to_G1);
+}
+
+
+template<class NodeAttribute, class EdgeAttribute>
+std::list<int*> BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
+getOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
+                     Graph<NodeAttribute,EdgeAttribute> * g2,
+                     int k )
+{
+  if (k == -1) k = this->_nep;
+  this->computeCostMatrix(g1, g2);
+  return this->getKOptimalMappings(g1, g2, this->C, k);
 }
 
 

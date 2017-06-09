@@ -22,7 +22,7 @@ using namespace Eigen;
 #include "SymbolicGraph.h"
 
 class RandomWalksGraphEditDistance:
-  public BipartiteGraphEditDistance<int, int>
+  public virtual BipartiteGraphEditDistance<int, int>
 {
 protected:
   ConstantEditDistanceCost * cf;
