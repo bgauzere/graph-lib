@@ -3,16 +3,11 @@
  * @author Évariste <<evariste.daller@unicaen.fr>>
  * @version     0.0.1 - Mon Mar  27 2017
  *
- * @bug  some local memory alloc changes other functions behavior, see line 303
  */
 
 #ifndef __BIPARTITEGRAPHEDITDISTANCEMULTI_H__
 #define __BIPARTITEGRAPHEDITDISTANCEMULTI_H__
 
-
-#if XP_OUTPUT
-#include <ctime>
-#endif
 
 #include "BipartiteGraphEditDistance.h"
 #include "MultiGed.h"
@@ -86,16 +81,7 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
 {
   delete [] this->C;     //this->C = NULL;
 
-#if XP_OUTPUT
-  clock_t t = clock();
-#endif
   this->computeCostMatrix(g1, g2);
-
-#if XP_OUTPUT
-  t = clock() - t;
-  _xp_out_ << ((float)t) / CLOCKS_PER_SEC << ":";
-#endif
-
   this->computeOptimalMapping(this, g1, g2, this->C, G1_to_G2, G2_to_G1);
 }
 

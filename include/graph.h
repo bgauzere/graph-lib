@@ -226,7 +226,7 @@ public :
  */
 template< class NodeAttribute, class EdgeAttribute>
 class Graph {
-private :
+protected :
   std::vector<GNode<NodeAttribute, EdgeAttribute> *> tnode; //List of nodes. tnode[i] corresponds to node with id i
   int nbNodes;
   int nbEdges;
@@ -252,6 +252,7 @@ public :
    * @param readNodeLabel function to read a Node attribute node in gxl file. Must be specific to NodeAttribute type 
    * @param readEdgeLabel function to read an Edge attribute node in gxl file. Must be specific to EdgeAttribute type
    */
+  virtual
   void GraphLoadGXL(const char * filename,
 		    NodeAttribute (*readNodeLabel)(TiXmlElement *elem),
 		    EdgeAttribute (*readEdgeLabel)(TiXmlElement *elem));
@@ -397,7 +398,7 @@ public :
     for (int i=0; i<nbNodes; ++i) perm.push_back(i);
     // using built-in random generator:
     std::random_shuffle ( perm.begin(), perm.end() ); //seed ?
-    std::vector<GNode<int,int>*> new_tnode;
+    std::vector<GNode<NodeAttribute,EdgeAttribute>*> new_tnode;
     std::vector<int> inv_tnode(Size());
     //Modification of list nodes
     for(int i=0;i<nbNodes;i++){
@@ -437,6 +438,7 @@ void Graph<NodeAttribute,EdgeAttribute>::GraphLoadGXL(const char * filename,
   while (elem){
     if(strcmp(elem->Value(),"node") == 0){
       int id = std::stoi( elem->Attribute("id"));
+      
       NodeAttribute label = readNodeLabel(elem);
       id_to_index[id] = nbNodes;
       Add(new GNode<NodeAttribute, EdgeAttribute>(id,label));

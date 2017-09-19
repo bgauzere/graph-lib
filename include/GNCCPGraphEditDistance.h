@@ -74,8 +74,11 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   IOFormat OctaveFmt(StreamPrecision, 0, ", ", ";\n", "", "", "[", "]");
   std::cout << m_Xk.format(OctaveFmt) << std::endl;
 #endif
+  this->sub_algo->setMaxIter(50);
+  this->sub_algo->setEpsilon(0.005);
   bool flag = true;
   while((this->_zeta > -1) && flag){
+    //this->sub_algo->setMaxIter(30+ 70*(1-fabs(this->_zeta)));
     this->sub_algo->setZeta(this->_zeta);
     this->sub_algo->IPFPalgorithm(g1,g2);
 #if DEBUG
@@ -83,14 +86,15 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
     std::cout << m_Xk.format(OctaveFmt) << std::endl;
 #endif
     this->_zeta -= this->_d;
-    flag = (m_Xk.array().round() - m_Xk.array()).abs().sum();
+    flag = ((m_Xk.array().round() - m_Xk.array()).abs().sum() !=0);
   }
+  
 
 #if DEBUG
   std::cout << "zeta final : " << this->_zeta << std::endl;
   std::cout << m_Xk.format(OctaveFmt) << std::endl;
 #endif
-  m_Xk= m_Xk * -1;
+  m_Xk= MatrixXd::Ones(n+1, m+1)-m_Xk;
   double *u = new double[n+1];
   double *v = new double[m+1];
   hungarianLSAPE(Xk,  n+1,  m+1, G1_to_G2,G2_to_G1, u,v,false);
