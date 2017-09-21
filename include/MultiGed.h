@@ -11,6 +11,7 @@
 #include "GraphEditDistance.h"
 #include "AllPerfectMatchingsEC.h"
 #include "hungarian-lsap.hh"
+#include "hungarian-lsape.hh"
 
 
 template<class NodeAttribute, class EdgeAttribute>

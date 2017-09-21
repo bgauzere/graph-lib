@@ -1,40 +1,54 @@
 IDIR = ./include
-LSAPE_DIR=/home/bgauzere/dev/lsape/include/
+
+## LSAPE directory 
+#LSAPE_DIR=$(LSAPE_DIR)#/home/bgauzere/Téléchargements/lsape/include/
+
+## Eigen library
 EIGEN_DIR=/usr/include/eigen3/
-CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR)  -Wall  -std=c++11
+
+CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR) -I./xp-scripts -Wall  -std=c++11 -Werror
+
 BINDIR = ./bin
 TESTDIR = ./test
-
-
 ODIR = ./obj
 SRCDIR = ./src
-_DEPS = graph.h  utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h BipartiteGraphEditDistance.h RandomWalksGraphEditDistance.h IPFPGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h 
+
+_DEPS = graph.h  utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h MultiGed.h BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h RandomWalksGraphEditDistance.h RandomWalksGraphEditDistanceMulti.h IPFPGraphEditDistance.h IPFPGraphEditDistanceMulti.h MultipleIPFPGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h CMUCostFunction.h CMUGraph.h  CMUDataset.h LetterCostFunction.h LetterGraph.h LetterDataset.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_SRCDEPS = utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp RandomWalksGraphEditDistanceMulti.cpp  
+_SRCDEPS = utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp RandomWalksGraphEditDistanceMulti.cpp  CMUCostFunction.cpp  CMUGraph.cpp  CMUDataset.cpp  LetterCostFunction.cpp  LetterGraph.cpp LetterDataset.cpp
 DEPS_SRC += $(patsubst %,$(SRCDIR)/%,$(_DEPS_SRC))
 
-_OBJ = utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o RandomWalksGraphEditDistanceMulti.o  
+_OBJ = utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o CMUCostFunction.o CMUGraph.o CMUDataset.o LetterGraph.o LetterCostFunction.o LetterDataset.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-# all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
-all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances $(TESTDIR)/benchmark 
 
-profile: CXXFLAGS += -pg -O3
-profile: all
+# all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
+all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances $(TESTDIR)/benchmark
 
 debug: CXXFLAGS += -DDEBUG -g
-debug: all
+debug: $(TESTDIR)/chemical-edit-distances
+
+with_times: CXXFLAGS += -D PRINT_TIMES
+with_times: $(TESTDIR)/chemical-edit-distances
+
+multithread: CXXFLAGS += -fopenmp
+multithread: $(TESTDIR)/chemical-edit-distances
+
+multithread_with_times: CXXFLAGS += -fopenmp -D PRINT_TIMES
+multithread_with_times: $(TESTDIR)/chemical-edit-distances
 
 optim: CXXFLAGS += -O3
-optim: all
+#optim: all
 
 
 $(TESTDIR)/benchmark: $(DEPS) $(OBJ) $(TESTDIR)/benchmark.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
 
-$(TESTDIR)/chemical-edit-distances: $(DEPS) $(OBJ) $(TESTDIR)/chemical-edit-distances.cpp
+$(TESTDIR)/chemical-edit-distances: $(TESTDIR)/computeDistances.cpp $(OBJ)
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
+
+
 
 $(TESTDIR)/test_graph: $(DEPS) $(OBJ) $(TESTDIR)/test_graph.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml

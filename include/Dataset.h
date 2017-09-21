@@ -70,7 +70,7 @@ public:
   void shuffleize();
   
   ~Dataset(){
-    for (int i=0; i<graphs.size(); i++) 
+    for (unsigned int i=0; i<graphs.size(); i++) 
       delete graphs[i];
   }
 };

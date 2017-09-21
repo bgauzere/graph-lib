@@ -260,7 +260,7 @@ public :
   /**
    * Deletes the graph.
    */
-  ~Graph(){
+  virtual ~Graph(){
     for (int i=0;i<nbNodes;i++) {
       if (tnode[i])
 	delete tnode[i];
