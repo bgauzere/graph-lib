@@ -136,7 +136,6 @@ int main (int argc, char** argv)
     #endif
 
     int n = (*dataset)[2*i]->Size();
-    int m = (*dataset)[2*i+1]->Size();
     int * G1_to_G2 =  new int[n];
 
     if (options->method == string("ipfp")){

@@ -19,6 +19,8 @@ public:
   {
     randGen.seed(seed);
   }
+  
+  virtual ~RandomMappings(){}
 
 public:
 
@@ -40,6 +42,8 @@ public:
   RandomMappingsGED(unsigned int seed = 123) :
     RandomMappings<NodeAttribute, EdgeAttribute>(seed)
   {}
+  
+  ~RandomMappingsGED(){}
 
 public:
 

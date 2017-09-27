@@ -48,6 +48,8 @@ public:
     initGen(gen),
     k(nSol)
   {}
+  
+  virtual ~MultistartMappingRefinement(){}
 
 
 };
@@ -84,7 +86,6 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
 {
   struct timeval  tv1, tv2;
   int n = g1->Size();
-  int m = g2->Size();
 
   typename std::list<int*>::const_iterator it;
   double cost = -1;
@@ -106,7 +107,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
     //omp_set_dynamic(0);
     omp_set_num_threads(4);
     #pragma omp parallel for schedule(dynamic) //private(tid, i, j, ncost, ipfpGed )
-    for (int tid=0; tid<mappings.size(); tid++){
+    for (unsigned int tid=0; tid<mappings.size(); tid++){
       int* lsapMapping = arrayMappings[tid];
       int* local_G1_to_G2 = &(arrayLocal_G1_to_G2[tid*n]);
 
@@ -163,7 +164,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
     gettimeofday(&tv1, NULL);
 
     int i_optim;
-    for (int i=0; i<mappings.size(); i++){
+    for (unsigned int i=0; i<mappings.size(); i++){
       if (cost > arrayCosts[i] || cost == -1){
          cost = arrayCosts[i];
          i_optim = i;

@@ -340,7 +340,7 @@ getBetterMappingFromInit( Graph<NodeAttribute,EdgeAttribute> * g1,
   m_Xk= m_Xk *-1;
   double *u = new double[this->_n];
   double *v = new double[this->_m];
-  hungarianLSAP<double, int>(this->Xk,  this->_n,  this->_m, G1_to_G2, u,v,false);
+  hungarianLSAP<double, int>(this->Xk,  this->_n,  this->_m, G1_to_G2, u,v);
   delete [] this->Xk; this->Xk=NULL;
   delete [] u;
   delete [] v;
@@ -399,7 +399,7 @@ IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
     this->XkD = QuadraticTerm(g1, g2, Xk, this->XkD);
     this->LinearSubProblem();//    should call it gradient direction
 
-    hungarianLSAP<double,int>(linearSubProblem,  this->_n,  this->_m, G1_to_G2, u,v,false);
+    hungarianLSAP<double,int>(linearSubProblem,  this->_n,  this->_m, G1_to_G2, u,v);
     //bkp1 is the matrix version of mapping G1_to_G2 so a binary matrix
     this->bkp1 = mappingsToMatrix(G1_to_G2,  this->_n,  this->_m,this->bkp1);
     R.push_back(linearCost(linearSubProblem,G1_to_G2,  this->_n,  this->_m));
