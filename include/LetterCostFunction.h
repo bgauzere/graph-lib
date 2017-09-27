@@ -13,10 +13,10 @@ class LetterDistanceCost:public EditDistanceCost<CMUPoint,double>
 
 private:
 
-  double _alpha;
   double _tnodes;
   double _tedges;
-
+  double _alpha;
+  
 public:
 
   virtual double NodeSubstitutionCost(GNode<CMUPoint,double> * n1,GNode<CMUPoint,double> * n2,Graph<CMUPoint,double> * g1,Graph<CMUPoint,double> * g2);
