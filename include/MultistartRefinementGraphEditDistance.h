@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __MULTIPLEIPFPGRAPHEDITDISTANCE_H__
-#define __MULTIPLEIPFPGRAPHEDITDISTANCE_H__
+#ifndef __MULTISTARTREFINEMENTGED_H__
+#define __MULTISTARTREFINEMENTGED_H__
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -15,19 +15,18 @@
 #include <sys/time.h>
 #include <list>
 #include "GraphEditDistance.h"
-#include "IPFPGraphEditDistance.h"
-#include "BipartiteGraphEditDistanceMulti.h"
+#include "MultistartMappingRefinement.h"
 
 
 template<class NodeAttribute, class EdgeAttribute>
-class MultipleIPFPGraphEditDistance:
-  public GraphEditDistance<NodeAttribute,EdgeAttribute>
+class MultistartRefinementGraphEditDistance:
+  public virtual GraphEditDistance<NodeAttribute,EdgeAttribute>,
+  public MultistartMappingRefinement<NodeAttribute, EdgeAttribute>
 {
 
 protected:
 
-  BipartiteGraphEditDistanceMulti<NodeAttribute,EdgeAttribute> * ed_multi;  //! The multiple solution based GED used (ie. Bunke or Random Walks)
-  int nep;
+  MappingRefinement<NodeAttribute, EdgeAttribute> * method;
 
 public:
 
@@ -37,14 +36,21 @@ public:
                                   int * G1_to_G2, int * G2_to_G1 );
 
 
+  virtual void getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm,
+                                      Graph<NodeAttribute,EdgeAttribute> * g1,
+                                      Graph<NodeAttribute,EdgeAttribute> * g2,
+                                      int * G1_to_G2, int * G2_to_G1,
+                                      std::list<int*>& mappings );
 
-  MultipleIPFPGraphEditDistance( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
-                                 BipartiteGraphEditDistanceMulti<NodeAttribute,EdgeAttribute> * ed_multi,
-                                 int n_edit_paths
+
+  MultistartRefinementGraphEditDistance( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
+                                 MappingGenerator<NodeAttribute,EdgeAttribute> * gen,
+                                 int n_edit_paths,
+                                 MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm
                                ):
     GraphEditDistance<NodeAttribute,EdgeAttribute> (costFunction),
-    ed_multi(ed_multi),
-    nep(n_edit_paths)
+    MultistartMappingRefinement<NodeAttribute, EdgeAttribute> (gen, n_edit_paths),
+    method(algorithm)
   {}
 
 
@@ -54,32 +60,38 @@ public:
 
 
 template<class NodeAttribute, class EdgeAttribute>
-void MultipleIPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
+void MultistartRefinementGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
                    int * G1_to_G2, int * G2_to_G1)
 {
-  //Compute Mapping init
+  this->getBestMapping(method, g1, g2, G1_to_G2, G2_to_G1);
+}
+
+
+
+template<class NodeAttribute, class EdgeAttribute>
+void MultistartRefinementGraphEditDistance<NodeAttribute, EdgeAttribute>::
+getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm,
+                Graph<NodeAttribute,EdgeAttribute> * g1,
+                Graph<NodeAttribute,EdgeAttribute> * g2,
+                int * G1_to_G2, int * G2_to_G1,
+                std::list<int*>& mappings )
+{
   struct timeval  tv1, tv2;
-  gettimeofday(&tv1, NULL);
-
-  std::list<int*> mappings = ed_multi->getOptimalMappings(g1, g2, nep);
-  gettimeofday(&tv2, NULL);
-
-
   int n = g1->Size();
   int m = g2->Size();
 
   typename std::list<int*>::const_iterator it;
-  double ged = -1;
-  double nged;
+  double cost = -1;
+  double ncost;
 
 
   // Multithread
   #ifdef _OPENMP
     gettimeofday(&tv1, NULL);
     int** arrayMappings = new int*[mappings.size()];
-    int* arrayGed = new int[mappings.size()];
+    int* arrayCosts = new int[mappings.size()];
     int* arrayLocal_G1_to_G2 = new int[(n+1) * mappings.size()];
     int* arrayLocal_G2_to_G1 = new int[(m+1) * mappings.size()];
 
@@ -90,7 +102,7 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 
     //omp_set_dynamic(0);
     omp_set_num_threads(4);
-    #pragma omp parallel for schedule(dynamic) //private(tid, i, j, nged, ipfpGed )
+    #pragma omp parallel for schedule(dynamic) //private(tid, i, j, ncost, ipfpGed )
     for (int tid=0; tid<mappings.size(); tid++){
       int* lsapMapping = arrayMappings[tid];
       int* local_G1_to_G2 = &(arrayLocal_G1_to_G2[tid*(n+1)]);
@@ -126,30 +138,36 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
         local_G2_to_G1[j] = n; // epsilon -> j
       }
     }
+    
+    MappingRefinement<NodeAttribute, EdgeAttribute> * local_method;
+    
+    #ifdef _OPENMP
+      local_method = algorithm->clone();
+    #else
+      local_method = algorithm;
+    #endif
+    
+    local_method->getBetterMapping(g1, g2, local_G1_to_G2, local_G2_to_G1);
+    ncost = local_method->mappingCost(g1, g2, local_G1_to_G2, local_G2_to_G1);
 
-    IPFPGraphEditDistance<NodeAttribute,EdgeAttribute> ipfpGed(this->cf);
-    ipfpGed.getOptimalMappingFromInit(g1, g2, local_G1_to_G2, local_G2_to_G1);
-    //IPFPQAP<NodeAttribute, EdgeAttribute> ipfpGed(this->cf);
-    //ipfpGed.getOptimalMapping(g1, g2, local_G1_to_G2, local_G2_to_G1);
-
-    nged = this->GedFromMapping(g1, g2, local_G1_to_G2, n, local_G2_to_G1, m);
 
     // Multithread
     #ifdef _OPENMP
-      // save the approx ged
-      arrayGed[tid] = nged;
-      //_distances_[tid] = nged;
+      // save the approx cost
+      arrayCosts[tid] = ncost;
+     // _distances_[tid] = ncost;
 
     // Sequential
     #else
-      // if nged is better : save the mapping and the ged
-      if (ged > nged || ged == -1){
-        ged = nged;
+      // if ncost is better : save the mapping and the cost
+      if (cost > ncost || cost == -1){
+        cost = ncost;
         for (int i=0; i<n; i++) G1_to_G2[i] = local_G1_to_G2[i];
         for (int j=0; j<m; j++) G2_to_G1[j] = local_G2_to_G1[j];
       }
       gettimeofday(&tv2, NULL);
       t_acc += ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec));
+
     #endif
 
   } //end for
@@ -157,14 +175,13 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
   // Multithread : Reduction
   #ifdef _OPENMP
     gettimeofday(&tv2, NULL);
-    //_xp_out_ <<  ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec)) << ", ";
-    //_xp_out_ << ", " << ((float)t) / CLOCKS_PER_SEC;
+    
     gettimeofday(&tv1, NULL);
 
     int i_optim;
     for (int i=0; i<mappings.size(); i++){
-      if (ged > arrayGed[i] || ged == -1){
-         ged = arrayGed[i];
+      if (cost > arrayCosts[i] || cost == -1){
+         cost = arrayCosts[i];
          i_optim = i;
       }
     }
@@ -172,7 +189,7 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
     for (int j=0; j<m; j++) G2_to_G1[j] = arrayLocal_G2_to_G1[i_optim*(m+1)+j];
 
     // To match the output format size in XPs
-    //for (int i=mappings.size(); i<nep; i++) _distances_[i] = 9999;
+    //for (int i=mappings.size(); i<k; i++) _distances_[i] = 9999;
 
     gettimeofday(&tv2, NULL);
     //_xp_out_ <<  ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec)) << ", ";
@@ -180,7 +197,7 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 
     delete[] arrayLocal_G1_to_G2;
     delete[] arrayLocal_G2_to_G1;
-    delete[] arrayGed;
+    delete[] arrayCosts;
     delete[] arrayMappings;
 
   // Sequential : deletes
@@ -188,10 +205,9 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 
     delete [] local_G1_to_G2;
     delete [] local_G2_to_G1;
-  #endif
 
+  #endif
 
 }
 
-
-#endif // __MULTIPLEIPFPGRAPHEDITDISTANCE_H__
+#endif // __MULTISTARTREFINEMENTGED_H__

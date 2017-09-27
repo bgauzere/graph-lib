@@ -11,10 +11,12 @@
 #include "GraphEditDistance.h"
 #include "AllPerfectMatchingsEC.h"
 #include "hungarian-lsap.hh"
+#include "MappingGenerator.h"
 
 
 template<class NodeAttribute, class EdgeAttribute>
-class MultiGed{
+  class MultiGed : public MappingGenerator<NodeAttribute, EdgeAttribute>
+{
 
 protected: /* MEMBERS */
 
@@ -49,9 +51,12 @@ public: /* CONSTRUCTORS AND ACCESSORS */
 
   virtual double getGED() {return _ged; } //!< if the returned value is -1, the ged has not been computed
 
-
 public: /* PUBLIC MEMBER FUNCTIONS */
 
+  virtual std::list<int*> getMappings( Graph<NodeAttribute, EdgeAttribute>* g1,
+				       Graph<NodeAttribute, EdgeAttribute>* g2,
+				       int k ) = 0;
+  
   /**
    * @brief Allocate and retruns $k$ optimal mappings between <code>g1</code> and <code>g2</code>
    * @param k  The number of mappings to compute, -1 to get all perfect matchings
@@ -130,6 +135,7 @@ getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
                      Graph<NodeAttribute,EdgeAttribute> * g2,
                      double* C,     const int& k)
 {
+ 
   int n=g1->Size();
   int m=g2->Size();
 
@@ -138,8 +144,8 @@ getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 
   this->computeCostMatrixLSAP(C, n, m);
 
-// the returned mappings
-std::list<int*> mappings;
+  // the returned mappings
+  std::list<int*> mappings;
 
 
   // Compute an optimal assignement

@@ -27,8 +27,8 @@
 #include "RandomWalksGraphEditDistance.h"
 #include "RandomWalksGraphEditDistanceMulti.h"
 #include "IPFPGraphEditDistance.h"
-#include "RandomInitForIPFP.h"
-#include "MultipleIPFPGraphEditDistance.h"
+#include "RandomMappings.h"
+#include "MultistartRefinementGraphEditDistance.h"
 #include "GNCCPGraphEditDistance.h"
 #include "utils.h"
 using namespace std;
@@ -148,6 +148,10 @@ int main (int argc, char** argv)
   ConstantEditDistanceCost* cf = new ConstantEditDistanceCost(options->cns,options->cni, options->cnd,
 							       options->ces,options->cei, options->ced);
 
+  
+  // IPFP used as a refinement method
+  IPFPGraphEditDistance<int,int> * algoIPFP = new IPFPGraphEditDistance<int,int>(cf);
+
   GraphEditDistance<int,int>* ed;
   if(options->method == string("lsape_bunke"))
     ed = new BipartiteGraphEditDistance<int,int>(cf);
@@ -159,29 +163,29 @@ int main (int argc, char** argv)
     ed = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
   else if( options->method == string("lsape_multi_greedy") )
     ed = new GreedyGraphEditDistance<int,int>(cf, options->nep);
-  else if( options->method == string("multi_random") )
-    ed = new RandomInitForIPFP<int,int>(cf, options->nep);
+  //else if( options->method == string("multi_random") )
+  //  ed = new RandomInitForIPFP<int,int>(cf, options->nep);
     
   else if(options->method == string("ipfpe_bunke")){
     BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
   } else if(options->method == string("ipfpe_multi_bunke")){
     BipartiteGraphEditDistanceMulti<int,int> *ed_init = new BipartiteGraphEditDistanceMulti<int,int>(cf, options->nep);
-    ed = new MultipleIPFPGraphEditDistance<int,int>(cf, ed_init, options->nep);
+    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
   } else if(options->method == string("ipfpe_multi_rw")){
     RandomWalksGraphEditDistanceMulti *ed_init = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
-    ed = new MultipleIPFPGraphEditDistance<int,int>(cf, ed_init, options->nep);
+    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
   } else if(options->method == string("ipfpe_rw")){
     RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,options->k);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
   
   } else if(options->method == string("ipfpe_multi_random")){
-    RandomInitForIPFP<int,int> *ed_init = new RandomInitForIPFP<int,int>(cf,options->k);
-    ed =new MultipleIPFPGraphEditDistance<int,int>(cf,ed_init, options->nep);
+    RandomMappings<int,int> *init = new RandomMappingsGED<int,int>();
+    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, init, options->nep, algoIPFP);
 
   } else if(options->method == string("ipfpe_multi_greedy")){
     GreedyGraphEditDistance<int,int> *ed_init = new GreedyGraphEditDistance<int,int>(cf, options->nep);
-    ed = new MultipleIPFPGraphEditDistance<int,int>(cf, ed_init, options->nep);
+    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
 
   } else if(options->method == string("gnccp")){
     //RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,3 );
@@ -199,7 +203,8 @@ int main (int argc, char** argv)
   //Output average distances
   cout << mean(distances,dataset->size()*dataset->size())<< endl;
   
-
+  
+  delete algoIPFP;
   delete ed;
   delete dataset;
   delete cf;

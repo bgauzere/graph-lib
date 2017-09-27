@@ -178,35 +178,33 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
   if (strcmp(ext,".ct") == 0){
   
     std::ifstream file(filename,std::ios::in);
-    std::vector<char*> v;
     if (file.is_open()) 
-      {		
+      {
   	 char * s = new char[255];
   	 file.getline(s, 255); // The first line is useless
-  	 file.getline(s, 255); // Second line = NumberOfAtoms NumberOfBonds
-  	 v = split(s, " ");
-  	 int  mynbNodes = atoi(v[0]);
-  	 int mynbEdges = atoi(v[1]);
+  	 int  mynbNodes, mynbEdges;
+  	 file >> mynbNodes;
+  	 file >> mynbEdges;
 
+     float coord;
+     std::string index;
   	 for(int i=0; i<mynbNodes; i++)
   	    {
-  	       file.getline(s,255); // s = x y z AtomLabel
-  	       v = split(s," ");
+  	       // ignore x y and z coordinates
+  	       file >> coord; file >> coord; file >> coord;
 	       
-  	       int index;
-  	       std::string atom = v[3];
-  	       index = AtomTable[atom];
-  	       Add(new GNode<int,int>(i,index));
+	       file >> index;
+  	       Add(new GNode<int,int>(i,AtomTable[index]));
   	    }
+  	    
   	 // Creation of the edges
+  	 int start, end, label;
   	 for (int i=0; i<mynbEdges; i++)
   	    {
-  	       file.getline(s,255); // s = Atom1 Atom2 BondType BondType
-  	       v = split(s," ");
-  	       int start = atoi(v[0])-1;
-  	       int end = atoi(v[1])-1;
-  	       int label = (int)(v[2][0]);
-  	       Link(start,end,label);	       
+  	       file >> start; file >> end; file >> label;
+  	       Link(start-1, end-1, label);
+  	       file >> start; //ignore last value
+  	       //file.ignore(255, '\n'); // go to the next line
   	    }
   	  delete [] s;
       }

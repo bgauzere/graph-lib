@@ -40,10 +40,9 @@ public:
    * @return  A list of mappings given as arrays of int. For each mapping M, <code>M[i]</code> is the mapping, in g2, of node i in g1
    * @note  Each array is allocated here and have to be deleted manually
    */
-  virtual std::list<int*> getKOptimalMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
-                                              Graph<NodeAttribute,EdgeAttribute> * g2,
-                                              double* C,
-                                              const int& k);
+  virtual std::list<int*> getMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
+				      Graph<NodeAttribute,EdgeAttribute> * g2,
+				      int k );
 
 };
 
@@ -54,20 +53,21 @@ public:
 
 template<class NodeAttribute, class EdgeAttribute>
 std::list<int*> GreedyGraphEditDistance<NodeAttribute, EdgeAttribute>::
-getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
-                     Graph<NodeAttribute,EdgeAttribute> * g2,
-                     double* C,     const int& k)
+getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
+	     Graph<NodeAttribute,EdgeAttribute> * g2,
+	     int k)
 {
   int n=g1->Size();
   int m=g2->Size();
   
+  this->computeCostMatrix(g1, g2);
   
   // Compute integer cost matrix
   int* Ci = new int[(n+1)*(m+1)];
 
   for (int j=0; j<=m; j++){
     for (int i=0; i<=n; i++){
-      Ci[sub2ind(i,j,n+1)] = (int)(C[sub2ind(i,j,n+1)]);
+      Ci[sub2ind(i,j,n+1)] = (int)(this->C[sub2ind(i,j,n+1)]);
     }
   }
   // the returned mappings

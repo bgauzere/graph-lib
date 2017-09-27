@@ -17,58 +17,42 @@
 using namespace Eigen;
 #include "hungarian-lsape.hh"
 #include "GraphEditDistance.h"
-#include "RandomWalksGraphEditDistance.h"
+#include "IPFPQAP.h"
 #include "utils.h"
 
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPGraphEditDistance:
-  public GraphEditDistance<NodeAttribute, EdgeAttribute>{
-private:
-protected:
+  public IPFPQAP<NodeAttribute, EdgeAttribute>,
+  public GraphEditDistance<NodeAttribute, EdgeAttribute>
+{
 
-  int maxIter = 100;
-  double epsilon = 0.001;
+protected:
 
   GraphEditDistance<NodeAttribute,EdgeAttribute> * _ed_init;
 
-  //Data inherent to *one* computation
-  double * C = 0;
-  double * linearSubProblem = 0;
-  double * XkD = 0;
-  double * Xk = 0;
-  double Lterm = 0;
-  double oldLterm = 0;
-  double * Xkp1tD = 0;
-  double * bkp1 = 0;
-  int _n = -1;
-  int _m = -1;
-  int k = -1;
-  bool _directed = false;
-  std::vector<double> S;
-  std::vector<double> R;
-
-  void (*_MappingInit)(Graph<NodeAttribute,EdgeAttribute> * g1,
-		       Graph<NodeAttribute,EdgeAttribute> * g2,
-		       int * G1_to_G2, int * G2_to_G2);
-
+  virtual
   void NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		      Graph<NodeAttribute,EdgeAttribute> * g2);
-
+  
+  virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
 			 Graph<NodeAttribute,EdgeAttribute> * g2,
 			 int * G1_to_G2, int * G2_to_G1, double * XkD);
+  
+  virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
-			 Graph<NodeAttribute,EdgeAttribute> * g2,
-			 double * Matrix, double * XkD);
+                         Graph<NodeAttribute,EdgeAttribute> * g2,
+                         double * Matrix, double * XkD);
+  virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
 			 Graph<NodeAttribute,EdgeAttribute> * g2,
 			 std::vector<std::pair<std::pair<int,int>,double> > mappings, double * XkD);
 
   //This linearCost is efficient for sparse Xk matrices
   // n is nb rows of matrices, m is nb columns
-  double linearCost(double * CostMatrix, int * G1_to_G2,int * G2_to_G1, int n, int m);
+  virtual double linearCost(double * CostMatrix, int * G1_to_G2,int * G2_to_G1, int n, int m);
   // n is nb rows of matrices, m is nb columns
-  double linearCost(double * CostMatrix, double * Xk, int n, int m);
+  virtual double linearCost(double * CostMatrix, double * Xk, int n, int m);
 
   // Fill this->linearSubProblem with appropriatelinear problem
   virtual void LinearSubProblem();
@@ -77,35 +61,45 @@ protected:
   virtual double getAlpha();
   virtual double getBeta();
 
-  double * mappingsToMatrix(int * G1_to_G2,int * G2_to_G1, int n, int m, double * Matrix);
+  virtual double * mappingsToMatrix(int * G1_to_G2,int * G2_to_G1, int n, int m, double * Matrix);
 
 
 
 public:
   IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
 			GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init):
-    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),_ed_init(ed_init){};
+    IPFPQAP<NodeAttribute, EdgeAttribute>(costFunction),
+    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
+    _ed_init(ed_init)
+  {};
     
   IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
+    IPFPQAP<NodeAttribute, EdgeAttribute>(costFunction),
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
-    _ed_init(NULL),
-    C(NULL), linearSubProblem(NULL), XkD(NULL), Xk(NULL), Lterm(0), oldLterm(0),
-    Xkp1tD(NULL), bkp1(NULL), _n(-1), _m(-1), k(-1), _directed(false)
-  {};
+    _ed_init(NULL)
+  {
+    this->C = NULL; this->linearSubProblem=NULL; this->XkD=NULL; this->Xk=NULL; this->Lterm=0; this->oldLterm=0;
+    this->Xkp1tD=NULL; this->bkp1=NULL; this->_n=-1; this->_m=-1; this->k=-1; this->_directed=false;
+  };
 
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
 				 int * G1_to_G2, int * G2_to_G1);
 
-  virtual void getOptimalMappingFromInit(Graph<NodeAttribute,EdgeAttribute> * g1,
+  virtual void getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G2_to_G1);
+				 int * G1_to_G2, int * G2_to_G1, bool fromInit=true);
 
   void IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
 		     Graph<NodeAttribute,EdgeAttribute> * g2);
 
-  void setMaxIter(int mi){ maxIter=mi; }
-  void setEpsilon(double eps){ epsilon = eps; }
+
+
+  virtual double mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
+                      Graph<NodeAttribute,EdgeAttribute> * g2,
+                     int* G1_to_G2, int* G2_to_G1 );
+  
+  IPFPGraphEditDistance * clone() const { return new IPFPGraphEditDistance(*this); }
 
   virtual ~IPFPGraphEditDistance(){
     if (this->C != NULL) delete [] this->C;
@@ -125,16 +119,16 @@ void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::NodeCostMatrix(Graph<N
 
   this->C = new double[(n+1)*(m+1)];
   //memset(this->C,std::numeric_limits<double>::max(),sizeof(double)*(n+1)*(m+1));
-  C[sub2ind(n,m,(n+1))] = 0;
+  this->C[sub2ind(n,m,(n+1))] = 0;
   for(int i=0;i<n;i++)
     for(int j=0;j<m;j++)
-      C[sub2ind(i,j,(n+1))] = this->cf->NodeSubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
+      this->C[sub2ind(i,j,(n+1))] = this->cf->NodeSubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
   
   for(int i=0;i<n;i++)
-    C[sub2ind(i,m,(n+1))] = this->cf->NodeDeletionCost((*g1)[i],g1);
+    this->C[sub2ind(i,m,(n+1))] = this->cf->NodeDeletionCost((*g1)[i],g1);
 
   for(int j=0;j<m;j++)
-    C[sub2ind(n,j,(n+1))] = this->cf->NodeInsertionCost((*g2)[j],g2);
+    this->C[sub2ind(n,j,(n+1))] = this->cf->NodeInsertionCost((*g2)[j],g2);
 }
 
 
@@ -155,10 +149,10 @@ double * IPFPGraphEditDistance<NodeAttribute,
 	mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,value));
       }
     }
-  if (! XkD)
-    XkD=new double[(n+1)*(m+1)];
+  if (!(this->XkD))
+    this->XkD=new double[(n+1)*(m+1)];
 
-  return this->QuadraticTerm(g1,g2,mappings, XkD);
+  return this->QuadraticTerm(g1,g2,mappings, this->XkD);
 
 }
 
@@ -184,10 +178,10 @@ double * IPFPGraphEditDistance<NodeAttribute,
       std::pair<int,int> tmp = std::pair<int,int>(G2_to_G1[j],j);
       mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
     }
-  if (! XkD)
+  if (!(this->XkD))
     XkD=new double[(n+1)*(m+1)];
 
-  return this->QuadraticTerm(g1,g2,mappings,XkD);
+  return this->QuadraticTerm(g1,g2,mappings,this->XkD);
 
 }
 
@@ -285,21 +279,22 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
   if (this->_ed_init)
     this->_ed_init->getOptimalMapping(g1,g2,G1_to_G2, G2_to_G1);
 
-  getOptimalMappingFromInit(g1, g2, G1_to_G2, G2_to_G1);
+  getBetterMapping(g1, g2, G1_to_G2, G2_to_G1);
 }
 
 
 
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
-getOptimalMappingFromInit( Graph<NodeAttribute,EdgeAttribute> * g1,
-                           Graph<NodeAttribute,EdgeAttribute> * g2,
-                           int * G1_to_G2, int * G2_to_G1){
+getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
+                  Graph<NodeAttribute,EdgeAttribute> * g2,
+                  int * G1_to_G2, int * G2_to_G1, bool fromInit)
+{
   this->_n = g1->Size();
   this->_m = g2->Size();
 
   this->Xk = new double[(this->_n+1)*(  this->_m+1)];
-  Map<MatrixXd> m_Xk(Xk,  this->_n+1,  this->_m+1);
+  Map<MatrixXd> m_Xk(this->Xk,  this->_n+1,  this->_m+1);
   this->Xk = this->mappingsToMatrix(G1_to_G2,G2_to_G1,this->_n,this->_m,this->Xk);
 
   this->IPFPalgorithm(g1,g2);
@@ -325,8 +320,8 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
   this->_n = g1->Size();
   this->_m = g2->Size();
 
-  S.clear();
-  R.clear();
+  this->S.clear();
+  this->R.clear();
 
   NodeCostMatrix(g1,g2);//REdondant for GNCCP
   Map<MatrixXd> m_C(this->C,this->_n+1,this->_m+1); //REdondant for GNCCP
@@ -336,18 +331,18 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
   //this->bkp1 = mappingsToMatrix(G1_to_G2,G2_to_G1,  this->_n,  this->_m,this->bkp1);
 
   this->XkD = this->QuadraticTerm(g1,g2,this->Xk,NULL); //REdondant for GNCCP
-  Map<MatrixXd> m_XkD(XkD,  this->_n+1,  this->_m+1);
+  Map<MatrixXd> m_XkD(this->XkD,  this->_n+1,  this->_m+1);
 
   Map<MatrixXd> m_Xk(this->Xk,  this->_n+1,  this->_m+1);
 
-  Lterm = linearCost(this->C,this->Xk,  this->_n+1,  this->_m+1);
-  S.push_back(this->getCost(Xk,  this->_n,  this->_m));
+  this->Lterm = linearCost(this->C,this->Xk,  this->_n+1,  this->_m+1);
+  this->S.push_back(this->getCost(this->Xk,  this->_n,  this->_m));
 #if DEBUG
-  std::cout << "S(0) = " << S.back() << std::endl;
+  std::cout << "S(0) = " << this->S.back() << std::endl;
 #endif
-  k=0;
+  this->k=0;
   this->linearSubProblem = new double [(  this->_n+1) * (  this->_m+1)];
-  Map<MatrixXd> m_linearSubProblem(linearSubProblem,  this->_n+1,  this->_m+1);
+  Map<MatrixXd> m_linearSubProblem(this->linearSubProblem,  this->_n+1,  this->_m+1);
 
 
   this->Xkp1tD = new double [(  this->_n+1) * (  this->_m+1)];
@@ -360,14 +355,14 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
   bool flag_continue = true;
 
   //BipartiteGraphEditDistanceMulti<int,int> ed_multi(this->cf, 30); // To know how many solutions to lsap per iteration
-  while((k < this->maxIter) && flag_continue){ //TODO : fixer un epsilon, param ?
-    this->XkD = QuadraticTerm(g1,g2,Xk,this->XkD);
+  while((this->k < this->maxIter) && flag_continue){ //TODO : fixer un epsilon, param ?
+    this->XkD = QuadraticTerm(g1,g2,this->Xk,this->XkD);
     this->LinearSubProblem();//    should call it gradient direction
 
-    hungarianLSAPE(linearSubProblem,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+    hungarianLSAPE(this->linearSubProblem,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
     //bkp1 is the matrix version of mapping G1_to_G2 and G2_to_G1, so a binary matrix
     this->bkp1 = mappingsToMatrix(G1_to_G2,G2_to_G1,  this->_n,  this->_m,this->bkp1);
-    R.push_back(linearCost(linearSubProblem,G1_to_G2, G2_to_G1,  this->_n,  this->_m));
+    this->R.push_back(linearCost(this->linearSubProblem,G1_to_G2, G2_to_G1,  this->_n,  this->_m));
     //std::list<int*> mappings = ed_multi.getKOptimalMappings(g1, g2, linearSubProblem, 30);
     //std::cout << mappings.size() << ", ";
 
@@ -379,16 +374,16 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
     std::cout << m_linearSubProblem.format(OctaveFmt) << std::endl;
     std::cout << "bkp1" << std::endl;
     std::cout << m_bkp1.format(OctaveFmt) << std::endl;
-    std::cout << "R : " << R.back() << std::endl;
+    std::cout << "R : " << this->R.back() << std::endl;
 #endif
 
-    this->oldLterm = Lterm;
+    this->oldLterm = this->Lterm;
     this->Lterm = linearCost(this->C,G1_to_G2, G2_to_G1,  this->_n,  this->_m);
-    XkD = QuadraticTerm(g1,g2,G1_to_G2, G2_to_G1,XkD);
-    S.push_back(this->getCost(G1_to_G2, G2_to_G1,  this->_n,  this->_m));
+    this->XkD = QuadraticTerm(g1,g2,G1_to_G2, G2_to_G1, this->XkD);
+    this->S.push_back(this->getCost(G1_to_G2, G2_to_G1,  this->_n,  this->_m));
 
 #if DEBUG
-    std::cout << "S : " << S.back() << std::endl;
+    std::cout << "S : " << this->S.back() << std::endl;
 
 #endif
 
@@ -412,15 +407,15 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
     //*/
 
     //*
-    if (R.back() < 0.0001)
+    if (this->R.back() < 0.0001)
       flag_continue = (fabs(alpha) > this->epsilon);
     else
-      flag_continue = (fabs(alpha / R.back()) > this->epsilon);
+      flag_continue = (fabs(alpha / this->R.back()) > this->epsilon);
     //*/
 
     if ((beta < 0.00001) || (t0 >= 1))
       //if(flag_continue)
-        memcpy(this->Xk,bkp1,sizeof(double)*(  this->_n+1)*(  this->_m+1));
+        memcpy(this->Xk, this->bkp1,sizeof(double)*(  this->_n+1)*(  this->_m+1));
         
       //Lterm = Lterm_new;
     else{
@@ -433,8 +428,8 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
 #endif
       //if (flag_continue){
         m_Xk = m_Xk + t0*(m_bkp1 - m_Xk);
-        S[k+1] = S[k] - ((pow(alpha,2))/(4*beta));
-        this->Lterm = linearCost(this->C, Xk,   this->_n+1,  this->_m+1);
+        this->S[this->k+1] = this->S[this->k] - ((pow(alpha,2))/(4*beta));
+        this->Lterm = linearCost(this->C, this->Xk,   this->_n+1,  this->_m+1);
 	//}
     }
 #if DEBUG
@@ -458,7 +453,7 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
   delete [] G1_to_G2;
   delete [] G2_to_G1;
 #if DEBUG
-  std::cout << S.back() << std::endl;
+  std::cout << this->S.back() << std::endl;
   std::cout << "Fin d'IPFP : "<< k << "iterations " << std::endl;
 #endif
   //Xk contains the optimal bistochastic matrix, binary or not.
@@ -520,13 +515,13 @@ getCost(int * G1_to_G2,int * G2_to_G1, int n, int m){
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getAlpha(){
-  return this->R.back() - 2 * this->S[k] + this->oldLterm;
+  return this->R.back() - 2 * this->S[this->k] + this->oldLterm;
 }
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getBeta(){
-  return S.back() + S[k] -R.back() - this->oldLterm;
+  return this->S.back() + this->S[this->k] - this->R.back() - this->oldLterm;
 }
 
 
@@ -543,5 +538,14 @@ mappingsToMatrix(int * G1_to_G2,int * G2_to_G1, int n, int m, double * Matrix){
 }
 
 
+
+template<class NodeAttribute, class EdgeAttribute>
+double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
+mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
+             Graph<NodeAttribute,EdgeAttribute> * g2,
+             int* G1_to_G2 , int* G2_to_G1)
+{
+  return this->GedFromMapping(g1, g2, G1_to_G2, g1->Size(), G2_to_G1, g2->Size());
+}
 
 #endif // __IPFPGRAPHEDITDISTANCE_H__
