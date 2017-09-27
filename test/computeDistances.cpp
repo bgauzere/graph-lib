@@ -180,7 +180,7 @@ int main (int argc, char** argv)
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
   
   } else if(options->method == string("ipfpe_multi_random")){
-    RandomMappings<int,int> *init = new RandomMappingsGED<int,int>();
+    RandomMappingsGED<int,int> *init = new RandomMappingsGED<int,int>();
     ed = new MultistartRefinementGraphEditDistance<int,int>(cf, init, options->nep, algoIPFP);
 
   } else if(options->method == string("ipfpe_multi_greedy")){

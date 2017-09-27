@@ -34,7 +34,7 @@ public:
 
 template<class NodeAttribute, class EdgeAttribute>
 class RandomMappingsGED :
-  public MappingGenerator<NodeAttribute, EdgeAttribute>
+  public RandomMappings<NodeAttribute, EdgeAttribute>
 {
 
 public:
