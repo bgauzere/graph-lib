@@ -10,7 +10,7 @@
 #include <graph.h>
 
 /**
- * An algorithm refining a mapping from an initialization.
+ * @brief An algorithm refining a mapping from an initialization.
  *
  *   The given initialization is a mapping too, non optimal, 
  *   and a derived class of MappingRefinement will compute
@@ -23,20 +23,23 @@ template<class NodeAttribute, class EdgeAttribute>
  public:
 
   /**
-   * Refine the mapping given in input as G1_to_G2 and G2_ti_G1
-   * from g1 to g2 and returns a better mapping in these arrays
+   * @brief Refine the mapping given in input as G1_to_G2 and G2_ti_G1 from g1 to g2 and returns a better mapping in these arrays
+   * @param G1_to_G2  The forward mapping (from g1 to g2) to refine
+   * @param G2_to_G1  The corresponding reverse mapping (from g2 to g1). This parameter is useful with LSAPE mappings
+   * @param fromInit  Allow to set up if the refined mapping should be computed from the given initialization or from a generated one
    */
   virtual void getBetterMapping( Graph<NodeAttribute, EdgeAttribute>* g1, Graph<NodeAttribute, EdgeAttribute>* g2,
 					 int* G1_to_G2,  int* G2_to_G1, bool fromInit=false ) = 0;
 
   /**
-   * Compute and return the cost of the given mapping from
-   * g1 to g2.
+   * @brief Compute and return the cost of the given mapping from g1 to g2.
    */
   virtual double mappingCost( Graph<NodeAttribute, EdgeAttribute>* g1, Graph<NodeAttribute, EdgeAttribute>* g2,
 			      int* G1_to_G2,  int* G2_to_G1 ) = 0;
   
-  
+  /**
+   * @brief Clone the derivated object
+   */
   virtual MappingRefinement * clone() const = 0;
   
 };

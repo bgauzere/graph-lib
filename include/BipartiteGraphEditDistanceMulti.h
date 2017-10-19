@@ -14,6 +14,9 @@
 #include "hungarian-lsap.hh"
 
 
+/**
+ * @brief Bipartite version of MultiGed based on the Bunke method for linear cost matrix generation
+ */
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistanceMulti :
       public virtual BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>,

@@ -151,6 +151,7 @@ int main (int argc, char** argv)
   
   // IPFP used as a refinement method
   IPFPGraphEditDistance<int,int> * algoIPFP = new IPFPGraphEditDistance<int,int>(cf);
+  algoIPFP->recenterInit();
 
   GraphEditDistance<int,int>* ed;
   if(options->method == string("lsape_bunke"))

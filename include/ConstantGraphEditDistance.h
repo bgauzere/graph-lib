@@ -34,6 +34,13 @@ public:
   virtual double EdgeDeletionCost(GEdge<int> * e1,Graph<int,int> * g1);
   virtual double EdgeInsertionCost(GEdge<int> * e2,Graph<int,int> * g2);
   
+  virtual ConstantEditDistanceCost * clone() const { return new ConstantEditDistanceCost(*this); }
+  
+  ConstantEditDistanceCost(const ConstantEditDistanceCost& other) :
+    _cns(other._cns), _cni(other._cni), _cnd(other._cnd),
+    _ces(other._ces), _cei(other._cei), _ced(other._ced)
+  {}
+  
   ConstantEditDistanceCost(double cns,double cni, double cnd,
 			   double ces,double cei, double ced):_cns(cns),_cni(cni), _cnd(cnd),
 								 _ces(ces), _cei(cei), _ced(ced){};

@@ -21,6 +21,8 @@ public:
   virtual double EdgeDeletionCost(GEdge<int> * e1,Graph<int,int> * g1);
   virtual double EdgeInsertionCost(GEdge<int> * e2,Graph<int,int> * g2);
 
+  virtual QAPLibCost * clone() const { return new QAPLibCost(*this);}
+
   QAPLibCost () :
     _INFINITY_(100000.0)
   {}

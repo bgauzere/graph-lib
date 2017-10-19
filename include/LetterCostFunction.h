@@ -26,6 +26,7 @@ public:
   virtual double EdgeDeletionCost(GEdge<double> * e1,Graph<CMUPoint,double> * g1);
   virtual double EdgeInsertionCost(GEdge<double> * e2,Graph<CMUPoint,double> * g2);
 
+  virtual LetterDistanceCost * clone() const {return new LetterDistanceCost(*this);}
 
   LetterDistanceCost (double tn, double te, double a) :
     _tnodes(tn),

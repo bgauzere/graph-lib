@@ -15,6 +15,16 @@
 #include "MappingGenerator.h"
 
 
+/**
+ * @brief Base class for graph edit distance methods that consider multiple linear approximations via a modified Uno algorithm
+ * 
+ *   This class implements some methods to compute several assignments through the LSAPE library.
+ *   It may be considered as a MappingGenerator using Uno's algorithm to compute bipartite optimal mappings 
+ *   from an arbitrary one, solution of the hungarian algorithm.
+ * 
+ * @see RandomMappings
+ * @see GreedyGraphEditDistance
+ */
 template<class NodeAttribute, class EdgeAttribute>
   class MultiGed : public MappingGenerator<NodeAttribute, EdgeAttribute>
 {
@@ -47,13 +57,19 @@ public: /* CONSTRUCTORS AND ACCESSORS */
   }
 
 
-  virtual void setK(int newk) { _nep = newk; }
-  virtual int getK() { return _nep; }
+  virtual void setK(int newk) { _nep = newk; } //!< Set the number of assignments to be calculated to newk
+  virtual int getK() { return _nep; }  //!< Returns the number of assignments
 
   virtual double getGED() {return _ged; } //!< if the returned value is -1, the ged has not been computed
 
 public: /* PUBLIC MEMBER FUNCTIONS */
 
+  /**
+   * @brief The method to compute <code>k</code> mappings is delegated to derivated classes
+   *
+   *  This method can include a way to compute a biartite or quadratic cost matrix, to choose 
+   *  the returned assignments and so on.
+   */
   virtual std::list<int*> getMappings( Graph<NodeAttribute, EdgeAttribute>* g1,
 				       Graph<NodeAttribute, EdgeAttribute>* g2,
 				       int k ) = 0;

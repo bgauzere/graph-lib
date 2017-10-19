@@ -33,39 +33,68 @@ private:
   // TODO: void loadCXL(const char * filename);
 public:
   // TODO :  Dataset(const char * filename){};
-  /* Accessors to graphs
+  /**
+   * Accessors to graphs
    * @param id the identifier of graph
    * @return the desired graph
    * XXX: control id param.
    */
-  Graph<NodeAttribute, EdgeAttribute> * getGraph(unsigned int id){return graphs[id];};
-  Graph<NodeAttribute, EdgeAttribute> * operator[](unsigned int id){return graphs[id];};
-  /* Accessors to properties
+  Graph<NodeAttribute, EdgeAttribute> * getGraph(unsigned int id) const {return graphs[id];};
+  Graph<NodeAttribute, EdgeAttribute> * operator[](unsigned int id) const {return graphs[id];};
+
+  /**
+   * Accessors to properties
    * @param id the identifier of graph associated to property
    * @return the property associated to graph id
    * XXX: control id param.
    */
-  PropertyType getProperty(unsigned int id){return properties[id];};
-  PropertyType operator()(unsigned int id){return properties[id];};
+  PropertyType getProperty(unsigned int id) const {return properties[id];};
+  PropertyType operator()(unsigned int id) const {return properties[id];};
 
-  /* Add a pair of graph and its attribute to the dataset
+  /**
+   * Add a pair of graph and its attribute to the dataset
    * @param g the graph to add
    * @param y the property associated to g
    * @return the id of added graph
   */
   int add(Graph<NodeAttribute, EdgeAttribute> * g, PropertyType y){graphs.push_back(g);properties.push_back(y);return graphs.size();}
-  /* Return the number of graphs included within the dataset
+
+  /**
+   * Returns and erase the last graph of the dataset
+   * @return the last graph of the dataset, NULL if it is empty
+   */
+  Graph<NodeAttribute, EdgeAttribute> * pop_back(){
+    if (graphs.empty()) return NULL;
+    Graph<NodeAttribute, EdgeAttribute> * g = graphs.back();
+    graphs.pop_back();
+    return g;
+  }
+  
+  /**
+   * Clear all graphs in the dataset
+   */
+  void clear(){
+    for (unsigned int i=0; i<graphs.size(); i++) 
+      delete graphs[i];
+    graphs.clear();
+  }
+  
+  /**
+   * Return the number of graphs included within the dataset
    * @return the size of dataset
    */
-  int size(){return graphs.size();};
+  int size() const {return graphs.size();};
 
-  /* Compute the graph edit distance according to a given algorithm between each pair of graphs included within dataset.
+  /**
+   * Compute the graph edit distance according to a given algorithm between each pair of graphs included within dataset.
    * @param ed the <code>GraphEditDistance</code> used to compute the ged
    * @param quiet if TRUE, prints the pair of graphs currently processed while execution.
    * @return the distance matrix of size N*N computed according to ed
    */
-  double * computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed, bool quiet = true);
-  /* Apply shuffleization procedure on all graphs composing the dataset.
+  double * computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed, bool quiet = true) const;
+
+  /**
+   * Apply shuffleization procedure on all graphs composing the dataset.
    */
   void shuffleize();
   
@@ -84,7 +113,7 @@ void Dataset<NodeAttribute,EdgeAttribute,PropertyType>::shuffleize(){
 }
 
 template<class NodeAttribute,class EdgeAttribute, class PropertyType>
-double * Dataset<NodeAttribute,EdgeAttribute,PropertyType>::computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed, bool quiet){
+double * Dataset<NodeAttribute,EdgeAttribute,PropertyType>::computeGraphEditDistance(GraphEditDistance<NodeAttribute,EdgeAttribute> * ed, bool quiet) const{
   int N = size();
   double * distances = new double[size()*size()];
   for (int i=0;i<N;i++)

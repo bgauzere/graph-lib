@@ -1,3 +1,4 @@
+
 #ifndef __PGRAPHH__
 #define __PGRAPHH__
 
@@ -246,6 +247,26 @@ public :
 	NodeAttribute (*readNodeLabel)(TiXmlElement *elem),
 	EdgeAttribute (*readEdgeLabel)(TiXmlElement *elem));
   
+  
+  Graph(Graph<NodeAttribute,EdgeAttribute>& g ):
+    nbNodes(0),
+    nbEdges(0),
+    _directed(g._directed)
+  {
+    for (int i=0; i<g.Size(); i++){
+      this->Add(new GNode<NodeAttribute,EdgeAttribute> (i, g[i]->attr));
+    }
+
+    for (int i=0; i<g.Size(); i++){
+      GEdge<int> *p = g[i]->getIncidentEdges();
+      while(p){
+        this->Link(i, p->IncidentNode(), p->attr);
+        p = p->Next();
+      }
+    }
+  }
+
+
   /**
    * Fills current graph with contents read from a gxl file
    * @param GXL filename
@@ -276,7 +297,7 @@ public :
    * Returns the number of nodes.
    * @return	the size.
    */
-  int Size() { return nbNodes; };
+  int Size() const { return nbNodes; };
   /**
    * Returns the number of edges.
    * @return	the number of edges.
@@ -356,8 +377,16 @@ public :
    * Returns true if both nodes are linked.
    * @return TRUE if edge exists, FALSE otherwise.
    */
-  bool isLinked(int firstNode, int secondNode){
-   return (getEdge(firstNode,secondNode) != NULL);      
+  bool isLinked(int firstNode, int secondNode) const {
+    // Re-implemented from getEdge to keep const qualifier
+   GEdge<EdgeAttribute> *p = tnode[firstNode]->getIncidentEdges();
+    while(p){
+      if (p->IncidentNode() == secondNode)
+	return true;
+      else
+	p=p->Next();
+    }
+    return false;
   };
 
   /*
@@ -374,7 +403,7 @@ public :
       else
 	p=p->Next();
     }
-    return NULL;      
+    return NULL;
   };
   
   /*

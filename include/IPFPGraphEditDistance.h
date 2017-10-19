@@ -29,6 +29,7 @@ class IPFPGraphEditDistance:
 protected:
 
   GraphEditDistance<NodeAttribute,EdgeAttribute> * _ed_init;
+  bool cleanCostFunction;
 
   virtual
   void NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -70,13 +71,15 @@ public:
 			GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init):
     IPFPQAP<NodeAttribute, EdgeAttribute>(costFunction),
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
-    _ed_init(ed_init)
+    _ed_init(ed_init),
+    cleanCostFunction(false)
   {};
     
   IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
     IPFPQAP<NodeAttribute, EdgeAttribute>(costFunction),
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
-    _ed_init(NULL)
+    _ed_init(NULL),
+    cleanCostFunction(false)
   {
     this->C = NULL; this->linearSubProblem=NULL; this->XkD=NULL; this->Xk=NULL; this->Lterm=0; this->oldLterm=0;
     this->Xkp1tD=NULL; this->bkp1=NULL; this->_n=-1; this->_m=-1; this->k=-1; this->_directed=false;
@@ -99,7 +102,31 @@ public:
                       Graph<NodeAttribute,EdgeAttribute> * g2,
                      int* G1_to_G2, int* G2_to_G1 );
   
+  
+  void recenterInit(bool yes=true){
+    this->recenter = yes;
+  }
+  
+  /**
+   * @brief  Set the centering matrix to J of size \f$(n+1)\times(m+1)\f$ and activate the centering
+   *
+   *  On the next IPFP algorithm call, the initialization \f$X_0\f$ will be translated to \f$\frac{1}{2}\times(X_0+J)\f$.
+   *  If <code>nJ==NULL</code>, then the geometrical barycenter of error correcting doubly stochastic matrices
+   *   \f$J = \frac{2(n+1)\times(m+1)}{n+m+2}\f$ will be used
+   */
+  virtual void recenterInit(double* nJ, int n, int m);
+  
   IPFPGraphEditDistance * clone() const { return new IPFPGraphEditDistance(*this); }
+  
+  IPFPGraphEditDistance( const IPFPGraphEditDistance& other ) :
+    IPFPQAP<NodeAttribute,EdgeAttribute>(NULL),
+    GraphEditDistance<NodeAttribute, EdgeAttribute>(NULL),
+    _ed_init(other._ed_init),
+    cleanCostFunction(true)
+  {
+    this->cf = other.cf->clone();
+    this->recenter = other.recenter;
+  }
 
   virtual ~IPFPGraphEditDistance(){
     if (this->C != NULL) delete [] this->C;
@@ -108,9 +135,33 @@ public:
     if (this->Xk != NULL) delete [] this->Xk;
     if (this->Xkp1tD != NULL) delete [] this->Xkp1tD;
     if (this->bkp1 != NULL) delete [] this->bkp1;
+    if (this->cleanCostFunction) delete this->cf;
   }
 
 };
+
+
+template<class NodeAttribute, class EdgeAttribute>
+void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
+recenterInit(double * nJ, int n, int m)
+{
+  if ( this->J != NULL) delete[] this->J;
+  this->J = new double[(n+1)*(m+1)];
+  
+  this->recenter = true;
+  if (nJ == NULL){
+    for (int j=0; j<m+1; j++)
+      for (int i=0; i<n+1; i++)
+        this->J[sub2ind(i,j,n+1)] = 2.0*(n+1.0)*(m+1.0) / (n+m+2);
+  }
+  else{
+    for (int j=0; j<m+1; j++)
+      for (int i=0; i<n+1; i++)
+        this->J[sub2ind(i,j,n+1)] = nJ[sub2ind(i,j,n+1)];
+  }
+}
+
+
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 									 Graph<NodeAttribute,EdgeAttribute> * g2){
@@ -312,7 +363,16 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
-	      Graph<NodeAttribute,EdgeAttribute> * g2){
+	      Graph<NodeAttribute,EdgeAttribute> * g2)
+{
+
+  // Recenter the init mapping ?
+  if (this->recenter){
+    if (this->J == NULL) this->recenterInit(NULL, this->_n, this->_m);
+    for (int j=0; j<this->_m+1;  j++)
+      for (int i=0; i<this->_n+1;  i++)
+        this->Xk[sub2ind(i,j,this->_n+1)] = (this->Xk[sub2ind(i,j,this->_n+1)] + this->J[sub2ind(i,j,this->_n+1)]) / 2;
+  }
 
   this->_directed = (g1->isDirected() && g2->isDirected());
   //We assume that Xk is filled with a matrix, binary or not
