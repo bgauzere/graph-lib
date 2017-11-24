@@ -11,6 +11,7 @@
  *
  */
 #include <cstring>
+#include <iostream>
 
 #include "utils.h"
 
@@ -28,6 +29,14 @@ std::vector<char*> split (const char* chaine, const char* sep){
   return v;
 }
 
-int sub2ind(int i, int j, int n){return i + j*n;};
+//int sub2ind(int i, int j, int n){return i + j*n;};
+
+void print_array(double* arr, int n, int m){
+  for (int i=0; i<n; i++){
+    for (int j=0; j<m; j++)
+      std::cout << arr[i + j*n] << "  ";
+    std::cout << std::endl;
+  }
+}
 
 //double abs(double x) { return (x >= 0) ? x : -x; }

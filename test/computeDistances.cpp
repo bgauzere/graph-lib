@@ -116,17 +116,18 @@ double * computeGraphEditDistance(Dataset< NodeAttribute, EdgeAttribute, Propert
   //double * distances =  dataset->computeGraphEditDistance(ed, true);
   int N = dataset->size();
   double* distances = new double[N*N];
+  struct timeval  tv1, tv2;
   for (int i=0; i<N; i++){
     for (int j=0; j<N; j++){
       #ifdef PRINT_TIMES
-        clock_t t = clock();
+        gettimeofday(&tv1, NULL);
       #endif
       
       distances[sub2ind(i,j,N)] = (*ed)((*dataset)[i], (*dataset)[j]);;
       
       #ifdef PRINT_TIMES
-        t = clock() - t;
-        cout << ((float)t) / CLOCKS_PER_SEC << ", " ;
+        gettimeofday(&tv2, NULL);
+        cout << ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec)) << ", " ;
       #endif
       
       cout << (int)distances[sub2ind(i,j,N)];
@@ -151,7 +152,13 @@ int main (int argc, char** argv)
   
   // IPFP used as a refinement method
   IPFPGraphEditDistance<int,int> * algoIPFP = new IPFPGraphEditDistance<int,int>(cf);
-  algoIPFP->recenterInit();
+  //algoIPFP->recenterInit();
+  
+  // Sinkhorn balanced random init
+  if (options->method == string("ipfpe_random_sh")){
+    algoIPFP->continuousRandomInit(true);
+    options->method = string("ipfpe_multi_random");
+  }
 
   GraphEditDistance<int,int>* ed;
   if(options->method == string("lsape_bunke"))
@@ -166,7 +173,12 @@ int main (int argc, char** argv)
     ed = new GreedyGraphEditDistance<int,int>(cf, options->nep);
   //else if( options->method == string("multi_random") )
   //  ed = new RandomInitForIPFP<int,int>(cf, options->nep);
-    
+  
+  else if(options->method == string("ipfpe_flat")){
+    algoIPFP->continuousFlatInit(true);
+    ed = algoIPFP->clone();
+  }
+  
   else if(options->method == string("ipfpe_bunke")){
     BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
@@ -202,7 +214,7 @@ int main (int argc, char** argv)
   double * distances = computeGraphEditDistance(dataset,ed,options->shuffle, options->nep);
 
   //Output average distances
-  cout << mean(distances,dataset->size()*dataset->size())<< endl;
+  //cout << mean(distances,dataset->size()*dataset->size())<< endl;
   
   
   delete algoIPFP;

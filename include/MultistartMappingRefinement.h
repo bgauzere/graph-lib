@@ -125,6 +125,10 @@ getBestMapping( MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm,
   gettimeofday(&tv2, NULL);
 
   this->getBestMappingFromSet(algorithm, g1, g2, G1_to_G2, G2_to_G1, mappings);
+  
+  // Memoy cleaning
+  for (std::list<int*>::iterator it = mappings.begin(); it!=mappings.end(); it++)
+    delete[] *it;
 }
 
 

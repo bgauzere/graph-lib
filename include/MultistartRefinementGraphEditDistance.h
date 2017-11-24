@@ -215,7 +215,10 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
     #ifdef _OPENMP
       // save the approx cost
       arrayCosts[tid] = ncost;
-     // _distances_[tid] = ncost;
+      // _distances_[tid] = ncost;
+     
+      // Delete cloned local method
+      delete local_method;
 
     // Sequential
     #else
@@ -308,8 +311,13 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
 
   typename std::list<int*>::const_iterator it;
   
-  int* arrayLocal_G1_to_G2 = new int[(n+1) * mappings.size()];
-  int* arrayLocal_G2_to_G1 = new int[(m+1) * mappings.size()];
+  int** arrayLocal_G1_to_G2 = new int*[mappings.size()]; // indexation of local G1toG2
+  int** arrayLocal_G2_to_G1 = new int*[mappings.size()];
+  
+  for (unsigned int i=0; i<mappings.size(); i++){
+     arrayLocal_G1_to_G2[i] = new int[n+1];
+     arrayLocal_G2_to_G1[i] = new int[m+1];
+  }
 
   // Multithread
   #ifdef _OPENMP
@@ -335,8 +343,8 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
   #endif
   
   
-      int* local_G1_to_G2 = &(arrayLocal_G1_to_G2[tid*(n+1)]);
-      int* local_G2_to_G1 = &(arrayLocal_G2_to_G1[tid*(m+1)]);
+      int* local_G1_to_G2 = arrayLocal_G1_to_G2[tid];
+      int* local_G2_to_G1 = arrayLocal_G2_to_G1[tid];
 
       // computation of G1_to_G2 and G2_to_G1
       for (int j=0; j<m; j++){ // connect all to epsilon by default
@@ -377,8 +385,8 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
     this->refinedReverseMappings.clear(); //G2_to_G1 in refinedReverseMappings
     int _i_=0;
     for (it=mappings.begin(); it!=mappings.end(); it++){
-      this->refinedMappings.push_back(arrayLocal_G1_to_G2 + _i_*(n+1));
-      refinedReverseMappings.push_back(arrayLocal_G2_to_G1 + _i_*(m+1));
+      this->refinedMappings.push_back(arrayLocal_G1_to_G2[_i_]);
+      refinedReverseMappings.push_back(arrayLocal_G2_to_G1[_i_]);
       _i_++;
     }
 

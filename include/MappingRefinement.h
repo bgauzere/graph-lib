@@ -42,6 +42,9 @@ template<class NodeAttribute, class EdgeAttribute>
    */
   virtual MappingRefinement * clone() const = 0;
   
+  
+  virtual ~MappingRefinement(){}
+  
 };
 
 
