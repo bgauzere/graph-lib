@@ -251,3 +251,35 @@ int * SymbolicGraph::getLabeledAdjacencyMatrix(){
   }
   return am;
 }
+
+
+bool writeCTfile(Graph<int,int>& graph, std::ofstream& output){
+  try{
+    output << "Generated graph" << std::endl;
+    output << graph.Size() << " " << graph.getNbEdges() << std::endl;
+    for (int i=0; i<graph.Size(); i++){
+      int label = graph[i]->attr;
+      std::map<std::string, int>::iterator it = AtomTable.begin();
+      while (it != AtomTable.end() && it->second != label) it++;
+      output << "   0.0    0.0    0.0   ";
+      if (it != AtomTable.end()) 
+        output << it->first << std::endl;
+      else 
+        output << "?" << std::endl;
+    }
+    
+    for (int i=0; i<graph.Size(); i++){
+      for (int j=0; j<i; j++){
+        if (graph.isLinked(i,j))
+          output << i+1 << " " << j+1 << "  " << graph.getEdge(i,j)->attr << "  0" << std::endl;
+      }
+    }
+  }
+  catch(std::exception & e){
+    std::cerr << "[E]  Error while writing file : " << e.what() << std::endl;
+    return false;
+  }
+  return true;
+}
+
+

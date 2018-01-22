@@ -64,22 +64,32 @@ getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 	     int k )
 {
   if (k < 0) k = 100;
-  
+
   int n = g1->Size();
   int m = g2->Size();
-  
+
   std::list<int*> mappings;
-  
+
   int mx = std::max(n,m);
-  
+
   for (int i=0; i<k; i++){
     int* _map = new int[mx];
-    for (int a=0; a<mx; a++) _map[a] = a;
-    
+    for (int a=0; a<m; a++)  _map[a] = a;
+    for (int a=m; a<mx; a++) _map[a] = -1; // if m<max(n,m) : complete with -1
+
     std::shuffle(&_map[0], &_map[mx], randGen);
-    mappings.push_back(_map);
+
+
+    if (mx != n){
+      int* mapping = new int[n];
+      memcpy(mapping, _map, n*sizeof(int));
+      mappings.push_back(mapping);
+      delete [] _map;
+    }
+    else
+      mappings.push_back(_map);
   }
-  
+
   return mappings;
 }
 

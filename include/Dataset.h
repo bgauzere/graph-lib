@@ -97,7 +97,13 @@ public:
    * Apply shuffleization procedure on all graphs composing the dataset.
    */
   void shuffleize();
-  
+
+
+  /**
+   * An empty dataset
+   */
+  Dataset(){}
+
   ~Dataset(){
     for (unsigned int i=0; i<graphs.size(); i++) 
       delete graphs[i];
@@ -138,6 +144,7 @@ private:
   void loadDS(const char * filename);
 public:
   ChemicalDataset(const char * filename);
+  ChemicalDataset(): Dataset<int,int,PropertyType>(){}
 };
   
 template<class PropertyType>

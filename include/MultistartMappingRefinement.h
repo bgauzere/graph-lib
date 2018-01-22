@@ -101,7 +101,7 @@ public:
     initGen(gen),
     k(nSol)
   {}
-  
+
   virtual ~MultistartMappingRefinement(){}
 
 
@@ -143,6 +143,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
 {
   struct timeval  tv1, tv2;
   int n = g1->Size();
+  int m = g2->Size();
 
   typename std::list<int*>::const_iterator it;
   double cost = -1;
@@ -155,6 +156,9 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
     int** arrayMappings = new int*[mappings.size()];
     int* arrayCosts = new int[mappings.size()];
     int* arrayLocal_G1_to_G2 = new int[n * mappings.size()];
+    int* arrayLocal_G2_to_G1 = NULL;
+    if (G2_to_G1 != NULL)
+      arrayLocal_G2_to_G1 = new int[m * mappings.size()];
 
     int i=0; for (it=mappings.begin(); it!=mappings.end(); it++){
       arrayMappings[i] = *it;
@@ -168,9 +172,16 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
       int* lsapMapping = arrayMappings[tid];
       int* local_G1_to_G2 = &(arrayLocal_G1_to_G2[tid*n]);
 
+      int* local_G2_to_G1 = NULL;
+      if (G2_to_G1 != NULL)
+        local_G2_to_G1 = &(arrayLocal_G2_to_G1[tid*m]);
+
   // Sequential
   #else
     int* local_G1_to_G2 = new int[n];
+    int* local_G2_to_G1 = NULL;
+    if (G2_to_G1 != NULL)
+      local_G2_to_G1 = new int[m];
 
     double t_acc = 0; // accumulated time
     for (it=mappings.begin(); it!=mappings.end(); it++){
@@ -181,6 +192,13 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
     // Copy the mapping into the local array
     for (int i=0; i<n; i++)
       local_G1_to_G2[i] = lsapMapping[i];
+
+    if (local_G2_to_G1 != NULL){
+      for (int j=0; j<m; j++) local_G2_to_G1[j] = -1;
+      for (int i=0; i<n; i++) 
+        if (local_G1_to_G2[i] >= 0)
+          local_G2_to_G1[local_G1_to_G2[i]] = i;
+    }
     
     MappingRefinement<NodeAttribute, EdgeAttribute> * local_method;
     
@@ -190,8 +208,8 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
       local_method = algorithm;
     #endif
     
-    local_method->getBetterMapping(g1, g2, local_G1_to_G2, NULL, true);
-    ncost = local_method->mappingCost(g1, g2, local_G1_to_G2, NULL);
+    local_method->getBetterMapping(g1, g2, local_G1_to_G2, local_G2_to_G1, true);
+    ncost = local_method->mappingCost(g1, g2, local_G1_to_G2, local_G2_to_G1);
 
 
     // Multithread
@@ -206,6 +224,8 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
       if (cost > ncost || cost == -1){
         cost = ncost;
         for (int i=0; i<n; i++) G1_to_G2[i] = local_G1_to_G2[i];
+        if (G2_to_G1 != NULL)
+          for (int j=0; j<m; j++) G2_to_G1[j] = local_G2_to_G1[j];
       }
       gettimeofday(&tv2, NULL);
       t_acc += ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec));
@@ -228,6 +248,9 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
       }
     }
     for (int i=0; i<n; i++) G1_to_G2[i] = arrayLocal_G1_to_G2[i_optim*n + i];
+    
+    if (G2_to_G1 != NULL)
+      for (int j=0; j<m; j++) G2_to_G1[j] = arrayLocal_G2_to_G1[i_optim*m + j];
 
     // To match the output format size in XPs
     //for (int i=mappings.size(); i<k; i++) _distances_[i] = 9999;
@@ -239,11 +262,15 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
     delete[] arrayLocal_G1_to_G2;
     delete[] arrayCosts;
     delete[] arrayMappings;
+    if (arrayLocal_G2_to_G1 != NULL)
+      delete[] arrayLocal_G2_to_G1;
 
   // Sequential : deletes
   #else
 
     delete [] local_G1_to_G2;
+    if (G2_to_G1 != NULL)
+      delete [] local_G2_to_G1;
 
   #endif
 

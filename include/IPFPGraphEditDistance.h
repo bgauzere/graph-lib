@@ -165,6 +165,7 @@ public:
     cleanCostFunction(true)
   {
     this->cf = other.cf->clone();
+    this->costFunction = this->cf;
     this->recenter = other.recenter;
     this->useContinuousRandomInit = other.useContinuousRandomInit;
     this->useContinuousFlatInit = other.useContinuousFlatInit;
@@ -564,7 +565,7 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
     this->k++;
   }
 
-  //_xp_out_ << k << ", " ;
+  //std::cout << this->k << ", " ;
   
   delete [] this->Xkp1tD;this->Xkp1tD=0;
   delete [] this->linearSubProblem;this->linearSubProblem=0;
@@ -604,7 +605,7 @@ linearCost(double * CostMatrix, double * X, int n, int m){
   double sum = 0.0;
   for(int i=0;i<n;i++)
     for(int j=0;j<m;j++)
-      sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)];
+      sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)]; //XXX is that not n+1 ?
   return sum;
 }
 

@@ -19,7 +19,7 @@ protected:
   EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction; 
         //!< Cost function used to compute node and edge substitution costs
 
-  int maxIter = 100;
+  int maxIter = 200;
   double epsilon = 0.001;
 
 
@@ -218,15 +218,17 @@ QuadraticTerm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2,
                int * G1_to_G2,double * XkD )
 {
-
+  
   int n = g1->Size();
   int m = g2->Size();
-
+  
   //Reconstruction d'un mapping
   std::vector<std::pair<std::pair<int,int>, double>> mappings;
   for (int i =0;i<n;i++){
-    std::pair<int,int> tmp = std::pair<int,int>(i,G1_to_G2[i]);
-    mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
+    if (G1_to_G2[i] >= 0){
+      std::pair<int,int> tmp = std::pair<int,int>(i,G1_to_G2[i]);
+      mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
+    }
   }
   if (! XkD)
     XkD=new double[n*m];
@@ -397,7 +399,7 @@ void IPFPQAP<NodeAttribute, EdgeAttribute>::
 IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2 )
 {
-
+  
   // Recenter the init mapping ?
   if (this->recenter){
     if (this->J == NULL) this->recenterInit(NULL, this->_n); // @see recenterInit(double*, int)
@@ -554,7 +556,7 @@ double IPFPQAP<NodeAttribute, EdgeAttribute>::
 linearCost(double * CostMatrix, int * G1_to_G2, int n, int m){
   double sum = 0.0;
   for(int i=0;i<n;i++)
-    sum += CostMatrix[sub2ind(i,G1_to_G2[i],n)];
+    if (G1_to_G2[i]>=0) sum += CostMatrix[sub2ind(i,G1_to_G2[i],n)];
   return sum;
 }
 
@@ -613,6 +615,7 @@ double * IPFPQAP<NodeAttribute, EdgeAttribute>::
 mappingsToMatrix(int * G1_to_G2, int n, int m, double * Matrix){
   memset(Matrix,0,sizeof(double)*n*m);
   for (int i =0;i<n;i++){
+    //if (G1_to_G2[i] >= m) std::cout << G1_to_G2[i] << std::endl;
     if (G1_to_G2[i] >= 0)  Matrix[sub2ind(i,G1_to_G2[i],n)] = 1;
   }
   return Matrix;
