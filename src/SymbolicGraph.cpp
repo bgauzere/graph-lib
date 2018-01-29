@@ -172,6 +172,23 @@ int SymbolicGraph::readChemicalNodeLabel(TiXmlElement *elem){
 
 
 
+int SymbolicGraph::readGraphmlEdgeLabel(TiXmlElement *elem){
+  return 1;
+}
+
+int SymbolicGraph::readGraphmlNodeLabel(TiXmlElement *elem){
+  int atom = -1;
+  TiXmlElement* child = elem->FirstChildElement();
+  if ( child ){
+    std::string label =  child->GetText();
+    atom = atoi(label.c_str());
+    }
+  return atom;
+}
+
+
+
+
 SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
   fillAtomTable(AtomTable);
   const char * ext = strrchr(filename,'.'); 
@@ -210,6 +227,8 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
       }
   }else if (strcmp(ext,".gxl") == 0){
     GraphLoadGXL(filename,readChemicalNodeLabel,readChemicalEdgeLabel);
+  }else if (strcmp(ext, ".graphml") == 0){
+    GraphLoadGXL(filename,readGraphmlNodeLabel,readGraphmlEdgeLabel);
   }else{
     std::cerr << "Unsupported file format."<< std::endl;
   }

@@ -166,7 +166,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
     }
 
     //omp_set_dynamic(0);
-    omp_set_num_threads(4);
+    //omp_set_num_threads(4);
     #pragma omp parallel for schedule(dynamic) //private(tid, i, j, ncost, ipfpGed )
     for (unsigned int tid=0; tid<mappings.size(); tid++){
       int* lsapMapping = arrayMappings[tid];

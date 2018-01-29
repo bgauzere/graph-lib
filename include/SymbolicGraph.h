@@ -24,6 +24,15 @@ private:
    */
   static int readChemicalNodeLabel(TiXmlElement *elem);
 
+  /* Read Edge Attributes from a Graphml file, for datasets ENZYME, and D&D
+   * @return 1 everywhere
+   */
+  static int readGraphmlEdgeLabel(TiXmlElement *elem);
+
+  /* Read Node Attributes from a Graphml file, for datasets ENZYME and D&D
+   * @return the label read
+   */
+  static int readGraphmlNodeLabel(TiXmlElement *elem);
 
 public:
   /* Constructor to fill a Symbolic graph from a ct file (ChemDraw Connection Table format)

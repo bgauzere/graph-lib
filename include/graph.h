@@ -460,24 +460,39 @@ void Graph<NodeAttribute,EdgeAttribute>::GraphLoadGXL(const char * filename,
     std::cerr << "Error while loading file" << std::endl;
     std::cerr << "error #" << doc.ErrorId() << " : " << doc.ErrorDesc() << std::endl;
   }
-   
+  
+
   TiXmlHandle hdl(&doc);
   std::map<int,int> id_to_index;
-  TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement().FirstChildElement().Element();
+  //TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement().FirstChildElement().Element();
+  TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement("graph").FirstChildElement().Element();
   while (elem){
     if(strcmp(elem->Value(),"node") == 0){
-      int id = std::stoi( elem->Attribute("id"));
-      
+      int id;
+      if (elem->Attribute("id")[0] == 'n')
+        id = std::stoi((elem->Attribute("id")) + 1);
+      else
+        id= std::stoi( elem->Attribute("id"));
+
       NodeAttribute label = readNodeLabel(elem);
       id_to_index[id] = nbNodes;
       Add(new GNode<NodeAttribute, EdgeAttribute>(id,label));
     }else if (strcmp(elem->Value(),"edge") == 0){
         int from=-1;
         int to=-1;
-	from = std::stoi(elem->Attribute("from"));
-	to = std::stoi(elem->Attribute("to"));
+        const char* s_from = elem->Attribute("from");
+        const char* s_to = elem->Attribute("to");
+        if (s_from == NULL || s_to == NULL){
+          s_from = elem->Attribute("source") + 1;
+	  s_to = elem->Attribute("target") + 1;
+	}
+
+	from = std::stoi(s_from);
+	to = std::stoi(s_to);
+
 	EdgeAttribute label = readEdgeLabel(elem);
-	Link(id_to_index[from], id_to_index[to],label);	      
+	Link(id_to_index[from], id_to_index[to],label);
+
     }
     elem = elem->NextSiblingElement(); // iteration
   }

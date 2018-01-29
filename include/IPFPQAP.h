@@ -19,7 +19,7 @@ protected:
   EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction; 
         //!< Cost function used to compute node and edge substitution costs
 
-  int maxIter = 200;
+  int maxIter = 100;
   double epsilon = 0.001;
 
 
