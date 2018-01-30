@@ -33,6 +33,8 @@ protected:
   MappingRefinement<NodeAttribute, EdgeAttribute> * method; //!< Storage of a predefined refinement method
   std::list<int*> refinedReverseMappings; //!< Storage of the reverse mappings needed for the (n+1)*(m+1) GED modelisation
 
+  bool cleanMethod; //!< Delete the method in the destructor if true
+
 public:
 
 
@@ -51,6 +53,9 @@ public:
                                       std::list<int*>& mappings );
 
 
+  /**
+   * First Constructor
+   */
   MultistartRefinementGraphEditDistance( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
                                  MappingGenerator<NodeAttribute,EdgeAttribute> * gen,
                                  int n_edit_paths,
@@ -58,9 +63,27 @@ public:
                                ):
     GraphEditDistance<NodeAttribute,EdgeAttribute> (costFunction),
     MultistartMappingRefinement<NodeAttribute, EdgeAttribute> (gen, n_edit_paths),
-    method(algorithm)
+    method(algorithm),
+    cleanMethod(false)
   {}
 
+
+  MultistartRefinementGraphEditDistance(
+                        const MultistartRefinementGraphEditDistance<NodeAttribute, EdgeAttribute>& other
+                        ):
+    GraphEditDistance<NodeAttribute,EdgeAttribute> (other.cf),
+    MultistartMappingRefinement<NodeAttribute, EdgeAttribute> (other.initGen->clone(), other.k),
+    method(other.method->clone()),
+    cleanMethod(true)
+  {}
+
+
+  ~MultistartRefinementGraphEditDistance(){
+    if (cleanMethod){
+      delete method;
+      delete this->initGen;
+    }
+  }
 
 
   /**
@@ -114,6 +137,15 @@ public:
    * @brief Returns the last reverse mappings G2_to_G1 computed from \ref getBetterMappingsFromSet or \ref getBetterMappings
    */
   std::list<int*>& getReverseMappings(){ return refinedReverseMappings; }
+
+
+  /**
+   * Clone
+   */
+   virtual MultistartRefinementGraphEditDistance<NodeAttribute, EdgeAttribute>* clone() const {
+     return new MultistartRefinementGraphEditDistance<NodeAttribute, EdgeAttribute>(*this);
+   }
+
 };
 
 //---

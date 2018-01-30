@@ -105,6 +105,9 @@ public: /* PUBLIC MEMBER FUNCTIONS */
                                        double* C,
                                        int * G1_to_G2, int * G2_to_G1 );
 
+
+ virtual MultiGed<NodeAttribute, EdgeAttribute> * clone() const = 0;
+
 };
 
 

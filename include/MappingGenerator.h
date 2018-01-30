@@ -23,7 +23,8 @@ template<class NodeAttribute, class EdgeAttribute>
    */
   virtual std::list<int*> getMappings( Graph<NodeAttribute, EdgeAttribute>* g1, Graph<NodeAttribute, EdgeAttribute>* g2,
 				       int k ) = 0;
-  
+
+  virtual MappingGenerator<NodeAttribute, EdgeAttribute>* clone() const = 0;
 };
 
 

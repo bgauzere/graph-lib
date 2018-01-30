@@ -32,6 +32,18 @@ public:
   {};
 
 
+  BipartiteGraphEditDistanceMulti (
+       const BipartiteGraphEditDistanceMulti<NodeAttribute,EdgeAttribute> & other
+       ):
+    BipartiteGraphEditDistance<NodeAttribute,EdgeAttribute>(other.cf),
+    MultiGed<NodeAttribute,EdgeAttribute>(other._nep)
+  {
+    this->_ged = other._ged;
+    this->_Clsap = NULL;
+    this->C = NULL;
+  }
+
+
 public:
 
   /**
@@ -62,6 +74,10 @@ public:
   virtual double operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
                              Graph<NodeAttribute,EdgeAttribute> * g2);
 
+
+  virtual BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>* clone() const {
+    return new BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>(*this);
+  }
 
   virtual ~BipartiteGraphEditDistanceMulti(){
     if (this->C != NULL) {

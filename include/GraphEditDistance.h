@@ -44,6 +44,9 @@ public :
   virtual EditDistanceCost * clone() const = 0;
 };
 
+
+
+
 template<class NodeAttribute, class EdgeAttribute>
 class GraphEditDistance
 {
@@ -51,8 +54,10 @@ protected:
   EditDistanceCost<NodeAttribute,EdgeAttribute> * cf;
 
 public:
+
   //Mapping is an array encoding the mapping of each node
   GraphEditDistance(  EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):cf(costFunction){};
+
   double GedFromMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 			Graph<NodeAttribute,EdgeAttribute> * g2,
 			int * G1toG2, int n,
@@ -69,7 +74,11 @@ public:
   void setCostFunction(EditDistanceCost<NodeAttribute, EdgeAttribute> * ncf){ cf = ncf; }
   
   virtual ~GraphEditDistance(){};
+
+  virtual GraphEditDistance<NodeAttribute,EdgeAttribute> * clone() const = 0;
 };
+
+
 
 //TODO mapping a éclaicir. Voir la methode de seb sur hungarian LSAPE
 template<class NodeAttribute, class EdgeAttribute>

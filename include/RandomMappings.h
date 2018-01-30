@@ -28,6 +28,10 @@ public:
 				       Graph<NodeAttribute,EdgeAttribute> * g2,
 				       int k = -1 );
 
+
+  virtual RandomMappings<NodeAttribute, EdgeAttribute> * clone() const {
+   return new RandomMappings<NodeAttribute, EdgeAttribute>(*this);
+  }
 };
 
 

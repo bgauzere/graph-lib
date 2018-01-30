@@ -61,7 +61,12 @@ public:
     virtual ~BipartiteGraphEditDistance(){
     if (this->C != NULL) delete [] this->C;
   }
-  
+
+  virtual BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute> * clone() const
+  {
+    return new BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute> (*this);
+  }
+
 };
 
 
