@@ -230,9 +230,9 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
         local_G2_to_G1[j] = n; // epsilon -> j
       }
     }
-    
+
     MappingRefinement<NodeAttribute, EdgeAttribute> * local_method;
-    
+
     #ifdef _OPENMP
       local_method = algorithm->clone();
     #else
@@ -314,7 +314,14 @@ getBetterMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2 )
 {
   std::list<int*> mappings = this->initGen->getMappings(g1, g2, this->k);
-  return this->getBetterMappingsFromSet(method, g1, g2, mappings);
+  const std::list<int*>& refined = this->getBetterMappingsFromSet(method, g1, g2, mappings);
+
+  // Delete original (bipartite) mappings
+  for (std::list<int*>::iterator it=mappings.begin();
+       it != mappings.end();   it++)
+    delete [] *it;
+
+  return refined;
 }
 
 
@@ -342,10 +349,10 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
   int m = g2->Size();
 
   typename std::list<int*>::const_iterator it;
-  
+
   int** arrayLocal_G1_to_G2 = new int*[mappings.size()]; // indexation of local G1toG2
   int** arrayLocal_G2_to_G1 = new int*[mappings.size()];
-  
+
   for (unsigned int i=0; i<mappings.size(); i++){
      arrayLocal_G1_to_G2[i] = new int[n+1];
      arrayLocal_G2_to_G1[i] = new int[m+1];
@@ -410,6 +417,10 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
     
       local_method->getBetterMapping(g1, g2, local_G1_to_G2, local_G2_to_G1, true);
 
+      #ifdef _OPENMP
+        delete local_method;
+      #endif
+
     } //end for
 
     // Reduction - indexation of the list
@@ -425,6 +436,8 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
    #ifdef _OPENMP
     delete[] arrayMappings;
    #endif
+   delete[] arrayLocal_G1_to_G2;
+   delete[] arrayLocal_G2_to_G1;
    
    return this->refinedMappings;
 }

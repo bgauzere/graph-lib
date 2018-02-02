@@ -98,8 +98,6 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
                    int * G1_to_G2, int * G2_to_G1 )
 {
-  delete [] this->C;     //this->C = NULL;
-
   this->computeCostMatrix(g1, g2);
   this->computeOptimalMapping(this, g1, g2, this->C, G1_to_G2, G2_to_G1);
 }
@@ -113,7 +111,10 @@ getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 {
   if (k == -1) k = this->_nep;
   this->computeCostMatrix(g1, g2);
-  return this->getKOptimalMappings(g1, g2, this->C, k);
+  std::list<int*> maps = this->getKOptimalMappings(g1, g2, this->C, k);
+
+  delete [] this->C; this->C = NULL;
+  return maps;
 }
 
 

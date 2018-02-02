@@ -160,8 +160,6 @@ getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
   int m=g2->Size();
 
   // compute _Clsap
-  delete [] this->_Clsap; this->_Clsap = NULL;
-
   this->computeCostMatrixLSAP(C, n, m);
 
   // the returned mappings
@@ -219,6 +217,7 @@ getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
   // Add the first one to the list
   mappings.push_front(rhoperm);
 
+  delete [] this->_Clsap; this->_Clsap = NULL;
   delete [] epsAssign;
   delete [] u;
   delete [] v;
