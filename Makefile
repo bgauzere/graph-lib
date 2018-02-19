@@ -6,7 +6,7 @@ IDIR = ./include
 ## Eigen library
 EIGEN_DIR=/usr/include/eigen3/
 
-CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I../lsape_sinkhorn -I$(EIGEN_DIR) -Wall  -std=c++11 -g #-Werror
+CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR) -Wall  -std=c++11 -g #-Werror
 
 BINDIR = ./bin
 TESTDIR = ./test

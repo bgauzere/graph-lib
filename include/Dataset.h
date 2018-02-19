@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include <libgen.h>
+#include <sstream>
 
 #include "graph.h"
 #include "SymbolicGraph.h"

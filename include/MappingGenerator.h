@@ -25,6 +25,8 @@ template<class NodeAttribute, class EdgeAttribute>
 				       int k ) = 0;
 
   virtual MappingGenerator<NodeAttribute, EdgeAttribute>* clone() const = 0;
+
+  virtual ~MappingGenerator(){};
 };
 
 
