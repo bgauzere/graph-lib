@@ -13,10 +13,10 @@ TESTDIR = ./test
 ODIR = ./obj
 SRCDIR = ./src
 
-_DEPS = graph.h  utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h MultiGed.h BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h RandomWalksGraphEditDistance.h RandomWalksGraphEditDistanceMulti.h IPFPGraphEditDistance.h  MultistartRefinementGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h CMUCostFunction.h CMUGraph.h  CMUDataset.h LetterCostFunction.h LetterGraph.h LetterDataset.h
+_DEPS = graph.h  utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h MultiGed.h BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h RandomWalksGraphEditDistance.h RandomWalksGraphEditDistanceMulti.h IPFPGraphEditDistance.h  MultistartRefinementGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h CMUCostFunction.h CMUGraph.h  CMUDataset.h LetterCostFunction.h LetterGraph.h LetterDataset.h BipartiteLowerBoundGraphEditDistance.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_SRCDEPS = utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp RandomWalksGraphEditDistanceMulti.cpp  CMUCostFunction.cpp  CMUGraph.cpp  CMUDataset.cpp  LetterCostFunction.cpp  LetterGraph.cpp LetterDataset.cpp
+_SRCDEPS = utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp RandomWalksGraphEditDistanceMulti.cpp  CMUCostFunction.cpp  CMUGraph.cpp  CMUDataset.cpp  LetterCostFunction.cpp  LetterGraph.cpp LetterDataset.cpp 
 DEPS_SRC += $(patsubst %,$(SRCDIR)/%,$(_DEPS_SRC))
 
 _OBJ = utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o CMUCostFunction.o CMUGraph.o CMUDataset.o LetterGraph.o LetterCostFunction.o LetterDataset.o
@@ -29,7 +29,7 @@ OBJ_QAP = $(patsubst %,$(ODIR)/%,$(_OBJ_QAP))
 all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances $(TESTDIR)/benchmark
 
 debug: CXXFLAGS += -DDEBUG -g
-debug: $(TESTDIR)/chemical-edit-distances
+debug: $(TESTDIR)/chemical-lower-bounds
 
 with_times: CXXFLAGS += -D PRINT_TIMES
 with_times: $(TESTDIR)/chemical-edit-distances
@@ -47,10 +47,16 @@ optim: CXXFLAGS += -O3
 #optim: all
 
 
+$(TESTDIR)/xp_PRL2017: $(DEPS) $(OBJ) $(TESTDIR)/xp_PRL2017.cpp
+	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
+
 $(TESTDIR)/benchmark: $(DEPS) $(OBJ) $(TESTDIR)/benchmark.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
 
 $(TESTDIR)/chemical-edit-distances: $(TESTDIR)/computeDistances.cpp $(OBJ)
+	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
+
+$(TESTDIR)/chemical-lower-bounds: $(TESTDIR)/computeLowerBounds.cpp $(OBJ)
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
 
 $(TESTDIR)/QAPlib: $(TESTDIR)/QAPLib.cpp $(OBJ_QAP)
