@@ -24,25 +24,41 @@ private:
    */
   static int readChemicalNodeLabel(TiXmlElement *elem);
 
+  /* Read Edge Attributes from a Graphml file, for datasets ENZYME, and D&D
+   * @return 1 everywhere
+   */
+  static int readGraphmlEdgeLabel(TiXmlElement *elem);
+
+  /* Read Node Attributes from a Graphml file, for datasets ENZYME and D&D
+   * @return the label read
+   */
+  static int readGraphmlNodeLabel(TiXmlElement *elem);
 
 public:
   /* Constructor to fill a Symbolic graph from a ct file (ChemDraw Connection Table format)
    * @param filename path to a ct file.
    */
   SymbolicGraph(const char * filename);
-  
+
   /* Constructor to fill a Symbolic graph from an adjacency matrix encoded as a n * n int array. Diagonals elements embed node's labels
    * @param am adjacency matrix encoded as a int array
    * @param nb_nodes specify the graph size
    * @param directed TRUE if graph encoded by am is directed, FALSE otherwise
    */
   SymbolicGraph(int * am, int nb_nodes, bool directed);
-  
+
+
   /* Return a n*n int array encoding the adjacency matrix corresponding to current graph.
    * @return a pointer to adjacency matrix
-   */  
+   */
   int * getLabeledAdjacencyMatrix();
+
 };
+
+
+/* Write the graph into the given output stream, in the CT format
+ */
+bool writeCTfile(Graph<int,int>& graph, std::ofstream& output);
 
 #endif // __SYMBOLICGRAPH_H__
 

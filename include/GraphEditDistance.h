@@ -3,9 +3,6 @@
  * @author Benoit Gaüzère <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Tue Jan 26 2016
  * 
- * @todo the list of improvements suggested for the file.
- * @bug the list of known bugs.
- *  
  * Description of the program objectives.
  * All necessary references.
  */
@@ -43,16 +40,24 @@ public :
   virtual double EdgeInsertionCost(GEdge<EdgeAttribute> * e2,
 				   Graph<NodeAttribute,EdgeAttribute> * g2)=0;
   virtual ~EditDistanceCost(){};
+  
+  virtual EditDistanceCost * clone() const = 0;
 };
+
+
+
 
 template<class NodeAttribute, class EdgeAttribute>
 class GraphEditDistance
 {
 protected:  
   EditDistanceCost<NodeAttribute,EdgeAttribute> * cf;
+
 public:
+
   //Mapping is an array encoding the mapping of each node
   GraphEditDistance(  EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):cf(costFunction){};
+
   double GedFromMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 			Graph<NodeAttribute,EdgeAttribute> * g2,
 			int * G1toG2, int n,
@@ -60,11 +65,20 @@ public:
 
   virtual double operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
 			    Graph<NodeAttribute,EdgeAttribute> * g2);
+
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
 				 int * G1_to_G2, int * G2_to_G2)=0;
+
+  EditDistanceCost<NodeAttribute,EdgeAttribute> * getCostFunction(){ return cf; }
+  void setCostFunction(EditDistanceCost<NodeAttribute, EdgeAttribute> * ncf){ cf = ncf; }
+  
   virtual ~GraphEditDistance(){};
+
+  virtual GraphEditDistance<NodeAttribute,EdgeAttribute> * clone() const = 0;
 };
+
+
 
 //TODO mapping a éclaicir. Voir la methode de seb sur hungarian LSAPE
 template<class NodeAttribute, class EdgeAttribute>

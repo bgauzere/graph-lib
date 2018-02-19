@@ -172,6 +172,23 @@ int SymbolicGraph::readChemicalNodeLabel(TiXmlElement *elem){
 
 
 
+int SymbolicGraph::readGraphmlEdgeLabel(TiXmlElement *elem){
+  return 1;
+}
+
+int SymbolicGraph::readGraphmlNodeLabel(TiXmlElement *elem){
+  int atom = -1;
+  TiXmlElement* child = elem->FirstChildElement();
+  if ( child ){
+    std::string label =  child->GetText();
+    atom = atoi(label.c_str());
+    }
+  return atom;
+}
+
+
+
+
 SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
   fillAtomTable(AtomTable);
   const char * ext = strrchr(filename,'.'); 
@@ -210,6 +227,8 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
       }
   }else if (strcmp(ext,".gxl") == 0){
     GraphLoadGXL(filename,readChemicalNodeLabel,readChemicalEdgeLabel);
+  }else if (strcmp(ext, ".graphml") == 0){
+    GraphLoadGXL(filename,readGraphmlNodeLabel,readGraphmlEdgeLabel);
   }else{
     std::cerr << "Unsupported file format."<< std::endl;
   }
@@ -251,3 +270,35 @@ int * SymbolicGraph::getLabeledAdjacencyMatrix(){
   }
   return am;
 }
+
+
+bool writeCTfile(Graph<int,int>& graph, std::ofstream& output){
+  try{
+    output << "Generated graph" << std::endl;
+    output << graph.Size() << " " << graph.getNbEdges() << std::endl;
+    for (int i=0; i<graph.Size(); i++){
+      int label = graph[i]->attr;
+      std::map<std::string, int>::iterator it = AtomTable.begin();
+      while (it != AtomTable.end() && it->second != label) it++;
+      output << "   0.0    0.0    0.0   ";
+      if (it != AtomTable.end()) 
+        output << it->first << std::endl;
+      else 
+        output << "?" << std::endl;
+    }
+    
+    for (int i=0; i<graph.Size(); i++){
+      for (int j=0; j<i; j++){
+        if (graph.isLinked(i,j))
+          output << i+1 << " " << j+1 << "  " << graph.getEdge(i,j)->attr << "  0" << std::endl;
+      }
+    }
+  }
+  catch(std::exception & e){
+    std::cerr << "[E]  Error while writing file : " << e.what() << std::endl;
+    return false;
+  }
+  return true;
+}
+
+

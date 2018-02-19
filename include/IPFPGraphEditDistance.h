@@ -16,6 +16,7 @@
 #include <limits>
 using namespace Eigen;
 #include "hungarian-lsape.hh"
+#include "lsape.hh" // Bistochastic generation and sinkhorn balancing
 #include "GraphEditDistance.h"
 #include "IPFPQAP.h"
 #include "utils.h"
@@ -29,6 +30,10 @@ class IPFPGraphEditDistance:
 protected:
 
   GraphEditDistance<NodeAttribute,EdgeAttribute> * _ed_init;
+  bool cleanCostFunction;
+  bool useContinuousRandomInit;
+  bool useContinuousFlatInit;
+  bool useSinkhorn;
 
   virtual
   void NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -70,13 +75,21 @@ public:
 			GraphEditDistance<NodeAttribute,EdgeAttribute> * ed_init):
     IPFPQAP<NodeAttribute, EdgeAttribute>(costFunction),
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
-    _ed_init(ed_init)
+    _ed_init(ed_init),
+    cleanCostFunction(false),
+    useContinuousRandomInit(false),
+    useContinuousFlatInit(false),
+    useSinkhorn(false)
   {};
     
   IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
     IPFPQAP<NodeAttribute, EdgeAttribute>(costFunction),
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
-    _ed_init(NULL)
+    _ed_init(NULL),
+    cleanCostFunction(false),
+    useContinuousRandomInit(false),
+    useContinuousFlatInit(false),
+    useSinkhorn(false)
   {
     this->C = NULL; this->linearSubProblem=NULL; this->XkD=NULL; this->Xk=NULL; this->Lterm=0; this->oldLterm=0;
     this->Xkp1tD=NULL; this->bkp1=NULL; this->_n=-1; this->_m=-1; this->k=-1; this->_directed=false;
@@ -99,7 +112,66 @@ public:
                       Graph<NodeAttribute,EdgeAttribute> * g2,
                      int* G1_to_G2, int* G2_to_G1 );
   
+  
+  /**
+   * @brief  Activate the use of a continuous bistochastic random matrix as initialization, no matter what
+   *         is provided to the <code>get****Mapping()</code> method.
+   */
+  void continuousRandomInit(bool yes=true){
+    this->useContinuousRandomInit = yes;
+  }
+  
+  
+  /**
+   * @brief  Activate or deactivate the continuous uniform flat initialization, no matter what is provided.
+   *
+   *   The geometrical barycenter of error correcting doubly stochastic matrices
+   *   \f$J = \frac{2(n+1)\times(m+1)}{n+m+2}\f$ will be used as initialization in any case
+   */
+  void continuousFlatInit(bool yes=true){
+    this->useContinuousFlatInit = yes;
+  }
+  
+  /*
+   * @brief  Activate the use of a Sinkhorn balancing of the initialization before starting IPFP algorithm
+   *
+   * @note  If the flags <code>recenter</code> and <code>useSinjhorn</code> are both <code>true</code>, 
+   *        then the Sinkhorn balancing is done before the centering procedure.
+   *
+  void sinkhornFirst(bool yes=true){
+    this->useSinkhorn = yes;
+  }
+  //*/
+  
+  void recenterInit(bool yes=true){
+    this->recenter = yes;
+  }
+  
+  /**
+   * @brief  Set the centering matrix to J of size \f$(n+1)\times(m+1)\f$ and activate the centering
+   *
+   *  On the next IPFP algorithm call, the initialization \f$X_0\f$ will be translated to \f$\frac{1}{2}\times(X_0+J)\f$.
+   *  If <code>nJ==NULL</code>, then the geometrical barycenter of error correcting doubly stochastic matrices
+   *   \f$J = \frac{2(n+1)\times(m+1)}{n+m+2}\f$ will be used
+   */
+  virtual void recenterInit(double* nJ, int n, int m);
+  
   IPFPGraphEditDistance * clone() const { return new IPFPGraphEditDistance(*this); }
+  
+  IPFPGraphEditDistance( const IPFPGraphEditDistance& other ) :
+    IPFPQAP<NodeAttribute,EdgeAttribute>(NULL),
+    GraphEditDistance<NodeAttribute, EdgeAttribute>(NULL),
+    _ed_init(other._ed_init),
+    cleanCostFunction(true)
+  {
+    this->cf = other.cf->clone();
+    this->costFunction = this->cf;
+    this->recenter = other.recenter;
+    this->useContinuousRandomInit = other.useContinuousRandomInit;
+    this->useContinuousFlatInit = other.useContinuousFlatInit;
+    this->useSinkhorn = other.useSinkhorn;
+    this->J=NULL;
+  }
 
   virtual ~IPFPGraphEditDistance(){
     if (this->C != NULL) delete [] this->C;
@@ -108,9 +180,34 @@ public:
     if (this->Xk != NULL) delete [] this->Xk;
     if (this->Xkp1tD != NULL) delete [] this->Xkp1tD;
     if (this->bkp1 != NULL) delete [] this->bkp1;
+    if (this->cleanCostFunction) delete this->cf;
   }
 
 };
+
+
+template<class NodeAttribute, class EdgeAttribute>
+void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
+recenterInit(double * nJ, int n, int m)
+{
+  if ( this->J != NULL) delete[] this->J;
+  this->J = new double[(n+1)*(m+1)];
+  
+  this->recenter = true;
+  if (nJ == NULL){
+    for (int j=0; j<m+1; j++)
+      for (int i=0; i<n+1; i++)
+        this->J[sub2ind(i,j,n+1)] = 2.0 / (n+m+2);
+        // this->J[sub2ind(i,j,n+1)] = 1.0 / ((n+1)*(m+1) -1) ;
+  }
+  else{
+    for (int j=0; j<m+1; j++)
+      for (int i=0; i<n+1; i++)
+        this->J[sub2ind(i,j,n+1)] = nJ[sub2ind(i,j,n+1)];
+  }
+}
+
+
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 									 Graph<NodeAttribute,EdgeAttribute> * g2){
@@ -295,7 +392,9 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 
   this->Xk = new double[(this->_n+1)*(  this->_m+1)];
   Map<MatrixXd> m_Xk(this->Xk,  this->_n+1,  this->_m+1);
-  this->Xk = this->mappingsToMatrix(G1_to_G2,G2_to_G1,this->_n,this->_m,this->Xk);
+  
+  if (!useContinuousRandomInit && !useContinuousFlatInit)
+    this->Xk = this->mappingsToMatrix(G1_to_G2,G2_to_G1,this->_n,this->_m,this->Xk);
 
   this->IPFPalgorithm(g1,g2);
 
@@ -312,7 +411,32 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
-	      Graph<NodeAttribute,EdgeAttribute> * g2){
+	      Graph<NodeAttribute,EdgeAttribute> * g2)
+{
+
+  // If use a random bistochastic continuous matrix :
+  if (useContinuousRandomInit){
+    double* _I = randBiStochExt<double,int>(this->_n, this->_m);
+    reduceExt(_I, this->_n, this->_m, this->Xk);
+    delete [] _I;
+  }
+
+  // Use J as init
+  if (useContinuousFlatInit){
+    this->recenterInit(NULL, this->_n, this->_m);
+    this->recenter = false;
+    for (int j=0; j<this->_m+1;  j++)
+      for (int i=0; i<this->_n+1;  i++)
+        this->Xk[sub2ind(i,j,this->_n+1)] = this->J[sub2ind(i,j,this->_n+1)];
+  }
+
+  // Recenter the init mapping ?
+  if (this->recenter){
+    if (this->J == NULL) this->recenterInit(NULL, this->_n, this->_m);
+    for (int j=0; j<this->_m+1;  j++)
+      for (int i=0; i<this->_n+1;  i++)
+        this->Xk[sub2ind(i,j,this->_n+1)] = (this->Xk[sub2ind(i,j,this->_n+1)] + this->J[sub2ind(i,j,this->_n+1)]) / 2;
+  }
 
   this->_directed = (g1->isDirected() && g2->isDirected());
   //We assume that Xk is filled with a matrix, binary or not
@@ -441,7 +565,7 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
     this->k++;
   }
 
-  //_xp_out_ << k << ", " ;
+  //std::cout << this->k << ", " ;
   
   delete [] this->Xkp1tD;this->Xkp1tD=0;
   delete [] this->linearSubProblem;this->linearSubProblem=0;
@@ -481,7 +605,7 @@ linearCost(double * CostMatrix, double * X, int n, int m){
   double sum = 0.0;
   for(int i=0;i<n;i++)
     for(int j=0;j<m;j++)
-      sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)];
+      sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)]; //XXX is that not n+1 ?
   return sum;
 }
 

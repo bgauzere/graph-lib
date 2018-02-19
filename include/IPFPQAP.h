@@ -38,6 +38,9 @@ protected:
   bool _directed = false;
   std::vector<double> S;
   std::vector<double> R;
+  
+  double* J = NULL;
+  bool recenter=false;
 
   void (*_MappingInit)(Graph<NodeAttribute,EdgeAttribute> * g1,
                        Graph<NodeAttribute,EdgeAttribute> * g2,
@@ -81,7 +84,8 @@ protected:
 
 public:
   IPFPQAP( EditDistanceCost<NodeAttribute,EdgeAttribute> * cf ):
-    costFunction(cf)
+    costFunction(cf),
+    J(NULL)
   {};
 
 
@@ -109,12 +113,29 @@ public:
                       Graph<NodeAttribute,EdgeAttribute> * g2,
                       int* G1_to_G2, int* G2_to_G1 = NULL );
 
+  
+  /**
+   * @brief  At the beginning of IPFP algorithm, the initialization will be recentered in the direction of the current <code>this->J</code> matrix
+   *  
+   *  If J is NULL, the geometrical barycenter of doubly stochastic matrices J = (1/n) will be used
+   */
+  virtual void recenterInit(bool yes=true){
+    recenter = yes;
+  }
+  
+  
+  /**
+   * @brief  Set the centering matrix to J of size \f$n\times n\f$ and activate the centering
+   *
+   *  On the next IPFP algorithm call, the initialization \f$X_0\f$ will be translated to \f$\frac{1}{2}\times(X_0+J)\f$.
+   *  If <code>nJ==NULL</code>, then the geometrical barycenter of doubly stochastic matrices \f$J = (1/n)\f$ will be used
+   */
+  virtual void recenterInit(double* nJ, int n);
 
   IPFPQAP * clone() const { return new IPFPQAP(*this); }
 
   void setMaxIter(int mi){ this->maxIter=mi; }
   void setEpsilon(double eps){ this->epsilon = eps; }
-
 
   virtual ~IPFPQAP(){
     if (this->C != NULL) delete [] this->C;
@@ -123,9 +144,31 @@ public:
     if (this->Xk != NULL) delete [] this->Xk;
     if (this->Xkp1tD != NULL) delete [] this->Xkp1tD;
     if (this->bkp1 != NULL) delete [] this->bkp1;
+    if (this->J != NULL) delete [] this->J;
   }
 
 };
+
+
+template<class NodeAttribute, class EdgeAttribute>
+void IPFPQAP<NodeAttribute, EdgeAttribute>::
+recenterInit(double * nJ, int n)
+{
+  if ( this->J != NULL) delete[] this->J;
+  this->J = new double[n*n];
+  
+  this->recenter = true;
+  if (nJ == NULL){
+    for (int i=0; i<n; i++)
+      for (int j=0; j<n; j++)
+        this->J[sub2ind(i,j,n)] = 1.0/n;
+  }
+  else{
+    for (int i=0; i<n; i++)
+      for (int j=0; j<n; j++)
+        this->J[sub2ind(i,j,n)] = nJ[sub2ind(i,j,n)];
+  }
+}
 
 
 template<class NodeAttribute, class EdgeAttribute>
@@ -175,15 +218,17 @@ QuadraticTerm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2,
                int * G1_to_G2,double * XkD )
 {
-
+  
   int n = g1->Size();
   int m = g2->Size();
-
+  
   //Reconstruction d'un mapping
   std::vector<std::pair<std::pair<int,int>, double>> mappings;
   for (int i =0;i<n;i++){
-    std::pair<int,int> tmp = std::pair<int,int>(i,G1_to_G2[i]);
-    mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
+    if (G1_to_G2[i] >= 0){
+      std::pair<int,int> tmp = std::pair<int,int>(i,G1_to_G2[i]);
+      mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
+    }
   }
   if (! XkD)
     XkD=new double[n*m];
@@ -354,6 +399,14 @@ void IPFPQAP<NodeAttribute, EdgeAttribute>::
 IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2 )
 {
+  
+  // Recenter the init mapping ?
+  if (this->recenter){
+    if (this->J == NULL) this->recenterInit(NULL, this->_n); // @see recenterInit(double*, int)
+    for (int j=0; j<this->_n;  j++)
+      for (int i=0; i<this->_n;  i++)
+        this->Xk[sub2ind(i,j,this->_n)] = (this->Xk[sub2ind(i,j,this->_n)] + this->J[sub2ind(i,j,this->_n)]) / 2;
+  }
 
   this->_directed = (g1->isDirected() || g2->isDirected());
   //We assume that Xk is filled with a matrix, binary or not
@@ -503,7 +556,7 @@ double IPFPQAP<NodeAttribute, EdgeAttribute>::
 linearCost(double * CostMatrix, int * G1_to_G2, int n, int m){
   double sum = 0.0;
   for(int i=0;i<n;i++)
-    sum += CostMatrix[sub2ind(i,G1_to_G2[i],n)];
+    if (G1_to_G2[i]>=0) sum += CostMatrix[sub2ind(i,G1_to_G2[i],n)];
   return sum;
 }
 
@@ -562,6 +615,7 @@ double * IPFPQAP<NodeAttribute, EdgeAttribute>::
 mappingsToMatrix(int * G1_to_G2, int n, int m, double * Matrix){
   memset(Matrix,0,sizeof(double)*n*m);
   for (int i =0;i<n;i++){
+    //if (G1_to_G2[i] >= m) std::cout << G1_to_G2[i] << std::endl;
     if (G1_to_G2[i] >= 0)  Matrix[sub2ind(i,G1_to_G2[i],n)] = 1;
   }
   return Matrix;

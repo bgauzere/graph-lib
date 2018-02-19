@@ -15,9 +15,11 @@
 
 #include <vector>
 
+#define sub2ind(i, j, n)    (i + (j) * (n))
+
 std::vector<char*> split (const char* chaine, const char* sep);
-//TODO:a inliner
-int sub2ind(int i, int j, int n);
+
+//int sub2ind(int i, int j, int n);
 
 template<typename T>
 T mean(T * tab, int size){

@@ -26,6 +26,7 @@ public:
   virtual double EdgeDeletionCost(GEdge<double> * e1,Graph<CMUPoint,double> * g1);
   virtual double EdgeInsertionCost(GEdge<double> * e2,Graph<CMUPoint,double> * g2);
 
+  virtual CMUDistanceCost * clone() const {return new CMUDistanceCost(*this);}
 
   CMUDistanceCost () :
     //_INFINITY_(std::numeric_limits<double>::max())

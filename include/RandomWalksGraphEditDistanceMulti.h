@@ -20,6 +20,9 @@
 #include <ctime>
 #endif
 
+/**
+ * @brief Multiple solution version of RandomWalksGraphEditDistance
+ */
 class RandomWalksGraphEditDistanceMulti :
       public RandomWalksGraphEditDistance,
       public BipartiteGraphEditDistanceMulti<int,int>

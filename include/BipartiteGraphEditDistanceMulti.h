@@ -14,6 +14,9 @@
 #include "hungarian-lsap.hh"
 
 
+/**
+ * @brief Bipartite version of MultiGed based on the Bunke method for linear cost matrix generation
+ */
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistanceMulti :
       public virtual BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>,
@@ -27,6 +30,18 @@ public:
     BipartiteGraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
     MultiGed<NodeAttribute,EdgeAttribute>(_k)
   {};
+
+
+  BipartiteGraphEditDistanceMulti (
+       const BipartiteGraphEditDistanceMulti<NodeAttribute,EdgeAttribute> & other
+       ):
+    BipartiteGraphEditDistance<NodeAttribute,EdgeAttribute>(other.cf),
+    MultiGed<NodeAttribute,EdgeAttribute>(other._nep)
+  {
+    this->_ged = other._ged;
+    this->_Clsap = NULL;
+    this->C = NULL;
+  }
 
 
 public:
@@ -60,6 +75,10 @@ public:
                              Graph<NodeAttribute,EdgeAttribute> * g2);
 
 
+  virtual BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>* clone() const {
+    return new BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>(*this);
+  }
+
   virtual ~BipartiteGraphEditDistanceMulti(){
     if (this->C != NULL) {
       delete [] this->C;
@@ -79,8 +98,6 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
                    int * G1_to_G2, int * G2_to_G1 )
 {
-  delete [] this->C;     //this->C = NULL;
-
   this->computeCostMatrix(g1, g2);
   this->computeOptimalMapping(this, g1, g2, this->C, G1_to_G2, G2_to_G1);
 }
@@ -94,7 +111,10 @@ getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 {
   if (k == -1) k = this->_nep;
   this->computeCostMatrix(g1, g2);
-  return this->getKOptimalMappings(g1, g2, this->C, k);
+  std::list<int*> maps = this->getKOptimalMappings(g1, g2, this->C, k);
+
+  delete [] this->C; this->C = NULL;
+  return maps;
 }
 
 

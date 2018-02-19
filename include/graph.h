@@ -1,3 +1,4 @@
+
 #ifndef __PGRAPHH__
 #define __PGRAPHH__
 
@@ -246,6 +247,26 @@ public :
 	NodeAttribute (*readNodeLabel)(TiXmlElement *elem),
 	EdgeAttribute (*readEdgeLabel)(TiXmlElement *elem));
   
+  
+  Graph(Graph<NodeAttribute,EdgeAttribute>& g ):
+    nbNodes(0),
+    nbEdges(0),
+    _directed(g._directed)
+  {
+    for (int i=0; i<g.Size(); i++){
+      this->Add(new GNode<NodeAttribute,EdgeAttribute> (i, g[i]->attr));
+    }
+
+    for (int i=0; i<g.Size(); i++){
+      GEdge<int> *p = g[i]->getIncidentEdges();
+      while(p){
+        this->Link(i, p->IncidentNode(), p->attr);
+        p = p->Next();
+      }
+    }
+  }
+
+
   /**
    * Fills current graph with contents read from a gxl file
    * @param GXL filename
@@ -276,7 +297,7 @@ public :
    * Returns the number of nodes.
    * @return	the size.
    */
-  int Size() { return nbNodes; };
+  int Size() const { return nbNodes; };
   /**
    * Returns the number of edges.
    * @return	the number of edges.
@@ -356,8 +377,16 @@ public :
    * Returns true if both nodes are linked.
    * @return TRUE if edge exists, FALSE otherwise.
    */
-  bool isLinked(int firstNode, int secondNode){
-   return (getEdge(firstNode,secondNode) != NULL);      
+  bool isLinked(int firstNode, int secondNode) const {
+    // Re-implemented from getEdge to keep const qualifier
+   GEdge<EdgeAttribute> *p = tnode[firstNode]->getIncidentEdges();
+    while(p){
+      if (p->IncidentNode() == secondNode)
+	return true;
+      else
+	p=p->Next();
+    }
+    return false;
   };
 
   /*
@@ -374,7 +403,7 @@ public :
       else
 	p=p->Next();
     }
-    return NULL;      
+    return NULL;
   };
   
   /*
@@ -431,24 +460,39 @@ void Graph<NodeAttribute,EdgeAttribute>::GraphLoadGXL(const char * filename,
     std::cerr << "Error while loading file" << std::endl;
     std::cerr << "error #" << doc.ErrorId() << " : " << doc.ErrorDesc() << std::endl;
   }
-   
+  
+
   TiXmlHandle hdl(&doc);
   std::map<int,int> id_to_index;
-  TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement().FirstChildElement().Element();
+  //TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement().FirstChildElement().Element();
+  TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement("graph").FirstChildElement().Element();
   while (elem){
     if(strcmp(elem->Value(),"node") == 0){
-      int id = std::stoi( elem->Attribute("id"));
-      
+      int id;
+      if (elem->Attribute("id")[0] == 'n')
+        id = std::stoi((elem->Attribute("id")) + 1);
+      else
+        id= std::stoi( elem->Attribute("id"));
+
       NodeAttribute label = readNodeLabel(elem);
       id_to_index[id] = nbNodes;
       Add(new GNode<NodeAttribute, EdgeAttribute>(id,label));
     }else if (strcmp(elem->Value(),"edge") == 0){
         int from=-1;
         int to=-1;
-	from = std::stoi(elem->Attribute("from"));
-	to = std::stoi(elem->Attribute("to"));
+        const char* s_from = elem->Attribute("from");
+        const char* s_to = elem->Attribute("to");
+        if (s_from == NULL || s_to == NULL){
+          s_from = elem->Attribute("source") + 1;
+	  s_to = elem->Attribute("target") + 1;
+	}
+
+	from = std::stoi(s_from);
+	to = std::stoi(s_to);
+
 	EdgeAttribute label = readEdgeLabel(elem);
-	Link(id_to_index[from], id_to_index[to],label);	      
+	Link(id_to_index[from], id_to_index[to],label);
+
     }
     elem = elem->NextSiblingElement(); // iteration
   }

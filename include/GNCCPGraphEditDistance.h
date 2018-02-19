@@ -41,6 +41,10 @@ public:
   
   ~GNCCPGraphEditDistance(){}
 
+  virtual GNCCPGraphEditDistance<NodeAttribute, EdgeAttribute>* clone() const {
+    return new GNCCPGraphEditDistance<NodeAttribute, EdgeAttribute>(*this);
+  }
+
 };
 
 
