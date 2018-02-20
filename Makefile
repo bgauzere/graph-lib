@@ -46,6 +46,8 @@ qaplib_mt: $(TESTDIR)/QAPlib
 optim: CXXFLAGS += -O3
 #optim: all
 
+$(TESTDIR)/xp_PRL2017: $(DEPS) $(OBJ) $(TESTDIR)/xp_PRL2017.cpp
+	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
 
 # $(TESTDIR)/benchmark: $(DEPS) $(OBJ) $(TESTDIR)/benchmark.cpp
 # 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml

@@ -75,7 +75,7 @@ public:
   
   virtual ~GraphEditDistance(){};
 
-  virtual GraphEditDistance<NodeAttribute,EdgeAttribute> * clone() const = 0;
+  //virtual GraphEditDistance<NodeAttribute,EdgeAttribute> * clone() const = 0;
 };
 
 

@@ -415,11 +415,12 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
 {
 
   // If use a random bistochastic continuous matrix :
-  if (useContinuousRandomInit){
-    double* _I = randBiStochExt<double,int>(this->_n, this->_m);
-    reduceExt(_I, this->_n, this->_m, this->Xk);
-    delete [] _I;
-  }
+  // MODIF
+  // if (useContinuousRandomInit){
+  //   double* _I = randBiStochExt<double,int>(this->_n, this->_m);
+  //   reduceExt(_I, this->_n, this->_m, this->Xk);
+  //   delete [] _I;
+  // }
 
   // Use J as init
   if (useContinuousFlatInit){
