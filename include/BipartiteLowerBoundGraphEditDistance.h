@@ -22,8 +22,6 @@
 
 #include "utils.h"
 
-typedef   void (*solver)(const double*,const int&, const int&,int *,double*, double*,int *,short unsigned int);
-
 //TODO : donner la possibilité de récupérer le mapping ?
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteLowerBoundEditDistance:
@@ -203,8 +201,8 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
   double *u = new double[n+1];
   double *v = new double[m+1];
   
-  hungarianLSAPE(local_C,n+1,m+1, rho,varrho, u,v,false); //We still use classical solver for this sub assignment
-  // this->my_solver(local_C,n+1,m+1, rho, u,v, varrho,false); //We still use classical solver for this sub assignment
+  this->my_solver(local_C,n+1,m+1, rho, u,v, varrho,false); //We still use classical solver for this sub assignment
+  
   double cost=0.0;
   for (int i =0;i<n+1;i++)
     cost += u[i];
