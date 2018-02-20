@@ -26,7 +26,7 @@ _OBJ_QAP = utils.o QAPLibGraph.o QAPLibCostFunction.o QAPLibDataset.o
 OBJ_QAP = $(patsubst %,$(ODIR)/%,$(_OBJ_QAP))
 
 # all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
-all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances $(TESTDIR)/benchmark
+all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances #$(TESTDIR)/benchmark
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: $(TESTDIR)/chemical-lower-bounds
@@ -47,11 +47,8 @@ optim: CXXFLAGS += -O3
 #optim: all
 
 
-$(TESTDIR)/xp_PRL2017: $(DEPS) $(OBJ) $(TESTDIR)/xp_PRL2017.cpp
-	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
-
-$(TESTDIR)/benchmark: $(DEPS) $(OBJ) $(TESTDIR)/benchmark.cpp
-	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
+# $(TESTDIR)/benchmark: $(DEPS) $(OBJ) $(TESTDIR)/benchmark.cpp
+# 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
 
 $(TESTDIR)/chemical-edit-distances: $(TESTDIR)/computeDistances.cpp $(OBJ)
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
