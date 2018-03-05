@@ -197,9 +197,14 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
   }
   local_C[sub2ind(n,m,n+1)] = 0;
   int *rho = new int[n+1];
+  rho = (int*)memset((void*)rho,0,sizeof(int)*(n+1));
   int *varrho = new int[m+1];
+  varrho = (int*)memset((void*)varrho,0,sizeof(int)*(m+1));
   double *u = new double[n+1];
+  u = (double*)memset((void*)u,0,sizeof(double)*(n+1));
   double *v = new double[m+1];
+  v = (double*)memset((void*)v,0,sizeof(double)*(m+1));
+  
   
   this->my_solver(local_C,n+1,m+1, rho, u,v, varrho,false); //We still use classical solver for this sub assignment
   
