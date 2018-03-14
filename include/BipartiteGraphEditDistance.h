@@ -94,7 +94,7 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   //Compute optimal assignement
   double *u = new double[n+1];
   double *v = new double[m+1];
-  this->my_solver(C,n+1,m+1, G1_to_G2, u,v,G2_to_G1,false);
+  this->my_solver(C,n+1,m+1, G1_to_G2, u,v,G2_to_G1,1);
   delete [] u;
   delete [] v;
 
@@ -139,11 +139,17 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
     e2 = e2->Next();
   }
   local_C[sub2ind(n,m,n+1)] = 0;
-  int *rho = new int[n];
-  int *varrho = new int[m];
+  int *rho = new int[n+1];
+  int *varrho = new int[m+1];
   double *u = new double[n+1];
   double *v = new double[m+1];
-  hungarianLSAPE(local_C,n+1,m+1, rho,varrho, u,v,false);
+
+  rho = (int*)memset((void*)rho,0,sizeof(int)*(n+1));
+  varrho = (int*)memset((void*)varrho,0,sizeof(int)*(m+1));
+  u = (double*)memset((void*)u,0,sizeof(double)*(n+1));
+  v = (double*)memset((void*)v,0,sizeof(double)*(m+1));
+
+  this->my_solver(local_C,n+1,m+1, rho, u,v,varrho,1);
   double cost=0.0;
   for (int i =0;i<n+1;i++)
     cost += u[i];
@@ -186,7 +192,7 @@ void BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2){
 
-  delete [] C;
+  //delete [] C;
 
   int n=g1->Size();
   int m=g2->Size();

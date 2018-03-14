@@ -15,6 +15,10 @@
 
 #include <vector>
 
+static bool is_mapping_valid(int mapping, int nb_nodes){
+  return ((mapping != -1) && (mapping < nb_nodes));
+}
+
 #define sub2ind(i, j, n)    (i + (j) * (n))
 
 std::vector<char*> split (const char* chaine, const char* sep);

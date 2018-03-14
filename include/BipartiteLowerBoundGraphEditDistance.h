@@ -206,7 +206,7 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
   v = (double*)memset((void*)v,0,sizeof(double)*(m+1));
   
   
-  this->my_solver(local_C,n+1,m+1, rho, u,v, varrho,false); //We still use classical solver for this sub assignment
+  this->my_solver(local_C,n+1,m+1, rho, u,v, varrho,1); //We still use classical solver for this sub assignment
   
   double cost=0.0;
   for (int i =0;i<n+1;i++)

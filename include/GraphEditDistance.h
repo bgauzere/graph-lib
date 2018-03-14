@@ -92,7 +92,7 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
   /*Edit distance computation*/
   double cost = 0.0;
   for (int i=0; i<n; ++i)//We process each G1 node's appariemment
-    if(G1toG2[i] >= m){ //node onto esp, Deletion
+    if(! is_mapping_valid(G1toG2[i],m)){ //node onto esp, Deletion
       cost += cf->NodeDeletionCost((*g1)[i],g1); 
       node_del ++;
     }else{
@@ -124,7 +124,7 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
 	int f_start = G1toG2[start];
 	int f_end = G1toG2[end];
       
-	if(( f_start < m) && (f_end < m)){
+	if(( is_mapping_valid(f_start,m)) && (is_mapping_valid(f_end,m))){
 	  //Mapping of (start, end) onto G2 exists, check if an edge exists
 	  GEdge<EdgeAttribute>  *mappedEdge = g2->getEdge(f_start,f_end);
 	  if( mappedEdge != NULL){
@@ -154,7 +154,7 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
       int end = p->IncidentNode();
       int f_start = G2toG1[start];
       int f_end = G2toG1[end];
-      if(( f_start < n) && (f_end < n)){
+      if(( is_mapping_valid(f_start,n)) && is_mapping_valid(f_end,n)){
 	//Mapping of (start, end) onto G2 exists, check if an edge exists
 	GEdge<EdgeAttribute>  *mappedEdge = g1->getEdge(f_start,f_end);
 	if( mappedEdge != NULL){

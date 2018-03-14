@@ -1,6 +1,6 @@
 
-#ifndef __PGRAPHH__
-#define __PGRAPHH__
+#ifndef __GRAPH__
+#define __GRAPH__
 
 #include <vector>
 #include <map>
@@ -503,4 +503,4 @@ Graph<NodeAttribute,EdgeAttribute>::Graph(const char * filename, NodeAttribute (
   GraphLoadGXL(filename, readNodeLabel,readEdgeLabel);
 }
 
-#endif // __PGRAPHH__
+#endif // __GRAPH__

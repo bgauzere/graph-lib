@@ -183,19 +183,18 @@ int main (int argc, char** argv)
   if(options->shuffle)
     dataset->shuffleize();
 
-  // computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,EBP),
-  // 			    options->output_file+string("_EBP_"));
-  // computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,RBP),
-  // 			    options->output_file+string("_RBP_"));
-  // computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,SFBP),
-  // 			    options->output_file+string("_SFBP_"));
-  // computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,FBP),
-  // 			    options->output_file+string("_FBP_"));
-  // computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,FBP0),
-  // 			    options->output_file+string("_FBP0_"));
-  // computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,HNG),
-  // 			    options->output_file+string("_HNG_"));
-
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,EBP),
+  			    options->output_file+string("_EBP_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,RBP),
+  			    options->output_file+string("_RBP_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,SFBP),
+  			    options->output_file+string("_SFBP_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,FBP),
+  			    options->output_file+string("_FBP_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,HNG),
+  			    options->output_file+string("_HNG_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,FBP0),
+  			    options->output_file+string("_FBP0_"));
   
   computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,EBP),
   			    options->output_file+string("_EBP_"));
@@ -207,8 +206,8 @@ int main (int argc, char** argv)
   			    options->output_file+string("_FBP_"));
   computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,HNG),
   			    options->output_file+string("_HNG_"));
- // computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,FBP0),
- //  			    options->output_file+string("_FBP0_"));
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,FBP0),
+  			    options->output_file+string("_FBP0_"));
  
   delete dataset;
   delete cf;
