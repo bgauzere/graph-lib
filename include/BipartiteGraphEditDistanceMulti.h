@@ -39,7 +39,6 @@ public:
     MultiGed<NodeAttribute,EdgeAttribute>(other._nep)
   {
     this->_ged = other._ged;
-    this->_Clsap = NULL;
     this->C = NULL;
   }
 
@@ -47,9 +46,9 @@ public:
 public:
 
   /**
-   * @brief compute an optimal mapping between <code>g1</code> and <code>g2</code>
+   * @brief compute an optimal mapping between `g1` and `g2`
    *        from k different optimal mappings by minimizing the ged optained
-   * @note The GED is computed and set in <code>ged</code>
+   * @note The GED is computed and set in `ged`
    */
   virtual void getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                                   Graph<NodeAttribute,EdgeAttribute> * g2,
@@ -60,7 +59,7 @@ public:
                                        Graph<NodeAttribute,EdgeAttribute> * g2,
                                        int k = -1 );
   /**
-   * @brief Compute the Graph Edit Distance between <code>g1</code> and <code>g2</code> considering $k$ edit paths
+   * @brief Compute the Graph Edit Distance between `g1` and `g2` considering $k$ edit paths
    * @param k  The number of edit paths to compute
    */
   virtual double operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -68,7 +67,7 @@ public:
                              const int& k=-1);
 
   /**
-   * @brief Compute the GED between <code>g1</code> and <code>g2</code> as the minimum GED found trough all edit paths
+   * @brief Compute the GED between `g1` and `g2` as the minimum GED found trough all edit paths
    * @return  calls to operator() (g1, g2, k=1)
    */
   virtual double operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -98,6 +97,7 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
                    int * G1_to_G2, int * G2_to_G1 )
 {
+  delete [] this->C;
   this->computeCostMatrix(g1, g2);
   this->computeOptimalMapping(this, g1, g2, this->C, G1_to_G2, G2_to_G1);
 }
@@ -111,7 +111,7 @@ getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 {
   if (k == -1) k = this->_nep;
   this->computeCostMatrix(g1, g2);
-  std::list<int*> maps = this->getKOptimalMappings(g1, g2, this->C, k);
+  std::list<int*> maps = MultiGed<NodeAttribute, EdgeAttribute>::getKOptimalMappings(this->C, g1->Size(), g2->Size(), k);
 
   delete [] this->C; this->C = NULL;
   return maps;

@@ -17,6 +17,8 @@
 #include "GraphEditDistance.h"
 #include "MultistartMappingRefinement.h"
 
+#include "MultiGed.h"
+
 
 
 /**
@@ -91,7 +93,7 @@ public:
    *
    *  The refinement method is \ref method
    */
-  virtual const std::list<int*>& 
+  virtual const std::list<int*>&
   getBetterMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
                      Graph<NodeAttribute,EdgeAttribute> * g2 );
 
@@ -99,7 +101,7 @@ public:
   /**
    * @brief Returns refined mappings from the ones given in parameter, according to the method \method
    *
-   *   Note that the returned mappings are the forward mappings of size (n+1). To get the 
+   *   Note that the returned mappings are the forward mappings of size (n+1). To get the
    *   (m+1) reverse mappings denoted by G2_to_G1, use the method \ref getReverseMappings.
    *
    * @param  g1          First graph
@@ -117,7 +119,7 @@ public:
   /**
    * @brief Redefinition of \ref MultistartMappingRefinement::getBetterMappingsFromSet for the GED problem
    *
-   *   Note that the returned mappings are the forward mappings of size (n+1). To get the 
+   *   Note that the returned mappings are the forward mappings of size (n+1). To get the
    *   (m+1) reverse mappings denoted by G2_to_G1, use the method \ref getReverseMappings.
    *
    * @param  algorithm   the refinement method
@@ -170,139 +172,39 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
                 int * G1_to_G2, int * G2_to_G1,
                 std::list<int*>& mappings )
 {
-  struct timeval  tv1, tv2;
   int n = g1->Size();
   int m = g2->Size();
-
-  typename std::list<int*>::const_iterator it;
   double cost = -1;
-  double ncost;
 
+  // This will update refinedMappings and refinedReverseMappings
+  getBetterMappingsFromSet(algorithm, g1, g2, mappings);
 
-  // Multithread
-  #ifdef _OPENMP
-    gettimeofday(&tv1, NULL);
-    int** arrayMappings = new int*[mappings.size()];
-    int* arrayCosts = new int[mappings.size()];
-    int* arrayLocal_G1_to_G2 = new int[(n+1) * mappings.size()];
-    int* arrayLocal_G2_to_G1 = new int[(m+1) * mappings.size()];
-
-    int i=0; for (it=mappings.begin(); it!=mappings.end(); it++){
-      arrayMappings[i] = *it;
-      i++;
+  // Look for the minimal cost mapping
+  std::list<int*>::const_iterator itf_optim, itr_optim;
+  for (std::list<int*>::const_iterator itf = this->refinedMappings.begin(), itr = this->refinedReverseMappings.begin();
+       itf != this->refinedMappings.end() && itr != this->refinedReverseMappings.end();
+       itf++, itr++ )
+  {
+    double current_cost =  algorithm->mappingCost(g1, g2, *itf, *itr);
+    if (cost > current_cost || cost == -1){
+         cost = current_cost;
+         itf_optim = itf;
+         itr_optim = itr;
     }
+  }
 
-    //omp_set_dynamic(0);
-    //omp_set_num_threads(4);
-    #pragma omp parallel for schedule(dynamic) //private(tid, i, j, ncost, ipfpGed )
-    for (unsigned int tid=0; tid<mappings.size(); tid++){
-      int* lsapMapping = arrayMappings[tid];
-      int* local_G1_to_G2 = &(arrayLocal_G1_to_G2[tid*(n+1)]);
-      int* local_G2_to_G1 = &(arrayLocal_G2_to_G1[tid*(m+1)]);
+  // Copy the optimal mapping
+  for (int i=0; i<n; i++) G1_to_G2[i] = (*itf_optim)[i];
+  for (int j=0; j<m; j++) G2_to_G1[j] = (*itr_optim)[j];
 
-  // Sequential
-  #else
-    int* local_G1_to_G2 = new int[n+1];
-    int* local_G2_to_G1 = new int[m+1];
-
-    double t_acc = 0; // accumulated time
-    for (it=mappings.begin(); it!=mappings.end(); it++){
-      gettimeofday(&tv1, NULL);
-      int* lsapMapping = *it;
-  #endif
-
-    // computation of G1_to_G2 and G2_to_G1
-    for (int j=0; j<m; j++){ // connect all to epsilon by default
-      local_G2_to_G1[j] = n;
-    }
-
-    for (int i=0; i<n; i++){
-      if (lsapMapping[i] >= m)
-        local_G1_to_G2[i] = m; // i -> epsilon
-      else{
-        local_G1_to_G2[i] = lsapMapping[i];
-        local_G2_to_G1[lsapMapping[i]] = i;
-      }
-    }
-
-    for (int j=0; j<m; j++){
-      if (lsapMapping[n+j] < m){
-        local_G2_to_G1[j] = n; // epsilon -> j
-      }
-    }
-
-    MappingRefinement<NodeAttribute, EdgeAttribute> * local_method;
-
-    #ifdef _OPENMP
-      local_method = algorithm->clone();
-    #else
-      local_method = algorithm;
-    #endif
-    
-    local_method->getBetterMapping(g1, g2, local_G1_to_G2, local_G2_to_G1);
-    ncost = local_method->mappingCost(g1, g2, local_G1_to_G2, local_G2_to_G1);
-
-
-    // Multithread
-    #ifdef _OPENMP
-      // save the approx cost
-      arrayCosts[tid] = ncost;
-      // _distances_[tid] = ncost;
-     
-      // Delete cloned local method
-      delete local_method;
-
-    // Sequential
-    #else
-      // if ncost is better : save the mapping and the cost
-      if (cost > ncost || cost == -1){
-        cost = ncost;
-        for (int i=0; i<n; i++) G1_to_G2[i] = local_G1_to_G2[i];
-        for (int j=0; j<m; j++) G2_to_G1[j] = local_G2_to_G1[j];
-      }
-      gettimeofday(&tv2, NULL);
-      t_acc += ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec));
-
-    #endif
-
-  } //end for
-
-  // Multithread : Reduction
-  #ifdef _OPENMP
-    gettimeofday(&tv2, NULL);
-    
-    gettimeofday(&tv1, NULL);
-
-    int i_optim;
-    for (unsigned int i=0; i<mappings.size(); i++){
-      if (cost > arrayCosts[i] || cost == -1){
-         cost = arrayCosts[i];
-         i_optim = i;
-      }
-    }
-    for (int i=0; i<n; i++) G1_to_G2[i] = arrayLocal_G1_to_G2[i_optim*(n+1)+i];
-    for (int j=0; j<m; j++) G2_to_G1[j] = arrayLocal_G2_to_G1[i_optim*(m+1)+j];
-
-    // To match the output format size in XPs
-    //for (int i=mappings.size(); i<k; i++) _distances_[i] = 9999;
-
-    gettimeofday(&tv2, NULL);
-    //_xp_out_ <<  ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec)) << ", ";
-    //_xp_out_ << ((float)t) / CLOCKS_PER_SEC << ", ";
-
-    delete[] arrayLocal_G1_to_G2;
-    delete[] arrayLocal_G2_to_G1;
-    delete[] arrayCosts;
-    delete[] arrayMappings;
-
-  // Sequential : deletes
-  #else
-
-    delete [] local_G1_to_G2;
-    delete [] local_G2_to_G1;
-
-  #endif
-
+  // Remove the computed mappings (local to the object)
+  for (std::list<int*>::const_iterator itf = this->refinedMappings.begin(), itr = this->refinedReverseMappings.begin();
+       itf != this->refinedMappings.end() && itr != this->refinedReverseMappings.end();
+       itf++, itr++ )
+  {
+    delete[] *itf;
+    delete[] *itr;
+  }
 }
 
 
@@ -348,97 +250,57 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
   int n = g1->Size();
   int m = g2->Size();
 
-  typename std::list<int*>::const_iterator it;
+  this->refinedMappings.clear(); //G1_to_G2 in refinedMappings
+  this->refinedReverseMappings.clear(); //G2_to_G1 in refinedReverseMappings
 
-  int** arrayLocal_G1_to_G2 = new int*[mappings.size()]; // indexation of local G1toG2
-  int** arrayLocal_G2_to_G1 = new int*[mappings.size()];
+  // computation of LSAPE versions of the mappings
+  std::list<int*> listG1toG2, listG2toG1;
+  MultiGed<NodeAttribute, EdgeAttribute>::mappings_lsap2lsape(
+    mappings, listG1toG2, listG2toG1, n, m
+  );
 
-  for (unsigned int i=0; i<mappings.size(); i++){
-     arrayLocal_G1_to_G2[i] = new int[n+1];
-     arrayLocal_G2_to_G1[i] = new int[m+1];
-  }
+  #pragma omp parallel
+  {
+    // Iterators (private) : mustn't be shared accross the threads
+    typename std::list<int*>::iterator itf, itr;
 
-  // Multithread
-  #ifdef _OPENMP
-    int** arrayMappings = new int*[mappings.size()];
+   #pragma omp single nowait
+   {
+    for ( itf=listG1toG2.begin(), itr=listG2toG1.begin();
+          itf != listG1toG2.end() && itr != listG2toG1.end();
+          itr++, itf++ )
+    {
+      #pragma omp task untied
+      {
+        #ifdef _OPENMP
+          MappingRefinement<NodeAttribute, EdgeAttribute> * local_method = algorithm->clone();
+        #else
+          MappingRefinement<NodeAttribute, EdgeAttribute> * local_method = algorithm;
+        #endif
 
-    int i=0; for (it=mappings.begin(); it!=mappings.end(); it++){
-      arrayMappings[i] = *it;
-      i++;
-    }
+        local_method->getBetterMapping(g1, g2, *itf, *itr, true);
+        #pragma omp critical
+        {
+          this->refinedMappings.insert(
+            this->refinedMappings.end(),
+            local_method->getEquivalentG1toG2().begin(),
+            local_method->getEquivalentG1toG2().end()
+          );
+          this->refinedReverseMappings.insert(
+            this->refinedReverseMappings.end(),
+            local_method->getEquivalentG2toG1().begin(),
+            local_method->getEquivalentG2toG1().end()
+          );
+        } // end omp critical
 
-    //omp_set_dynamic(0);
-    //omp_set_num_threads(4);
-    // Set a dynamic scheduler : algorithms can have different execution time given different initial mappings
-    #pragma omp parallel for schedule(dynamic) //private(tid, i, j, ncost, ipfpGed )
-    for (unsigned int tid=0; tid<mappings.size(); tid++){
-      int* lsapMapping = arrayMappings[tid];
-
-  // Sequential
-  #else
-    unsigned int tid=0;
-    for (it=mappings.begin(); it!=mappings.end(); it++){
-      int* lsapMapping = *it;
-  #endif
-  
-  
-      int* local_G1_to_G2 = arrayLocal_G1_to_G2[tid];
-      int* local_G2_to_G1 = arrayLocal_G2_to_G1[tid];
-
-      // computation of G1_to_G2 and G2_to_G1
-      for (int j=0; j<m; j++){ // connect all to epsilon by default
-	local_G2_to_G1[j] = n;
-      }
-      
-      for (int i=0; i<n; i++){
-	if (lsapMapping[i] >= m)
-	  local_G1_to_G2[i] = m; // i -> epsilon
-	else{
-	  local_G1_to_G2[i] = lsapMapping[i];
-	  local_G2_to_G1[lsapMapping[i]] = i;
-	}
-      }
-      
-      for (int j=0; j<m; j++){
-	if (lsapMapping[n+j] < m){
-	  local_G2_to_G1[j] = n; // epsilon -> j
-	}
-      }
-
-    
-      MappingRefinement<NodeAttribute, EdgeAttribute> * local_method;
-    
-      #ifdef _OPENMP
-        local_method = algorithm->clone();
-      #else
-        local_method = algorithm;
-        tid++; //prepare the next iteration
-      #endif
-    
-      local_method->getBetterMapping(g1, g2, local_G1_to_G2, local_G2_to_G1, true);
-
-      #ifdef _OPENMP
-        delete local_method;
-      #endif
-
+        #ifdef _OPENMP
+          delete local_method;
+        #endif
+      } // end omp task
     } //end for
+   } // end omp single
+  } // end omp parallel
 
-    // Reduction - indexation of the list
-    this->refinedMappings.clear(); //G1_to_G2 in refinedMappings
-    this->refinedReverseMappings.clear(); //G2_to_G1 in refinedReverseMappings
-    int _i_=0;
-    for (it=mappings.begin(); it!=mappings.end(); it++){
-      this->refinedMappings.push_back(arrayLocal_G1_to_G2[_i_]);
-      refinedReverseMappings.push_back(arrayLocal_G2_to_G1[_i_]);
-      _i_++;
-    }
-
-   #ifdef _OPENMP
-    delete[] arrayMappings;
-   #endif
-   delete[] arrayLocal_G1_to_G2;
-   delete[] arrayLocal_G2_to_G1;
-   
-   return this->refinedMappings;
+  return this->refinedMappings;
 }
 #endif // __MULTISTARTREFINEMENTGED_H__

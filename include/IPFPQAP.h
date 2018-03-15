@@ -10,13 +10,13 @@ using namespace Eigen;
 #include "utils.h"
 
 template<class NodeAttribute, class EdgeAttribute>
-class IPFPQAP: 
+class IPFPQAP:
   public MappingRefinement<NodeAttribute, EdgeAttribute>
 {
 
 protected:
 
-  EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction; 
+  EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction;
         //!< Cost function used to compute node and edge substitution costs
 
   int maxIter = 100;
@@ -38,7 +38,7 @@ protected:
   bool _directed = false;
   std::vector<double> S;
   std::vector<double> R;
-  
+
   double* J = NULL;
   bool recenter=false;
 
@@ -59,7 +59,7 @@ protected:
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
                          Graph<NodeAttribute,EdgeAttribute> * g2,
                          double * Matrix, double * XkD);
-  
+
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
                          Graph<NodeAttribute,EdgeAttribute> * g2,
@@ -84,6 +84,7 @@ protected:
 
 public:
   IPFPQAP( EditDistanceCost<NodeAttribute,EdgeAttribute> * cf ):
+    MappingRefinement<NodeAttribute, EdgeAttribute>(),
     costFunction(cf),
     J(NULL)
   {};
@@ -113,17 +114,17 @@ public:
                       Graph<NodeAttribute,EdgeAttribute> * g2,
                       int* G1_to_G2, int* G2_to_G1 = NULL );
 
-  
+
   /**
    * @brief  At the beginning of IPFP algorithm, the initialization will be recentered in the direction of the current <code>this->J</code> matrix
-   *  
+   *
    *  If J is NULL, the geometrical barycenter of doubly stochastic matrices J = (1/n) will be used
    */
   virtual void recenterInit(bool yes=true){
     recenter = yes;
   }
-  
-  
+
+
   /**
    * @brief  Set the centering matrix to J of size \f$n\times n\f$ and activate the centering
    *
@@ -156,7 +157,7 @@ recenterInit(double * nJ, int n)
 {
   if ( this->J != NULL) delete[] this->J;
   this->J = new double[n*n];
-  
+
   this->recenter = true;
   if (nJ == NULL){
     for (int i=0; i<n; i++)
@@ -218,10 +219,10 @@ QuadraticTerm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2,
                int * G1_to_G2,double * XkD )
 {
-  
+
   int n = g1->Size();
   int m = g2->Size();
-  
+
   //Reconstruction d'un mapping
   std::vector<std::pair<std::pair<int,int>, double>> mappings;
   for (int i =0;i<n;i++){
@@ -341,9 +342,9 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 {
   this->_n = g1->Size();
   this->_m = g2->Size();
-  
+
   this->Xk = new double[(this->_n) * (this->_m)];
-  
+
   if (fromInit){
     this->Xk = this->mappingsToMatrix(G1_to_G2,this->_n,this->_m,this->Xk);
   }
@@ -399,7 +400,7 @@ void IPFPQAP<NodeAttribute, EdgeAttribute>::
 IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2 )
 {
-  
+
   // Recenter the init mapping ?
   if (this->recenter){
     if (this->J == NULL) this->recenterInit(NULL, this->_n); // @see recenterInit(double*, int)
@@ -509,7 +510,7 @@ IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
     if ((beta < 0.00001) || (t0 >= 1))
       //if(flag_continue)
         memcpy(this->Xk,bkp1,sizeof(double)*(  this->_n)*(  this->_m));
-        
+
       //Lterm = Lterm_new;
     else{
       //Line search

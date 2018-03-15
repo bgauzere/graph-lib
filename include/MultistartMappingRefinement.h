@@ -20,7 +20,7 @@
 
 /**
  * @brief A MappingRefinement method which uses a multistart approach
- * 
+ *
  *   The multistart approach consists in refine several initial mappings
  *   and keep the best one. To this end, the initializations are here lists of
  *   mappings
@@ -39,14 +39,14 @@ public:
 
   /**
    * @brief Outputs the best mapping refined by \ref algorithm from initializations given by \ref initGen
-   * 
+   *
    *  During the process, only the best mapping is kept in memory
    *  allowing the procedure to require less memory than \ref getBetterMappings.
    *
    * @param  algorithm   the refinement method
    * @param  g1          First graph
    * @param  g2          Second graph
-   * @param  G1_to_G2    forward output mapping 
+   * @param  G1_to_G2    forward output mapping
    * @param  G2_to_G1    reverse output mapping, useful for the graph edit distance
    * @see getBestMappingFromSet
    */
@@ -125,7 +125,7 @@ getBestMapping( MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm,
   gettimeofday(&tv2, NULL);
 
   this->getBestMappingFromSet(algorithm, g1, g2, G1_to_G2, G2_to_G1, mappings);
-  
+
   // Memoy cleaning
   for (std::list<int*>::iterator it = mappings.begin(); it!=mappings.end(); it++)
     delete[] *it;
@@ -195,19 +195,19 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
 
     if (local_G2_to_G1 != NULL){
       for (int j=0; j<m; j++) local_G2_to_G1[j] = -1;
-      for (int i=0; i<n; i++) 
+      for (int i=0; i<n; i++)
         if (local_G1_to_G2[i] >= 0)
           local_G2_to_G1[local_G1_to_G2[i]] = i;
     }
-    
+
     MappingRefinement<NodeAttribute, EdgeAttribute> * local_method;
-    
+
     #ifdef _OPENMP
       local_method = algorithm->clone();
     #else
       local_method = algorithm;
     #endif
-    
+
     local_method->getBetterMapping(g1, g2, local_G1_to_G2, local_G2_to_G1, true);
     ncost = local_method->mappingCost(g1, g2, local_G1_to_G2, local_G2_to_G1);
 
@@ -237,7 +237,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
   // Multithread : Reduction
   #ifdef _OPENMP
     gettimeofday(&tv2, NULL);
-    
+
     gettimeofday(&tv1, NULL);
 
     int i_optim;
@@ -248,7 +248,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
       }
     }
     for (int i=0; i<n; i++) G1_to_G2[i] = arrayLocal_G1_to_G2[i_optim*n + i];
-    
+
     if (G2_to_G1 != NULL)
       for (int j=0; j<m; j++) G2_to_G1[j] = arrayLocal_G2_to_G1[i_optim*m + j];
 
@@ -306,7 +306,7 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
   int n = g1->Size();
 
   typename std::list<int*>::const_iterator it;
-  
+
   int* arrayLocal_G1_to_G2 = new int[n * mappings.size()];
 
   // Multithread
@@ -331,23 +331,23 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
     for (it=mappings.begin(); it!=mappings.end(); it++){
       int* lsapMapping = *it;
   #endif
-  
-  
+
+
     int* local_G1_to_G2 = &(arrayLocal_G1_to_G2[tid*n]);
 
     // Copy the mapping into the local array
     for (int i=0; i<n; i++)
       local_G1_to_G2[i] = lsapMapping[i];
-    
+
     MappingRefinement<NodeAttribute, EdgeAttribute> * local_method;
-    
+
     #ifdef _OPENMP
       local_method = algorithm->clone();
     #else
       local_method = algorithm;
       tid++;
     #endif
-    
+
     local_method->getBetterMapping(g1, g2, local_G1_to_G2, NULL, true);
 
   } //end for
@@ -363,7 +363,7 @@ getBetterMappingsFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algo
    #ifdef _OPENMP
     delete[] arrayMappings;
    #endif
-   
+
    return refinedMappings;
 }
 

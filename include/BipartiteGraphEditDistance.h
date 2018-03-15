@@ -236,8 +236,6 @@ void BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2){
 
-  delete [] C;
-
   int n=g1->Size();
   int m=g2->Size();
   C = new double[(n+1) * (m+1)];

@@ -18,6 +18,7 @@ using namespace Eigen;
 #include "hungarian-lsape.hh"
 #include "lsape.hh" // Bistochastic generation and sinkhorn balancing
 #include "GraphEditDistance.h"
+#include "MultiGed.h"
 #include "IPFPQAP.h"
 #include "utils.h"
 
@@ -38,12 +39,12 @@ protected:
   virtual
   void NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		      Graph<NodeAttribute,EdgeAttribute> * g2);
-  
+
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
 			 Graph<NodeAttribute,EdgeAttribute> * g2,
 			 int * G1_to_G2, int * G2_to_G1, double * XkD);
-  
+
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
                          Graph<NodeAttribute,EdgeAttribute> * g2,
@@ -81,7 +82,7 @@ public:
     useContinuousFlatInit(false),
     useSinkhorn(false)
   {};
-    
+
   IPFPGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
     IPFPQAP<NodeAttribute, EdgeAttribute>(costFunction),
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
@@ -93,16 +94,38 @@ public:
   {
     this->C = NULL; this->linearSubProblem=NULL; this->XkD=NULL; this->Xk=NULL; this->Lterm=0; this->oldLterm=0;
     this->Xkp1tD=NULL; this->bkp1=NULL; this->_n=-1; this->_m=-1; this->k=-1; this->_directed=false;
+    this->_compute_equiv_mappings = false;
   };
 
+
+ /**
+  * @brief  Compute in `G1_to_G2` and `G2_to_G1` the best mapping that the
+  *         method found between `g1` and `g2`
+  */
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
 				 int * G1_to_G2, int * G2_to_G1);
 
+
+  /**
+   * @brief  Refine the given mapping in `G1_to_G2`, `G2_to_G1` between
+   *         the graphs `g1` and `g2`. The result replaces the initial
+   *         values of these arrays.
+   *
+   *  If the flag _compute_equiv_mappings is true, the two arrays
+   *  `G1_to_G2` and `G2_to_G1` keep their initial values and
+   *  the refined mappings can be read through the methods
+   *  getEquivalentG2toG1 and getEquivalentG1toG2.
+   *
+   * @param  fromInit  Ignored
+   */
   virtual void getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
 				 int * G1_to_G2, int * G2_to_G1, bool fromInit=true);
 
+  /**
+   * @brief  Perform the Frank-Wlofe algorithm
+   */
   void IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
 		     Graph<NodeAttribute,EdgeAttribute> * g2);
 
@@ -111,8 +134,8 @@ public:
   virtual double mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
                       Graph<NodeAttribute,EdgeAttribute> * g2,
                      int* G1_to_G2, int* G2_to_G1 );
-  
-  
+
+
   /**
    * @brief  Activate the use of a continuous bistochastic random matrix as initialization, no matter what
    *         is provided to the <code>get****Mapping()</code> method.
@@ -120,8 +143,8 @@ public:
   void continuousRandomInit(bool yes=true){
     this->useContinuousRandomInit = yes;
   }
-  
-  
+
+
   /**
    * @brief  Activate or deactivate the continuous uniform flat initialization, no matter what is provided.
    *
@@ -131,22 +154,22 @@ public:
   void continuousFlatInit(bool yes=true){
     this->useContinuousFlatInit = yes;
   }
-  
+
   /*
    * @brief  Activate the use of a Sinkhorn balancing of the initialization before starting IPFP algorithm
    *
-   * @note  If the flags <code>recenter</code> and <code>useSinjhorn</code> are both <code>true</code>, 
+   * @note  If the flags <code>recenter</code> and <code>useSinjhorn</code> are both <code>true</code>,
    *        then the Sinkhorn balancing is done before the centering procedure.
    *
   void sinkhornFirst(bool yes=true){
     this->useSinkhorn = yes;
   }
   //*/
-  
+
   void recenterInit(bool yes=true){
     this->recenter = yes;
   }
-  
+
   /**
    * @brief  Set the centering matrix to J of size \f$(n+1)\times(m+1)\f$ and activate the centering
    *
@@ -155,9 +178,9 @@ public:
    *   \f$J = \frac{2(n+1)\times(m+1)}{n+m+2}\f$ will be used
    */
   virtual void recenterInit(double* nJ, int n, int m);
-  
+
   IPFPGraphEditDistance * clone() const { return new IPFPGraphEditDistance(*this); }
-  
+
   IPFPGraphEditDistance( const IPFPGraphEditDistance& other ) :
     IPFPQAP<NodeAttribute,EdgeAttribute>(NULL),
     GraphEditDistance<NodeAttribute, EdgeAttribute>(NULL),
@@ -171,6 +194,7 @@ public:
     this->useContinuousFlatInit = other.useContinuousFlatInit;
     this->useSinkhorn = other.useSinkhorn;
     this->J=NULL;
+    this->_compute_equiv_mappings = other._compute_equiv_mappings;
   }
 
   virtual ~IPFPGraphEditDistance(){
@@ -192,7 +216,7 @@ recenterInit(double * nJ, int n, int m)
 {
   if ( this->J != NULL) delete[] this->J;
   this->J = new double[(n+1)*(m+1)];
-  
+
   this->recenter = true;
   if (nJ == NULL){
     for (int j=0; j<m+1; j++)
@@ -220,7 +244,7 @@ void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::NodeCostMatrix(Graph<N
   for(int i=0;i<n;i++)
     for(int j=0;j<m;j++)
       this->C[sub2ind(i,j,(n+1))] = this->cf->NodeSubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
-  
+
   for(int i=0;i<n;i++)
     this->C[sub2ind(i,m,(n+1))] = this->cf->NodeDeletionCost((*g1)[i],g1);
 
@@ -392,7 +416,7 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 
   this->Xk = new double[(this->_n+1)*(  this->_m+1)];
   Map<MatrixXd> m_Xk(this->Xk,  this->_n+1,  this->_m+1);
-  
+
   if (!useContinuousRandomInit && !useContinuousFlatInit)
     this->Xk = this->mappingsToMatrix(G1_to_G2,G2_to_G1,this->_n,this->_m,this->Xk);
 
@@ -400,12 +424,37 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 
 
   m_Xk= MatrixXd::Ones(this->_n+1, this->_m+1)-m_Xk;
-  double *u = new double[this->_n+1];
-  double *v = new double[this->_m+1];
-  hungarianLSAPE(this->Xk,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+
+  if (this->_compute_equiv_mappings){
+    // Get less precision to induce more equivalent mappings
+    m_Xk *= 100;
+    for (int i=0; i<(this->_n+1)*(this->_m+1); i++) this->Xk[i] = (int)(this->Xk[i]);
+
+    //TODO virer le 100
+    std::list<int*> lsapEquivMaps = MultiGed<NodeAttribute, EdgeAttribute>::getKOptimalMappings(this->Xk, this->_n, this->_m, 100);
+    MultiGed<NodeAttribute, EdgeAttribute>::mappings_lsap2lsape(
+      lsapEquivMaps,
+      this->_equiv_G1toG2, this->_equiv_G2toG1,
+      this->_n, this->_m
+    );
+
+    for (std::list<int*>::iterator it=lsapEquivMaps.begin(); it != lsapEquivMaps.end();  it++)
+      delete [] (*it);
+  }
+  else{
+    double *u = new double[this->_n+1];
+    double *v = new double[this->_m+1];
+    hungarianLSAPE(this->Xk,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+
+    // Save also the mapping in the list of equivalent mappings
+    this->_equiv_G1toG2.clear();
+    this->_equiv_G2toG1.clear();
+    this->_equiv_G1toG2.push_back(G1_to_G2);
+    this->_equiv_G2toG1.push_back(G2_to_G1);
+    delete [] u;
+    delete [] v;
+  }
   delete [] this->Xk; this->Xk=0;
-  delete [] u;
-  delete [] v;
 }
 
 template<class NodeAttribute, class EdgeAttribute>
@@ -540,7 +589,7 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
     if ((beta < 0.00001) || (t0 >= 1))
       //if(flag_continue)
         memcpy(this->Xk, this->bkp1,sizeof(double)*(  this->_n+1)*(  this->_m+1));
-        
+
       //Lterm = Lterm_new;
     else{
       //Line search
@@ -566,7 +615,7 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
   }
 
   //std::cout << this->k << ", " ;
-  
+
   delete [] this->Xkp1tD;this->Xkp1tD=0;
   delete [] this->linearSubProblem;this->linearSubProblem=0;
   delete [] this->XkD;this->XkD = 0;
