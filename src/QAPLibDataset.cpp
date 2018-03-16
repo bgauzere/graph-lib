@@ -1,5 +1,5 @@
 #include "QAPLibDataset.h"
-#include "utils.h"
+#include "gl_utils.h"
 
 QAPLibDataset::QAPLibDataset(const char* filename)
 {

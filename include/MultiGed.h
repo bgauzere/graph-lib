@@ -9,9 +9,9 @@
 #define __MULTIGED_H__
 
 #include "GraphEditDistance.h"
-#include "AllPerfectMatchingsEC.h"
-#include "hungarian-lsap.hh"
-#include "hungarian-lsape.hh"
+//#include "AllPerfectMatchingsEC.h"
+#include <lsap.h>
+#include <lsape.h>
 #include "MappingGenerator.h"
 
 
@@ -173,7 +173,7 @@ getKOptimalMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
   int* G2_to_G1 = new int[m+1];
 
   //hungarianLSAP<double,int>(this->_Clsap, n+m, m+n, G1_to_G2, u, v, true);
-  hungarianLSAPE(C, n+1, m+1, G1_to_G2, G2_to_G1, u, v, false);
+  hungarianLSAPE(C, n+1, m+1, G1_to_G2, G2_to_G1, u, v, true);
 
   // Compute LSAP solution from LSAPE
   int* rhoperm = new int[n+m];

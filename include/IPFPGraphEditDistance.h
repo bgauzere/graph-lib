@@ -15,11 +15,11 @@
 #include <Eigen/Dense>
 #include <limits>
 using namespace Eigen;
-#include "hungarian-lsape.hh"
-#include "lsape.hh" // Bistochastic generation and sinkhorn balancing
+
+#include <lsape.h> // Bistochastic generation and sinkhorn balancing
 #include "GraphEditDistance.h"
 #include "IPFPQAP.h"
-#include "utils.h"
+#include "gl_utils.h"
 
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPGraphEditDistance:

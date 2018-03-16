@@ -1,5 +1,5 @@
 /**
- * @file utils.h
+ * @file gl_utils.h
  * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Thu Feb  2 2017
  * 
@@ -15,11 +15,11 @@
 
 #include <vector>
 
-static bool is_mapping_valid(int mapping, int nb_nodes){
-  return ((mapping != -1) && (mapping < nb_nodes));
+static bool is_mapping_valid(unsigned int mapping, unsigned int nb_nodes){
+  return (mapping < nb_nodes);
 }
 
-#define sub2ind(i, j, n)    (i + (j) * (n))
+inline int  sub2ind(int i, int j, int n){ return  (i + (j) * (n));}
 
 std::vector<char*> split (const char* chaine, const char* sep);
 

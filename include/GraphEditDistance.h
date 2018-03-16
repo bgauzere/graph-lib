@@ -12,6 +12,7 @@
 
 #include "graph.h"
 
+#include "gl_utils.h"
 // A TRANSFORMER EN CLASSE ABSTRAITE 
 template<class NodeAttribute, class EdgeAttribute>
 class EditDistanceCost{
@@ -24,10 +25,10 @@ public :
 				      Graph<NodeAttribute,EdgeAttribute> * g2)=0;
   
   virtual double NodeDeletionCost(GNode<NodeAttribute,EdgeAttribute> * n1,
-				    Graph<NodeAttribute,EdgeAttribute> * g1)=0;
+				  Graph<NodeAttribute,EdgeAttribute> * g1)=0;
   
   virtual double NodeInsertionCost(GNode<NodeAttribute,EdgeAttribute> * n2,
-				      Graph<NodeAttribute,EdgeAttribute> * g2)=0;
+				   Graph<NodeAttribute,EdgeAttribute> * g2)=0;
   
   virtual double EdgeSubstitutionCost(GEdge<EdgeAttribute> * e1,
 					GEdge<EdgeAttribute> * e2,
@@ -60,15 +61,15 @@ public:
 
   double GedFromMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 			Graph<NodeAttribute,EdgeAttribute> * g2,
-			int * G1toG2, int n,
-			int * G2toG1, int m);
+			unsigned int * G1toG2, int n,
+			unsigned int * G2toG1, int m);
 
   virtual double operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
 			    Graph<NodeAttribute,EdgeAttribute> * g2);
 
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G2_to_G2)=0;
+				 unsigned int * G1_to_G2, unsigned int * G2_to_G2)=0;
 
   EditDistanceCost<NodeAttribute,EdgeAttribute> * getCostFunction(){ return cf; }
   void setCostFunction(EditDistanceCost<NodeAttribute, EdgeAttribute> * ncf){ cf = ncf; }
@@ -84,8 +85,8 @@ public:
 template<class NodeAttribute, class EdgeAttribute>
 double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<NodeAttribute, EdgeAttribute> * g1,
 								       Graph<NodeAttribute, EdgeAttribute> * g2,
-								       int * G1toG2, int n,
-								       int * G2toG1, int m){
+								       unsigned int * G1toG2, int n,
+								       unsigned int * G2toG1, int m){
   int node_ins =0, node_sub=0, node_del = 0,
     edge_ins=0, edge_sub = 0, edge_del = 0;
   
@@ -121,8 +122,8 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
 	and there is an edge between f_start and f_end*/
 	int start = i;
 	int end = p->IncidentNode();
-	int f_start = G1toG2[start];
-	int f_end = G1toG2[end];
+	unsigned int f_start = G1toG2[start];
+	unsigned int f_end = G1toG2[end];
       
 	if(( is_mapping_valid(f_start,m)) && (is_mapping_valid(f_end,m))){
 	  //Mapping of (start, end) onto G2 exists, check if an edge exists
@@ -152,8 +153,8 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
     while(p){
       int start = i;
       int end = p->IncidentNode();
-      int f_start = G2toG1[start];
-      int f_end = G2toG1[end];
+      unsigned int f_start = G2toG1[start];
+      unsigned int f_end = G2toG1[end];
       if(( is_mapping_valid(f_start,n)) && is_mapping_valid(f_end,n)){
 	//Mapping of (start, end) onto G2 exists, check if an edge exists
 	GEdge<EdgeAttribute>  *mappedEdge = g1->getEdge(f_start,f_end);
@@ -199,14 +200,12 @@ operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
 	   Graph<NodeAttribute,EdgeAttribute> * g2){
   int n=g1->Size();
   int m=g2->Size();
-  int * G1_to_G2 = new int[n];
-  int * G2_to_G1 = new int[m];
+  unsigned int * G1_to_G2 = new unsigned int[n];
+  unsigned int * G2_to_G1 = new unsigned int[m];
   this->getOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
   double ged = this->GedFromMapping(g1,g2,G1_to_G2,n,G2_to_G1,m);
   delete [] G1_to_G2;
   delete [] G2_to_G1;
   return ged;
 }
-
-
 #endif // __GRAPHEDITDISTANCE_H__

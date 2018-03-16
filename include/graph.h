@@ -11,8 +11,6 @@
 
 #include <tinyxml.h>
 
-#include "utils.h"
-
 /** @brief An oriented edge of a graph.
  *
  * The class <code>GEdge</code> defines an oriented graph.

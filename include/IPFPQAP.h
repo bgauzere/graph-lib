@@ -7,7 +7,7 @@ using namespace Eigen;
 #include "hungarian-lsap.hh"
 #include "GraphEditDistance.h"
 #include "MappingRefinement.h"
-#include "utils.h"
+#include "gl_utils.h"
 
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPQAP: 

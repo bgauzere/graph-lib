@@ -16,11 +16,10 @@
 #ifndef __BIPARTITELOWERBOUNDGRAPHEDITDISTANCE_H__
 #define __BIPARTITELOWERBOUNDGRAPHEDITDISTANCE_H__
 
-#include "lsape.hh"
-#include "hungarian-lsape.hh"
+#include <lsape.h>
 #include "GraphEditDistance.h"
 
-#include "utils.h"
+#include "gl_utils.h"
 
 //TODO : donner la possibilité de récupérer le mapping ?
 template<class NodeAttribute, class EdgeAttribute>
@@ -29,7 +28,7 @@ class BipartiteLowerBoundEditDistance:
 {
 
 private:
-  solver my_solver;
+  lsape::LSAPE_MODEL my_solver;
   
 protected:
   double * C;
@@ -54,26 +53,26 @@ protected:
 public:
   BipartiteLowerBoundEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
-    my_solver(EBP),C(NULL){
+    my_solver(lsape::ECBP),C(NULL){
     
   };
 
   BipartiteLowerBoundEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
-				  solver f):
+				  lsape::LSAPE_MODEL f):
     GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
     my_solver(f),C(NULL){};
 
-  void setSolver(solver f){
+  void setSolver(lsape::LSAPE_MODEL f){
     this->my_solver = f;
   }
 
 
   double getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				Graph<NodeAttribute,EdgeAttribute> * g2,
-				int * G1_to_G2, int * G2_to_G1);
+				unsigned int * G1_to_G2, unsigned int * G2_to_G1, double &opt_cost);
   void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
-				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G2_to_G1);
+			 Graph<NodeAttribute,EdgeAttribute> * g2,
+			 unsigned int * G1_to_G2, unsigned int * G2_to_G1);
 
   double getLowerBound(Graph<NodeAttribute,EdgeAttribute> * g1,
 		       Graph<NodeAttribute,EdgeAttribute> * g2);
@@ -98,8 +97,9 @@ template<class NodeAttribute, class EdgeAttribute>
 void BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute>::
 getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2,
-		  int * G1_to_G2,int * G2_to_G1){
-  __attribute__((unused)) double tmp = getTimedOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
+		  unsigned int * G1_to_G2,unsigned int * G2_to_G1){
+  double cost;
+  __attribute__((unused)) double tmp = getTimedOptimalMapping(g1,g2,G1_to_G2,G2_to_G1,cost);
 
 }
 
@@ -107,25 +107,51 @@ template<class NodeAttribute, class EdgeAttribute>
 double BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute>::
 getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 		       Graph<NodeAttribute,EdgeAttribute> * g2,
-		       int * G1_to_G2,int * G2_to_G1){
+		       unsigned int * G1_to_G2,unsigned int * G2_to_G1, double & opt_cost){
   int n=g1->Size();
   int m=g2->Size();
   // Compute C
   delete [] this->C;
   computeCostMatrix(g1,g2);
+  
   //Compute optimal assignement
   double *u = new double[n+1];
+  memset(u,0,sizeof(double)*(n+1));
   double *v = new double[m+1];
+  memset(v,0,sizeof(double)*(m+1));
+    
+  // for (int i = 0;i<n+1;i++){
+  //   for (int j =0;j<m+1;j++)
+  //     std::cout << C[sub2ind(i,j,n+1)] <<",";
+  //   std::cout << std::endl;
+  // }
+  // std::cout << "Diag :" << std::endl;
+  // for (int i = 0;i<n+1;i++){
+  //   std::cout << C[sub2ind(i,i,n+1)] <<",";
+  // }
 
   clock_t t = clock();
-  my_solver(C,n+1,m+1, G1_to_G2, u,v,G2_to_G1,1);
+  lsape::lsapeSolver<double>(C,n+1,m+1, G1_to_G2, G2_to_G1, u,v,my_solver,1);
   t = clock() - t;
-  return ((float)t) / CLOCKS_PER_SEC;
+  opt_cost =0.0;
+  for (int i =0;i<n+1;i++)
+    opt_cost += u[i];
+  for (int j =0;j<m+1;j++)
+    opt_cost += v[j];
 
-  
+  // for (int i =0;i<n+1;i++)
+  //   std::cout << u[i] << std::endl;
+  // for (int j=0;j<m+1;j++)
+  //   std::cout << v[j] << std::endl;
+
+  // std::cout << opt_cost << std::endl;
+
   delete [] u;
   delete [] v;
+  return ((float)t) / CLOCKS_PER_SEC;
 
+    
+  
 }
 
 template<class NodeAttribute, class EdgeAttribute>
@@ -134,17 +160,20 @@ getLowerBound(Graph<NodeAttribute,EdgeAttribute> * g1,
 	      Graph<NodeAttribute,EdgeAttribute> * g2, double & time){
   int n = g1->Size();
   int m = g2->Size();
-  int * G1_to_G2 = new int[n];
-  int * G2_to_G1 = new int[m];
-
-  time = this->getTimedOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
-			  
+  unsigned int * G1_to_G2 = new unsigned int[n+1];
+  unsigned int * G2_to_G1 = new unsigned int[m+1];
   double lower_bound = 0.0;
-  for(int i =0;i<n;i++)
-    lower_bound += C[sub2ind(i,G1_to_G2[i],n+1)];
-  for(int j =0;j<m;j++)
-    if(G2_to_G1[j] == n)
-      lower_bound += C[sub2ind(n,j,n+1)];
+  
+  time = this->getTimedOptimalMapping(g1,g2,G1_to_G2,G2_to_G1,lower_bound);
+			  
+  // double lower_bound = 0.0;
+  // for(int i =0;i<n;i++)
+  //   lower_bound += C[sub2ind(i,G1_to_G2[i],n+1)];
+  // for(int j =0;j<m;j++)
+  //   if(G2_to_G1[j] == n)
+  //     lower_bound += C[sub2ind(n,j,n+1)];
+
+  // std::cout << lower_bound << std::endl;
   
   delete [] G1_to_G2;
   delete [] G2_to_G1;
@@ -196,17 +225,17 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
     e2 = e2->Next();
   }
   local_C[sub2ind(n,m,n+1)] = 0;
-  int *rho = new int[n+1];
-  rho = (int*)memset((void*)rho,0,sizeof(int)*(n+1));
-  int *varrho = new int[m+1];
-  varrho = (int*)memset((void*)varrho,0,sizeof(int)*(m+1));
+  unsigned int *rho = new unsigned int[n+1];
+  rho = (unsigned int*)memset((void*)rho,0,sizeof(unsigned int)*(n+1));
+  unsigned int *varrho = new unsigned int[m+1];
+  varrho = (unsigned int*)memset((void*)varrho,0,sizeof(unsigned int)*(m+1));
   double *u = new double[n+1];
   u = (double*)memset((void*)u,0,sizeof(double)*(n+1));
   double *v = new double[m+1];
   v = (double*)memset((void*)v,0,sizeof(double)*(m+1));
   
   
-  this->my_solver(local_C,n+1,m+1, rho, u,v, varrho,1); //We still use classical solver for this sub assignment
+  lsape::lsapeSolver<double>(local_C,n+1,m+1, rho, varrho, u,v,my_solver,1);
   
   double cost=0.0;
   for (int i =0;i<n+1;i++)
@@ -216,6 +245,9 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
   delete [] u;delete [] v;
   delete [] rho;delete [] varrho;
   //delete [] local_C;
+  // std::cout << cost << std::endl;
+  // std::cout << this->cf->NodeSubstitutionCost(v1,v2,g1,g2) << std::endl;
+    
   return 0.5*cost + this->cf->NodeSubstitutionCost(v1,v2,g1,g2);
 }
 
@@ -251,17 +283,19 @@ computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2){
   int n=g1->Size();
   int m=g2->Size();
-  C = new double[(n+1) * (m+1)];
+  this->C = new double[(n+1) * (m+1)];
+  memset(this->C,0,sizeof(double)*(n+1) * (m+1));
   for (int i =0;i<n;i++)
-    for(int j = 0;j<m;j++)
-      C[sub2ind(i,j,n+1)] = this->SubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
-  
+    for(int j = 0;j<m;j++){
+      // std::cout << i << "," << j << std::endl;
+      this->C[sub2ind(i,j,n+1)] = this->SubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
+    }
   for (int i =0;i<n;i++)
-    C[sub2ind(i,m,n+1)] = this->DeletionCost((*g1)[i],g1);
+    this->C[sub2ind(i,m,n+1)] = this->DeletionCost((*g1)[i],g1);
 
   for (int j =0;j<m;j++)
-    C[sub2ind(n,j,n+1)] = this->InsertionCost((*g2)[j],g2);
+    this->C[sub2ind(n,j,n+1)] = this->InsertionCost((*g2)[j],g2);
 
-  C[sub2ind(n,m,n+1)] = 0;
+  this->C[sub2ind(n,m,n+1)] = 0;
 }
 #endif // __BIPARTITEGRAPHEDITDISTANCE_H__

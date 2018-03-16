@@ -29,7 +29,7 @@
 #include "MultistartMappingRefinement.h"
 #include "RandomMappings.h"
 
-#include "utils.h"
+#include "gl_utils.h"
 
 using namespace std;
 
