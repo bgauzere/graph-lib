@@ -27,7 +27,6 @@ OBJ_QAP = $(patsubst %,$(ODIR)/%,$(_OBJ_QAP))
 
 # all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
 all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances #$(TESTDIR)/benchmark
-
 debug: CXXFLAGS += -DDEBUG -g
 debug: $(TESTDIR)/chemical-lower-bounds
 
@@ -67,7 +66,16 @@ $(TESTDIR)/chemical-lower-bounds: $(TESTDIR)/computeLowerBounds.cpp $(OBJ)
 $(TESTDIR)/QAPlib: $(TESTDIR)/QAPLib.cpp $(OBJ_QAP)
 	$(CXX)  -D PRINT_TIMES -o $@ $^ $(CXXFLAGS) -ltinyxml
 
-$(TESTDIR)/test_graph: $(DEPS) $(OBJ) $(TESTDIR)/test_graph.cpp
+_TEST_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h  BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h 
+TEST_DEPS = $(patsubst %,$(IDIR)/%,$(_TEST_DEPS))
+
+_TEST_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp 
+TEST_DEPS_SRC += $(patsubst %,$(SRCDIR)/%,$(_TEST_DEPS_SRC))
+
+_TEST_OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o
+TEST_OBJ = $(patsubst %,$(ODIR)/%,$(_TEST_OBJ))
+
+$(TESTDIR)/test_graph: $(TEST_DEPS) $(TEST_OBJ) $(TESTDIR)/test_graph.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) -ltinyxml
 
 $(BINDIR)/%: $(OBJ) $(SRCDIR)/%.cpp

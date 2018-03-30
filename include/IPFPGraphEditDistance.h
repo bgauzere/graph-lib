@@ -17,6 +17,7 @@
 using namespace Eigen;
 
 #include <lsape.h> // Bistochastic generation and sinkhorn balancing
+
 #include "GraphEditDistance.h"
 #include "IPFPQAP.h"
 #include "gl_utils.h"

@@ -15,21 +15,25 @@
 #ifndef __BIPARTITEGRAPHEDITDISTANCE_H__
 #define __BIPARTITEGRAPHEDITDISTANCE_H__
 
-#include <lsape.h>
+#include "lsape.h"
 #include "GraphEditDistance.h"
 #include "gl_utils.h"
 
 
 
-//TODO : donner la possibilité de récupérer le mapping ?
+/*TODO : 
+   - donner la possibilité de récupérer le mapping ?
+   - Spécifier le solver
+*/
+
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistance:
   public GraphEditDistance<NodeAttribute, EdgeAttribute>
 {
 private:
-  enum lsape::LSAPE_MODEL  my_solver;
 
 protected:
+  enum lsape::LSAPE_MODEL  my_solver;
   double * C;
 
 protected:
@@ -62,8 +66,6 @@ public:
     this->my_solver = f;
   }
 
-  // virtual double operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
-  // 			    Graph<NodeAttribute,EdgeAttribute> * g2);
   double getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				Graph<NodeAttribute,EdgeAttribute> * g2,
 				unsigned int * G1_to_G2, unsigned int * G2_to_G1);
@@ -77,6 +79,7 @@ public:
 
     virtual ~BipartiteGraphEditDistance(){
     if (this->C != NULL) delete [] this->C;
+    
   }
 
   virtual BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute> * clone() const

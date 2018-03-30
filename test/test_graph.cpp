@@ -19,9 +19,10 @@
 #include "SymbolicGraph.h"
 #include "ConstantGraphEditDistance.h"
 #include "BipartiteGraphEditDistance.h"
-#include "RandomWalksGraphEditDistance.h"
-#include "IPFPGraphEditDistance.h"
-#include "GNCCPGraphEditDistance.h"
+#include "BipartiteGraphEditDistanceMulti.h"
+// #include "RandomWalksGraphEditDistance.h"
+// #include "IPFPGraphEditDistance.h"
+// #include "GNCCPGraphEditDistance.h"
 
 using namespace std;
 
@@ -93,76 +94,18 @@ int main (int argc, char** argv)
   ConstantEditDistanceCost * cf = new ConstantEditDistanceCost(1,3,3,1,3,3);
   
   BipartiteGraphEditDistance<int,int> *ed_bunke = new BipartiteGraphEditDistance<int,int>(cf);
-  RandomWalksGraphEditDistance *ed_rw = new RandomWalksGraphEditDistance(cf,3);
+  BipartiteGraphEditDistance<int,int> *ed_bunke_multi = new BipartiteGraphEditDistanceMulti<int,int>(cf,10);
+  // RandomWalksGraphEditDistance *ed_rw = new RandomWalksGraphEditDistance(cf,3);
 
-  IPFPGraphEditDistance<int,int> *ed_ipfpe_rw = new IPFPGraphEditDistance<int,int>(cf,ed_rw);
-  IPFPGraphEditDistance<int,int> *ed_ipfpe_bunke = new IPFPGraphEditDistance<int,int>(cf,ed_bunke);
+  // IPFPGraphEditDistance<int,int> *ed_ipfpe_rw = new IPFPGraphEditDistance<int,int>(cf,ed_rw);
+  // IPFPGraphEditDistance<int,int> *ed_ipfpe_bunke = new IPFPGraphEditDistance<int,int>(cf,ed_bunke);
 
-  GNCCPGraphEditDistance<int,int> *ed_gnccp = new GNCCPGraphEditDistance<int,int>(cf);
-  GNCCPGraphEditDistance<int,int> *ed_gnccp_rw = new GNCCPGraphEditDistance<int,int>(cf,ed_rw);
+  // GNCCPGraphEditDistance<int,int> *ed_gnccp = new GNCCPGraphEditDistance<int,int>(cf);
+  // GNCCPGraphEditDistance<int,int> *ed_gnccp_rw = new GNCCPGraphEditDistance<int,int>(cf,ed_rw);
 
-  ChemicalDataset<double> AcyclicDataset("/home/bgauzere/work/Datasets/Acyclic/dataset_bps.ds");
-  //AcyclicDataset.shuffleize();
-  //  cout << "Distance : " << (*ed_gnccp)(AcyclicDataset[1],AcyclicDataset[81])  << endl;
-  // for (int i = 100;i<110;i++)
-  //   for (int j = 100;j<110;j++)
-  //     cout << "Distance : " << (*ed_gnccp)(AcyclicDataset[i],AcyclicDataset[j])  << endl;
-  cout << "Distance : " << (*ed_rw)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
   
   return 0;
 
-
-  // double * distancesAcyclic_IPFPE_RW =  AcyclicDataset.computeGraphEditDistance(ed_ipfpe_rw);
-  // double * distancesAcyclic_IPFPE_BUNKE =  AcyclicDataset.computeGraphEditDistance(ed_ipfpe_bunke);
-  // double * distancesAcyclic_LSAPE_RW =  AcyclicDataset.computeGraphEditDistance(ed);
-  // double * distancesAcyclic_LSAPE_BUNKE =  AcyclicDataset.computeGraphEditDistance(ed_rw);
-  // cout << AcyclicDataset.size()<< endl;
-  // ofstream f("gram.mat");
-  // double sum_bunke =0.0,
-  //   sum_rw=0.0,sum_lsape_rw=0.0,sum_lsape_bunke=0.0;
-  // for(int i=0;i<AcyclicDataset.size();i++){
-  //   for(int j=0;j<AcyclicDataset.size();j++){
-  //     sum_bunke += distancesAcyclic_IPFPE_BUNKE[sub2ind(i,j,AcyclicDataset.size())];
-  //     sum_rw += distancesAcyclic_IPFPE_RW[sub2ind(i,j,AcyclicDataset.size())];
-  //     sum_lsape_bunke += distancesAcyclic_LSAPE_BUNKE[sub2ind(i,j,AcyclicDataset.size())];
-  //     sum_lsape_rw += distancesAcyclic_LSAPE_RW[sub2ind(i,j,AcyclicDataset.size())];
-  //     f<< distancesAcyclic_IPFPE_RW[sub2ind(i,j,AcyclicDataset.size())];
-  //     if(j != AcyclicDataset.size() -1)
-  //      	f << ",";
-  //   }
-  //   f << endl;
-  // }
-  // f.close();
-  
-  
-  // cout << "Average distance pour LSAPE Bunke sur Acyclic : "<< sum_lsape_bunke/(AcyclicDataset.size()*AcyclicDataset.size()) <<endl;
-  // cout << "Average distance pour LSAPE RW sur Acyclic : "<< sum_lsape_rw/(AcyclicDataset.size()*AcyclicDataset.size()) <<endl;
-  // cout << "Average distance pour IPFPE Bunke sur Acyclic : "<< sum_bunke/(AcyclicDataset.size()*AcyclicDataset.size()) <<endl;
-  // cout << "Average distance pour IPFPE RW sur Acyclic : "<< sum_rw/(AcyclicDataset.size()*AcyclicDataset.size()) <<endl;
-  
-
-  // Graph<GrecNodeLabel*, GrecEdgeLabel*> *g2 = new Graph<GrecNodeLabel*,GrecEdgeLabel *>("./grec.gxl", readGrecNodeLabel,readGrecEdgeLabel);
-  // cout << "Must be 12 : " << g2->Size()  << endl;
-  // cout << (*g2)[0]->attr->x << endl;
-  // cout << (*g2)[11]->attr->type << endl;
-
-  
-  // SymbolicGraph *g3 = new SymbolicGraph("test.ct");
-  // cout << "Must be 9 : " << g3->Size()  << endl;
-  
-  // SymbolicGraph *g4 = new SymbolicGraph("molecule.gxl");
-  // cout << "Must be ? : " << g4->Size()  << endl;
-
-  
-  
-
-  // ConstantDataset<double> mydataset("./dataset.ds");
-  // cout << mydataset.size() << endl;
-  // cout << mydataset[1]->Size() << endl;
-  // cout << mydataset(1) << endl;
-
-
-  
   int g5_am[9] = {6,0,1,
   		  0,6,1,
   		  1,1,8};
@@ -214,63 +157,32 @@ int main (int argc, char** argv)
 
 
   cout << "Distance between g5 and g6 avec LSAPE Bunke : " << (*ed_bunke)(g5,g6)  << endl;
-  cout << "Distance between g5 and g6 avec LSAPE RW    : " << (*ed_rw)(g5,g6)  << endl;
-  cout << "Distance between g5 and g6 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g5,g6)  << endl;
-  cout << "Distance between g5 and g6 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g5,g6)  << endl;
-  cout << "Distance between g5 and g6 avec GNCCP       : " << (*ed_gnccp)(g5,g6)  << endl;
-  cout << "Distance between g5 and g6 avec GNCCP RW      : " << (*ed_gnccp_rw)(g5,g6)  << endl;
+  cout << "Distance between g5 and g6 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g5,g6)  << endl;
+  // cout << "Distance between g5 and g6 avec LSAPE RW    : " << (*ed_rw)(g5,g6)  << endl;
+  // cout << "Distance between g5 and g6 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g5,g6)  << endl;
+  // cout << "Distance between g5 and g6 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g5,g6)  << endl;
+  // cout << "Distance between g5 and g6 avec GNCCP       : " << (*ed_gnccp)(g5,g6)  << endl;
+  // cout << "Distance between g5 and g6 avec GNCCP RW      : " << (*ed_gnccp_rw)(g5,g6)  << endl;
 
   
   cout << "Distance between g6 and g5 avec LSAPE Bunke : " << (*ed_bunke)(g6,g5)  << endl;
-  cout << "Distance between g6 and g5 avec LSAPE RW    : " << (*ed_rw)(g6,g5)  << endl;
-  cout << "Distance between g6 and g5 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g6,g5)  << endl;
-  cout << "Distance between g6 and g5 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g6,g5)  << endl;
-  cout << "Distance between g6 and g5 avec GNCCP       : " << (*ed_gnccp)(g6,g5)  << endl;
-  cout << "Distance between g6 and g5 avec GNCCP RW       : " << (*ed_gnccp_rw)(g6,g5)  << endl;
+  cout << "Distance between g6 and g5 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g6,g5)  << endl;
+  // cout << "Distance between g6 and g5 avec LSAPE RW    : " << (*ed_rw)(g6,g5)  << endl;
+  // cout << "Distance between g6 and g5 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g6,g5)  << endl;
+  // cout << "Distance between g6 and g5 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g6,g5)  << endl;
+  // cout << "Distance between g6 and g5 avec GNCCP       : " << (*ed_gnccp)(g6,g5)  << endl;
+  // cout << "Distance between g6 and g5 avec GNCCP RW       : " << (*ed_gnccp_rw)(g6,g5)  << endl;
 
-  
-  // cout << "Distance between g5 and g6 avec IPFPE : " << (*ed_ipfpe)(g5,g6)  << endl;
-  
-  
-  // cout << "Average distance (min) pour LSAP Bunke sur Acyclic : "<< sum_bis/(AcyclicDataset.size()*AcyclicDataset.size()) <<endl;
+  ChemicalDataset<double> AcyclicDataset("/home/bgauzere/work/Datasets/Acyclic/dataset_bps.ds");
+  cout << "Distance : " << (*ed_bunke)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
+  cout << "Distance : " << (*ed_bunke_multi)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
 
-  // distancesAcyclic =  AcyclicDataset.computeGraphEditDistance(ed_rw);
-  // sum =0.0; sum_bis=0.0;
-  // for(int i=0;i<AcyclicDataset.size();i++){
-  //   for(int j=0;j<AcyclicDataset.size();j++){
-  //     sum += distancesAcyclic[sub2ind(i,j,AcyclicDataset.size())];
-  //     sum_bis += min(distancesAcyclic[sub2ind(i,j,AcyclicDataset.size())],distancesAcyclic[sub2ind(j,i,AcyclicDataset.size())]);
-  //     // f<< distancesAcyclic[sub2ind(i,j,AcyclicDataset.size())];
-  //     // if(j != AcyclicDataset.size() -1)
-  //     // 	f << ",";
-  //   }
-  //   // f << endl;
-  // }
-  
-  // cout << "Average distance pour LSAP RW sur Acyclic : "<< sum/(AcyclicDataset.size()*AcyclicDataset.size()) <<endl;
-  
-  // cout << "Average distance (min) pour LSAP RW sur Acyclic : "<< sum_bis/(AcyclicDataset.size()*AcyclicDataset.size()) <<endl;
-
-  
-  // ChemicalDataset<double> PAHDataset("/home/bgauzere/work/Datasets/PAH/dataset.ds");
-  // double * distancesPAH =  PAHDataset.computeGraphEditDistance(ed);
-  // cout << PAHDataset.size()<< endl;
-  // sum =0.0;
-  // sum_bis=0.0;
-  // for(int i=0;i<PAHDataset.size();i++){
-  //   for(int j=0;j<PAHDataset.size();j++){
-  //     sum += distancesPAH[sub2ind(i,j,PAHDataset.size())];
-  //     sum_bis += min(distancesPAH[sub2ind(i,j,PAHDataset.size())],distancesPAH[sub2ind(j,i,PAHDataset.size())]);
-  //   }
-    
-  // }
-  // cout << "Average distance pour LSAP Bunke sur PAH : "<< sum/(PAHDataset.size()*PAHDataset.size()) <<endl;
-  // cout << "Average distance (min) pour LSAP Bunke sur PAH : "<< sum_bis/(PAHDataset.size()*PAHDataset.size()) <<endl;
   delete ed_bunke;
-  delete ed_rw;
-  delete ed_ipfpe_bunke;
-  delete ed_ipfpe_rw;
-  delete ed_gnccp;
+  delete ed_bunke_multi;
+  // delete ed_rw;
+  // delete ed_ipfpe_bunke;
+  // delete ed_ipfpe_rw;
+  // delete ed_gnccp;
   delete cf;
   delete g6;
   delete g5;
