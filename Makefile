@@ -4,7 +4,7 @@ IDIR = ./include
 #LSAPE_DIR=$(LSAPE_DIR)#/home/bgauzere/Téléchargements/lsape/include/
 
 ## Eigen library
-EIGEN_DIR=/usr/include/eigen3/
+EIGEN_DIR=/home/bgauzere/src/eigen/
 
 CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR) -Wall  -std=c++11 -O3 #-Werror
 
@@ -66,13 +66,13 @@ $(TESTDIR)/chemical-lower-bounds: $(TESTDIR)/computeLowerBounds.cpp $(OBJ)
 $(TESTDIR)/QAPlib: $(TESTDIR)/QAPLib.cpp $(OBJ_QAP)
 	$(CXX)  -D PRINT_TIMES -o $@ $^ $(CXXFLAGS) -ltinyxml
 
-_TEST_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h  BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h 
+_TEST_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h  BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h RandomWalksGraphEditDistance.h RandomWalksGraphEditDistanceMulti.h
 TEST_DEPS = $(patsubst %,$(IDIR)/%,$(_TEST_DEPS))
 
-_TEST_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp 
+_TEST_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp  RandomWalksGraphEditDistance.cpp
 TEST_DEPS_SRC += $(patsubst %,$(SRCDIR)/%,$(_TEST_DEPS_SRC))
 
-_TEST_OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o
+_TEST_OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o
 TEST_OBJ = $(patsubst %,$(ODIR)/%,$(_TEST_OBJ))
 
 $(TESTDIR)/test_graph: $(TEST_DEPS) $(TEST_OBJ) $(TESTDIR)/test_graph.cpp

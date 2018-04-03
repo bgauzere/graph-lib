@@ -13,6 +13,7 @@
  */
 
 #include "RandomWalksGraphEditDistance.h"
+
 int * RandomWalksGraphEditDistance::labeledKron(int *m1, int nb_rows_m1,int nb_cols_m1,
 						int * m2, int nb_rows_m2, int nb_cols_m2,
 						int sizeWx[2]){

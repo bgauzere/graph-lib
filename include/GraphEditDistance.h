@@ -104,7 +104,7 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
   
   for (int i=0; i<m; ++i)//We process each G2 node's appariemment
     //We only care about G2 node's insertions
-    if (G2toG1[i]>= n){
+    if (G2toG1[i]>= (unsigned int)(n)){
       cost += cf->NodeInsertionCost((*g2)[i],g2); 
       node_ins ++;
     }

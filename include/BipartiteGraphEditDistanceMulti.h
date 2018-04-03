@@ -71,7 +71,8 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
   double *u = new double[n+1];
   double *v = new double[m+1];
   std::list<unsigned int*> solutions;
-  double min_cost = lsape::lsapeSolutions<double>(this->C,n+1,m+1,this->_k,
+
+  __attribute__((unused)) double min_cost = lsape::lsapeSolutions<double>(this->C,n+1,m+1,this->_k,
 						  solutions, this->my_solver);
   delete [] u;
   delete [] v;
@@ -93,7 +94,7 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
     }
 
     for (int i=0; i<n; i++){
-      if (lsapMapping[i] >= m)
+      if (lsapMapping[i] >= (unsigned int)(m))
         local_G1_to_G2[i] = m; // i -> epsilon
       else{
         local_G1_to_G2[i] = lsapMapping[i];
@@ -102,7 +103,7 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
     }
 
     for (int j=0; j<m; j++){
-      if (lsapMapping[n+j] < m){
+      if (lsapMapping[n+j] <  (unsigned int)(m)){
         local_G2_to_G1[j] = n; // epsilon -> j
       }
     }

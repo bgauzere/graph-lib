@@ -10,12 +10,12 @@
  * All necessary references.
  */
 
-#ifndef __UTILS_H__
-#define __UTILS_H__
+#ifndef __GL_UTILS_H__
+#define __GL_UTILS_H__
 
 #include <vector>
 
-static bool is_mapping_valid(unsigned int mapping, unsigned int nb_nodes){
+inline bool is_mapping_valid(unsigned int mapping, unsigned int nb_nodes){
   return (mapping < nb_nodes);
 }
 
