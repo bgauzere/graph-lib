@@ -1,5 +1,5 @@
 #include "QAPLibGraph.h"
-#include "utils.h"
+#include "gl_utils.h"
 
 
 QAPLibGraph::QAPLibGraph(const int* adj_matrix, const int& n):

@@ -17,7 +17,7 @@ using namespace Eigen;
 
 #include "GraphEditDistance.h"
 #include "IPFPZetaGraphEditDistance.h"
-#include "utils.h"
+#include "gl_utils.h"
 
 template<class NodeAttribute, class EdgeAttribute>
 class GNCCPGraphEditDistance:

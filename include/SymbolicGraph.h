@@ -12,6 +12,9 @@
 #ifndef __SYMBOLICGRAPH_H__
 #define __SYMBOLICGRAPH_H__
 #include "graph.h"
+
+#include "gl_utils.h"
+
 class SymbolicGraph: public Graph<int,int>
 {
 private:

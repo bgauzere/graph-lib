@@ -13,7 +13,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "utils.h"
+#include "gl_utils.h"
 
 std::vector<char*> split (const char* chaine, const char* sep){
   std::vector<char*> v;

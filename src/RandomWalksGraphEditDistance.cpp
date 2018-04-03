@@ -130,10 +130,10 @@ void RandomWalksGraphEditDistance::computeCostMatrix(Graph<int,int> * g1,
     k = k + H2.cols();
   }
   
-  RowVectorXi S = (Hi.array().min(Hj.array())).colwise().sum();
-  RowVectorXi Ri = Hi.colwise().sum() - S;
-  RowVectorXi Rj = Hj.colwise().sum()-S;
-  RowVectorXi ILxt(ILx.size());
+  RowVectorXd S = (Hi.cast<double>().array().min(Hj.cast<double>().array())).colwise().sum();
+  RowVectorXd Ri = Hi.cast<double>().colwise().sum() - S;
+  RowVectorXd Rj = Hj.cast<double>().colwise().sum()-S;
+  RowVectorXd ILxt(ILx.size());
   for(int i = 0;i<ILx.size();i++)
     ILxt(i) = (ILx(i) > 0);
 
@@ -148,8 +148,8 @@ void RandomWalksGraphEditDistance::computeCostMatrix(Graph<int,int> * g1,
   
   matrixC.block(0,0,n,m) = Map<MatrixXd>(C_sub.data(),m,n).transpose();
   
-  RowVectorXd Cie = (((_k+1)*cf->cnd()+_k*cf->ced())* (H1.colwise().sum().array())).cast<double>();
-  RowVectorXd Cej = ((_k+1)*cf->cnd()+_k*cf->ced())*H2.colwise().sum().array().cast<double>();
+  RowVectorXd Cie = (((_k+1)*cf->cnd()+_k*cf->ced())* (H1.cast<double>().colwise().sum().array())).cast<double>();
+  RowVectorXd Cej = ((_k+1)*cf->cnd()+_k*cf->ced())*H2.cast<double>().colwise().sum().array().cast<double>();
 
   matrixC.block(0,m,n,1) = Map<MatrixXd>(Cie.data(),n,1);  
   matrixC.block(n,0,1,m) = Map<MatrixXd>(Cej.data(),1,m);  

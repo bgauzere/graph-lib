@@ -28,7 +28,7 @@
 #include "IPFPGraphEditDistanceMulti.h"
 #include "GNCCPGraphEditDistance.h"
 #include "GNCCPGraphEditDistanceMulti.h"
-#include "utils.h"
+#include "gl_utils.h"
 using namespace std;
 
 void usage (char * s)

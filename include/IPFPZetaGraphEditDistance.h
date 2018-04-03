@@ -14,10 +14,9 @@
 #define __IPFPZETAGRAPHEDITDISTANCE_H__
 #include <Eigen/Dense>
 using namespace Eigen;
-#include "hungarian-lsape.hh"
 #include "IPFPGraphEditDistance.h"
 #include "RandomWalksGraphEditDistance.h"
-#include "utils.h"
+#include "gl_utils.h"
 
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPZetaGraphEditDistance:

@@ -11,7 +11,6 @@
 
 #include "BipartiteGraphEditDistance.h"
 #include "MultiGed.h"
-#include "hungarian-lsap.hh"
 
 
 /**

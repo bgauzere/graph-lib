@@ -30,7 +30,7 @@
 #include "RandomMappings.h"
 #include "MultistartRefinementGraphEditDistance.h"
 #include "GNCCPGraphEditDistance.h"
-#include "utils.h"
+#include "gl_utils.h"
 using namespace std;
 
 

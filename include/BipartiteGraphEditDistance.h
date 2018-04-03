@@ -15,14 +15,20 @@
 #ifndef __BIPARTITEGRAPHEDITDISTANCE_H__
 #define __BIPARTITEGRAPHEDITDISTANCE_H__
 
-#include "hungarian-lsape.hh"
+#include <lsape.h>
 #include "GraphEditDistance.h"
-#include "utils.h"
+#include "gl_utils.h"
+
+
+
 //TODO : donner la possibilité de récupérer le mapping ?
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistance:
   public GraphEditDistance<NodeAttribute, EdgeAttribute>
 {
+private:
+  enum lsape::LSAPE_MODEL  my_solver;
+
 protected:
   double * C;
 
@@ -43,20 +49,31 @@ protected:
 
 public:
   BipartiteGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction):
-    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
+    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),my_solver(lsape::ECBP),
     C(NULL)
   {};
 
+  BipartiteGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
+			     enum lsape::LSAPE_MODEL f):
+    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
+    my_solver(f),C(NULL){};
+
+  void setSolver(enum lsape::LSAPE_MODEL f){
+    this->my_solver = f;
+  }
+
   // virtual double operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
   // 			    Graph<NodeAttribute,EdgeAttribute> * g2);
-
+  double getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
+				Graph<NodeAttribute,EdgeAttribute> * g2,
+				unsigned int * G1_to_G2, unsigned int * G2_to_G1);
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G2_to_G2);
-
-  double getLowerBound(Graph<NodeAttribute,EdgeAttribute> * g1,
+				 unsigned int * G1_to_G2, unsigned int * G2_to_G2);
+  double getUpperBound(Graph<NodeAttribute,EdgeAttribute> * g1,
 		       Graph<NodeAttribute,EdgeAttribute> * g2,
-		       int * G1_to_G2,int * G2_to_G1);
+		       double & time);
+  
 
     virtual ~BipartiteGraphEditDistance(){
     if (this->C != NULL) delete [] this->C;
@@ -71,84 +88,46 @@ public:
 
 
 //A remonter a GraphEditDistance.h ?
-
 template<class NodeAttribute, class EdgeAttribute>
-void BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
-getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
-		  Graph<NodeAttribute,EdgeAttribute> * g2,
-		  int * G1_to_G2,int * G2_to_G1){
+double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
+getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
+		       Graph<NodeAttribute,EdgeAttribute> * g2,
+		       unsigned int * G1_to_G2, unsigned int * G2_to_G1){
   int n=g1->Size();
   int m=g2->Size();
   // Compute C
   delete [] this->C;
   computeCostMatrix(g1,g2);
-  // for (int i=0;i<n+1;i++){
-  //   for (int j=0;j<m+1;j++)
-  //     std::cout << C[sub2ind(i,j,n+1)]<< " ";
-  //   std::cout << std::endl;
-  // }
   //Compute optimal assignement
   double *u = new double[n+1];
   double *v = new double[m+1];
-  hungarianLSAPE(C,n+1,m+1, G1_to_G2,G2_to_G1, u,v,false);
+  clock_t t = clock();
+  lsape::lsapeSolver<double>(C,n+1,m+1, G1_to_G2, G2_to_G1, u,v,my_solver,1);
+  t = clock() - t;
+  delete [] u;
+  delete [] v;
+  return ((float)t) / CLOCKS_PER_SEC;
+
+}
+
+template<class NodeAttribute, class EdgeAttribute>
+void BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
+getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
+		  Graph<NodeAttribute,EdgeAttribute> * g2,
+		  unsigned int * G1_to_G2, unsigned int * G2_to_G1){
+  int n=g1->Size();
+  int m=g2->Size();
+  // Compute C
+  delete [] this->C;
+  computeCostMatrix(g1,g2);
+  //Compute optimal assignement
+  double *u = new double[n+1];
+  double *v = new double[m+1];
+  lsape::lsapeSolver<double>(C,n+1,m+1, G1_to_G2, G2_to_G1, u,v,my_solver,1);
   delete [] u;
   delete [] v;
 
 }
-
-
-template<class NodeAttribute, class EdgeAttribute>
-double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
-getLowerBound(Graph<NodeAttribute,EdgeAttribute> * g1,
-	      Graph<NodeAttribute,EdgeAttribute> * g2,
-	      int * G1_to_G2,int * G2_to_G1){
-  int n = g1->Size();
-  int m = g2->Size();
-  double lower_bound = 0.0;
-  for (int i =0;i<n;i++){
-    int phi_i = G1_to_G2[i];
-    if (phi_i < m){//substitution
-      double total_substitution_cost =  this->SubstitutionCost((*g1)[i],(*g2)[phi_i],g1,g2);
-      double node_substitution_cost =  this->cf->NodeSubstitutionCost((*g1)[i],(*g2)[phi_i],g1,g2);
-      total_substitution_cost -= node_substitution_cost;
-      total_substitution_cost = 0.5*total_substitution_cost + node_substitution_cost;
-      lower_bound += total_substitution_cost;
-    }else{ //deletion
-      double total_deletion_cost =  this->DeletionCost((*g1)[i],g1);
-      double node_deletion_cost =  this->cf->NodeDeletionCost((*g1)[i],g1);
-      total_deletion_cost -= node_deletion_cost;
-      total_deletion_cost = 0.5*total_deletion_cost + node_deletion_cost;
-      lower_bound += total_deletion_cost;
-    }
-  }
-  for (int j=0;j<m;j++)
-    if(G2_to_G1[j] >= n){
-      double total_insertion_cost =  this->InsertionCost((*g2)[j],g2);
-      double node_insertion_cost =  this->cf->NodeInsertionCost((*g2)[j],g2);
-      total_insertion_cost -= node_insertion_cost;
-      total_insertion_cost = 0.5*total_insertion_cost + node_insertion_cost;
-      lower_bound += total_insertion_cost;
-    }
-  return lower_bound;
-}
-
-
-
-
-
-
-// template<class NodeAttribute, class EdgeAttribute>
-// double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
-// operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
-// 	   Graph<NodeAttribute,EdgeAttribute> * g2){
-//   int n=g1->Size();
-//   int m=g2->Size();
-//   int * G1_to_G2 = new int[n];
-//   int * G2_to_G1 = new int[m];
-//   this->getOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
-//   return this->GedFromMapping(g1,g2,G1_to_G2,n,G2_to_G1,m);
-// }
-
 
 template<class NodeAttribute, class EdgeAttribute>
 double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
@@ -189,11 +168,17 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
     e2 = e2->Next();
   }
   local_C[sub2ind(n,m,n+1)] = 0;
-  int *rho = new int[n];
-  int *varrho = new int[m];
+  unsigned int *rho = new unsigned int[n+1];
+  unsigned int *varrho = new unsigned int[m+1];
   double *u = new double[n+1];
   double *v = new double[m+1];
-  hungarianLSAPE(local_C,n+1,m+1, rho,varrho, u,v,false);
+
+  rho = (unsigned int*)memset((void*)rho,0,sizeof(unsigned int)*(n+1));
+  varrho = (unsigned int*)memset((void*)varrho,0,sizeof(unsigned int)*(m+1));
+  u = (double*)memset((void*)u,0,sizeof(double)*(n+1));
+  v = (double*)memset((void*)v,0,sizeof(double)*(m+1));
+
+  lsape::lsapeSolver<double>(local_C,n+1,m+1, rho, varrho, u,v,my_solver,1);
   double cost=0.0;
   for (int i =0;i<n+1;i++)
     cost += u[i];
@@ -236,9 +221,16 @@ void BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2){
 
+  //delete [] C;
+
   int n=g1->Size();
   int m=g2->Size();
+  // if (C != NULL){
+  //   delete [] C;
+  //   C = NULL;
+  // }
   C = new double[(n+1) * (m+1)];
+  C = (double*)memset(C,0,sizeof(double)*(n+1) * (m+1));
   for (int i =0;i<n;i++)
     for(int j = 0;j<m;j++)
       C[sub2ind(i,j,n+1)] = this->SubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
@@ -251,4 +243,21 @@ computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 
   C[sub2ind(n,m,n+1)] = 0;
 }
+
+template<class NodeAttribute, class EdgeAttribute>
+double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
+getUpperBound(Graph<NodeAttribute,EdgeAttribute> * g1,
+	      Graph<NodeAttribute,EdgeAttribute> * g2,double & comptime){
+  int n=g1->Size();
+  int m=g2->Size();
+  unsigned int * G1_to_G2 = new unsigned int[n];
+  unsigned int * G2_to_G1 = new unsigned int[m];
+  comptime = this->getTimedOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
+  double ged = this->GedFromMapping(g1,g2,G1_to_G2,n,G2_to_G1,m);
+  delete [] G1_to_G2;
+  delete [] G2_to_G1;
+  return ged;
+}
+
+
 #endif // __BIPARTITEGRAPHEDITDISTANCE_H__

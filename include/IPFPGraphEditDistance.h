@@ -15,12 +15,12 @@
 #include <Eigen/Dense>
 #include <limits>
 using namespace Eigen;
-#include "hungarian-lsape.hh"
-#include "lsape.hh" // Bistochastic generation and sinkhorn balancing
+
+#include <lsape.h> // Bistochastic generation and sinkhorn balancing
 #include "GraphEditDistance.h"
 #include "MultiGed.h"
 #include "IPFPQAP.h"
-#include "utils.h"
+#include "gl_utils.h"
 
 template<class NodeAttribute, class EdgeAttribute>
 class IPFPGraphEditDistance:
@@ -464,11 +464,12 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
 {
 
   // If use a random bistochastic continuous matrix :
-  if (useContinuousRandomInit){
-    double* _I = randBiStochExt<double,int>(this->_n, this->_m);
-    reduceExt(_I, this->_n, this->_m, this->Xk);
-    delete [] _I;
-  }
+  // MODIF
+  // if (useContinuousRandomInit){
+  //   double* _I = randBiStochExt<double,int>(this->_n, this->_m);
+  //   reduceExt(_I, this->_n, this->_m, this->Xk);
+  //   delete [] _I;
+  // }
 
   // Use J as init
   if (useContinuousFlatInit){

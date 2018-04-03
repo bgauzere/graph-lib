@@ -1,13 +1,3 @@
-/*
- * @file test_graph.cpp
- * @author Évariste <<evariste.daller@unicaen.fr>>
- *
- *
- * Calcule toutes les distances entre toutes les molécules d'un datatset
- *
- */
-
-
 #include <unistd.h>
 #include <iostream>
 #include <string>
@@ -21,22 +11,13 @@
 #include "GraphEditDistance.h"
 #include "SymbolicGraph.h"
 #include "ConstantGraphEditDistance.h"
-#include "CMUCostFunction.h"
 #include "BipartiteLowerBoundGraphEditDistance.h"
-#include "BipartiteGraphEditDistanceMulti.h"
-#include "GreedyGraphEditDistance.h"
-#include "RandomWalksGraphEditDistance.h"
-#include "RandomWalksGraphEditDistanceMulti.h"
-#include "IPFPGraphEditDistance.h"
-#include "RandomMappings.h"
-#include "MultistartRefinementGraphEditDistance.h"
-#include "GNCCPGraphEditDistance.h"
-#include "utils.h"
-#include "lsape.hh"
-#include "hungarian-lsape.hh"
+#include "BipartiteGraphEditDistance.h"
+#include "gl_utils.h"
+
+#include <lsape.h>
 
 using namespace std;
-
 
 
 void usage (char * s)
@@ -115,12 +96,12 @@ struct Options * parseOptions(int argc, char** argv){
 }
 
 template <class NodeAttribute, class EdgeAttribute, class PropertyType>
-void computeAndSaveLowerBounds(Dataset< NodeAttribute, EdgeAttribute, PropertyType> * dataset,
-			    BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute> * lb,
+void computeAndSaveUpperBounds(Dataset< NodeAttribute, EdgeAttribute, PropertyType> * dataset,
+			       BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute> * ub,
 			       string prefix_filename){
 
   int N = dataset->size();
-  double* lower_bounds = new double[N*N];
+  double* upper_bounds = new double[N*N];
   double* times = new double[N*N];
   for (int i=0; i<N; i++){
     for (int j=i; j<N; j++){
@@ -128,10 +109,45 @@ void computeAndSaveLowerBounds(Dataset< NodeAttribute, EdgeAttribute, PropertyTy
       Graph<NodeAttribute,EdgeAttribute> * g1 = (*dataset)[i];
       Graph<NodeAttribute,EdgeAttribute> * g2 = (*dataset)[j];
       double compTime;
+      clock_t t = clock();
       if(g1->Size() > g2->Size())
-	lower_bounds[sub2ind(j,i,N)]=lower_bounds[sub2ind(i,j,N)] = lb->getLowerBound(g2,g1,compTime);
+	upper_bounds[sub2ind(j,i,N)]=upper_bounds[sub2ind(i,j,N)] = ub->getUpperBound(g2,g1,compTime);
       else
-	lower_bounds[sub2ind(j,i,N)]=lower_bounds[sub2ind(i,j,N)] = lb->getLowerBound(g1,g2,compTime);
+	upper_bounds[sub2ind(j,i,N)]=upper_bounds[sub2ind(i,j,N)] = ub->getUpperBound(g1,g2,compTime);
+
+      times[sub2ind(j,i,N)]=times[sub2ind(i,j,N)] = compTime;
+      
+    }
+  }
+  saveMatrix(upper_bounds,N, (prefix_filename + string("ub.mat")).c_str());
+  saveMatrix(times,N, (prefix_filename + string("ub_times.mat")).c_str());
+}
+
+template <class NodeAttribute, class EdgeAttribute, class PropertyType>
+void computeAndSaveLowerBounds(Dataset< NodeAttribute, EdgeAttribute, PropertyType> * dataset,
+			       BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute> * lb,
+			       string prefix_filename){
+
+  int N = dataset->size();
+  double* lower_bounds = new double[N*N];
+  double* times = new double[N*N];
+  
+  // Graph<NodeAttribute,EdgeAttribute> * g1 = (*dataset)[0];
+  // Graph<NodeAttribute,EdgeAttribute> * g2 = (*dataset)[0];
+  // double compTime;
+  // lb->getLowerBound(g1,g2,compTime);
+  // return;
+  
+  for (int i=0; i<N; i++){
+    for (int j=i; j<N; j++){
+      cout << "Calcul de lb(" << i << "," << j << ")"<< endl;
+      Graph<NodeAttribute,EdgeAttribute> * g1 = (*dataset)[i];
+      Graph<NodeAttribute,EdgeAttribute> * g2 = (*dataset)[j];
+      double compTime;
+      if(g1->Size() > g2->Size())
+  	lower_bounds[sub2ind(j,i,N)]=lower_bounds[sub2ind(i,j,N)] = lb->getLowerBound(g2,g1,compTime);
+      else
+  	lower_bounds[sub2ind(j,i,N)]=lower_bounds[sub2ind(i,j,N)] = lb->getLowerBound(g1,g2,compTime);
 
       times[sub2ind(j,i,N)]=times[sub2ind(i,j,N)] = compTime;
       // cout << (int)lower_bounds[sub2ind(i,j,N)];
@@ -139,7 +155,7 @@ void computeAndSaveLowerBounds(Dataset< NodeAttribute, EdgeAttribute, PropertyTy
     }
   }
   saveMatrix(lower_bounds,N, (prefix_filename + string("lb.mat")).c_str());
-  saveMatrix(times,N, (prefix_filename + string("times.mat")).c_str());
+  saveMatrix(times,N, (prefix_filename + string("lb_times.mat")).c_str());
 
 }
 
@@ -156,50 +172,40 @@ int main (int argc, char** argv)
   
   ChemicalDataset<double> * dataset = new ChemicalDataset<double>(options->dataset_file.c_str());
 
-  // double comptime;
-  // Graph<int,int> * g1 = (*dataset)[74];
-  // Graph<int, int> * g2 = (*dataset)[122];
-  // int * G1_to_G2 = new  int[g1->Size()];
-  // int * G2_to_G1 = new  int[g2->Size()];
-  // BipartiteLowerBoundEditDistance<int,int> * lb_comp = new BipartiteLowerBoundEditDistance<int,int>(cf,RBP);
-  // lb_comp->getOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
-  // cout << "Mapping calculé par RBP :"<< endl << " G1 -> G2 : [ ";
-  // for (int i=0;i<g1->Size();i++)
-  //   cout << G1_to_G2[i] << ",";
-  // cout << " ]" << endl << " G1 -> G2 : [ ";
-  // for (int i=0;i<g2->Size();i++)
-  //   cout << G2_to_G1[i] << ",";
-  // cout << " ]" << endl;
-  // cout <<   lb_comp->getLowerBound(g1,g2)<< endl;
-  // lb_comp = new BipartiteLowerBoundEditDistance<int,int>(cf,FBP);
-  // lb_comp->getOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
-  // cout << "Mapping calculé par FBP :"<< endl << " G1 -> G2 : [ ";
-  // for (int i=0;i<g1->Size();i++)
-  //   cout << G1_to_G2[i] << ",";
-  // cout << " ]" << endl << " G1 -> G2 : [ ";
-  // for (int i=0;i<g2->Size();i++)
-  //   cout << G2_to_G1[i] << ",";
-  // cout << " ]" << endl;
-  // cout <<   lb_comp->getLowerBound(g1,g2)<< endl;
-  // return 0;  
-  
-  
+ 
   if(options->shuffle)
     dataset->shuffleize();
 
-  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,EBP),
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,lsape::ECBP),
+  			    options->output_file+string("_ECBP_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,lsape::FLWC),
+  			    options->output_file+string("_FLWC_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,lsape::EBP),
   			    options->output_file+string("_EBP_"));
-  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,RBP),
-  			    options->output_file+string("_RBP_"));
-  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,SFBP),
-  			    options->output_file+string("_SFBP_"));
-  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,FBP),
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,lsape::FLCC),
+  			    options->output_file+string("_FLCC_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,lsape::FBP),
   			    options->output_file+string("_FBP_"));
-  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,FBP0),
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,lsape::FBP0),
   			    options->output_file+string("_FBP0_"));
-  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,HNG),
-			    options->output_file+string("_HNG_"));
+  computeAndSaveUpperBounds(dataset,new BipartiteGraphEditDistance<int,int>(cf,lsape::SFBP),
+  			    options->output_file+string("_SFBP_"));
   
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,lsape::ECBP),
+  			    options->output_file+string("_ECBP_"));
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,lsape::FLWC),
+  			    options->output_file+string("_FLWC_"));
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,lsape::EBP),
+  			    options->output_file+string("_EBP_"));
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,lsape::FLCC),
+  			    options->output_file+string("_FLCC_"));
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,lsape::FBP),
+  			    options->output_file+string("_FBP_"));
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,lsape::FBP0),
+  			    options->output_file+string("_FBP0_"));
+  computeAndSaveLowerBounds(dataset,new BipartiteLowerBoundEditDistance<int,int>(cf,lsape::SFBP),
+  			    options->output_file+string("_SFBP_"));
+ 
   delete dataset;
   delete cf;
   delete options;
