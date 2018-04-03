@@ -45,11 +45,11 @@ public: /* STATIC FUNCTIONS */
 
 
   /**
-   * @brief Allocate and retruns $k$ optimal mappings between <code>g1</code> and <code>g2</code>
+   * @brief Allocate and retruns `k` optimal mappings between `g1` and `g2`
    * @param k  The number of mappings to compute, -1 to get all perfect matchings
-   * @param C  The cost matrix of size (n+1)*(m+1)
+   * @param C  The cost matrix of size \f$(n+1)\times (m+1)\f$
    * @param n,m  size of the graphs
-   * @return  A list of mappings given as arrays of int. For each mapping M, <code>M[i]</code> is the mapping, in g2, of node i in g1
+   * @return  A list of mappings given as arrays of int. For each mapping M, `M[i]` is the mapping, in g2, of node i in g1
    * @note  Each array is allocated here and have to be deleted manually
    */
   static std::list<int*> getKOptimalMappings(double* C,
@@ -58,7 +58,7 @@ public: /* STATIC FUNCTIONS */
 
 
   /**
-   * @brief Convert a lsap mapping of size n into a lsape mapping
+   * @brief Convert a lsap mapping of size `n` into a lsape mapping
    *
    * @param lsapMap   [in] An array of size `n+m`
    * @param rho       [out] An array of size `n+1` already allocated
@@ -72,9 +72,9 @@ public: /* STATIC FUNCTIONS */
                                    int n, int m );
 
   /**
-   * @brief Convert a list of lsap mappings of size n+m to a lsape mapping.
+   * @brief Convert a list of lsap mappings of size `n+m` to a lsape mapping.
    *
-   *  The LSAPE mapping is encoded as two arrays of size n+1 and m+1
+   *  The LSAPE mapping is encoded as two arrays of size `n+1` and `m+1`
    *
    * @param lsapMaps   A list of LSAP mappings
    * @param G1toG2     A list of arrays corresponding to the forward LSAPE mappings
@@ -103,7 +103,7 @@ public: /* CONSTRUCTORS AND ACCESSORS */
 public: /* PUBLIC MEMBER FUNCTIONS */
 
   /**
-   * @brief The method to compute <code>k</code> mappings is delegated to derivated classes
+   * @brief The method to compute `k` mappings is delegated to derivated classes
    *
    *  This method can include a way to compute a biartite or quadratic cost matrix, to choose
    *  the returned assignments and so on.
@@ -119,10 +119,10 @@ public: /* PUBLIC MEMBER FUNCTIONS */
   virtual std::list<int*> getKOptimalMappings(double* C,  int n,  int m);
 
  /**
-  * @brief compute an optimal mapping between <code>g1</code> and <code>g2</code>
+  * @brief compute an optimal mapping between `g1` and `g2`
   *        from k different optimal mappings by minimizing the ged optained, according
-  *        to the ged obtained from <code>graphdistance</code>
-  * @note The GED is computed and set in <code>ged</code>
+  *        to the ged obtained from `graphdistance`
+  * @note The GED is computed and set in `ged`
   */
  virtual double computeOptimalMapping( GraphEditDistance<NodeAttribute,EdgeAttribute> * graphdistance,
                                        Graph<NodeAttribute,EdgeAttribute> * g1,

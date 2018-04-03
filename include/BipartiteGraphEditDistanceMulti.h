@@ -59,7 +59,7 @@ public:
                                        Graph<NodeAttribute,EdgeAttribute> * g2,
                                        int k = -1 );
   /**
-   * @brief Compute the Graph Edit Distance between `g1` and `g2` considering $k$ edit paths
+   * @brief Compute the Graph Edit Distance between `g1` and `g2` considering `k` edit paths
    * @param k  The number of edit paths to compute
    */
   virtual double operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -68,7 +68,7 @@ public:
 
   /**
    * @brief Compute the GED between `g1` and `g2` as the minimum GED found trough all edit paths
-   * @return  calls to operator() (g1, g2, k=1)
+   * @return  calls to `operator() (g1, g2, k=1)`
    */
   virtual double operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
                              Graph<NodeAttribute,EdgeAttribute> * g2);

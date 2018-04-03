@@ -138,7 +138,7 @@ public:
 
   /**
    * @brief  Activate the use of a continuous bistochastic random matrix as initialization, no matter what
-   *         is provided to the <code>get****Mapping()</code> method.
+   *         is provided to the `get****Mapping()` method.
    */
   void continuousRandomInit(bool yes=true){
     this->useContinuousRandomInit = yes;
@@ -158,7 +158,7 @@ public:
   /*
    * @brief  Activate the use of a Sinkhorn balancing of the initialization before starting IPFP algorithm
    *
-   * @note  If the flags <code>recenter</code> and <code>useSinjhorn</code> are both <code>true</code>,
+   * @note  If the flags `recenter` and `useSinjhorn` are both `true`,
    *        then the Sinkhorn balancing is done before the centering procedure.
    *
   void sinkhornFirst(bool yes=true){
@@ -174,7 +174,7 @@ public:
    * @brief  Set the centering matrix to J of size \f$(n+1)\times(m+1)\f$ and activate the centering
    *
    *  On the next IPFP algorithm call, the initialization \f$X_0\f$ will be translated to \f$\frac{1}{2}\times(X_0+J)\f$.
-   *  If <code>nJ==NULL</code>, then the geometrical barycenter of error correcting doubly stochastic matrices
+   *  If `nJ==NULL`, then the geometrical barycenter of error correcting doubly stochastic matrices
    *   \f$J = \frac{2(n+1)\times(m+1)}{n+m+2}\f$ will be used
    */
   virtual void recenterInit(double* nJ, int n, int m);

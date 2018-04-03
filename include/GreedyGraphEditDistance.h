@@ -34,10 +34,10 @@ public:
 public:
 
   /**
-   * @brief Allocate and retruns $k$ optimal mappings between <code>g1</code> and <code>g2</code>
+   * @brief Allocate and retruns `k` optimal mappings between `g1` and `g2`
    * @param k  The number of mappings to compute, -1 to get all perfect matchings
    * @param C  The cost matrix
-   * @return  A list of mappings given as arrays of int. For each mapping M, <code>M[i]</code> is the mapping, in g2, of node i in g1
+   * @return  A list of mappings given as arrays of int. For each mapping M, `M[i]` is the mapping, in g2, of node i in g1
    * @note  Each array is allocated here and have to be deleted manually
    */
   virtual std::list<int*> getMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
