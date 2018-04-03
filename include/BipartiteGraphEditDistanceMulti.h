@@ -40,9 +40,9 @@ public:
 public:
 
   /**
-   * @brief compute an optimal mapping between <code>g1</code> and <code>g2</code>
+   * @brief compute an optimal mapping between `g1` and `g2`
    *        from k different optimal mappings by minimizing the ged optained
-   * @note The GED is computed and set in <code>ged</code>
+   * @note The GED is computed and set in `ged`
    */
   virtual void getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                                   Graph<NodeAttribute,EdgeAttribute> * g2,

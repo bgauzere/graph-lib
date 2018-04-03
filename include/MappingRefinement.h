@@ -12,7 +12,7 @@
 /**
  * @brief An algorithm refining a mapping from an initialization.
  *
- *   The given initialization is a mapping too, non optimal, 
+ *   The given initialization is a mapping too, non optimal,
  *   and a derived class of MappingRefinement will compute
  *   a better mapping from the init.
  */
@@ -20,7 +20,20 @@ template<class NodeAttribute, class EdgeAttribute>
   class MappingRefinement
 {
 
+ protected:
+
+   bool _compute_equiv_mappings;
+   std::list<int*> _equiv_G1toG2;
+   std::list<int*> _equiv_G2toG1;
+
  public:
+
+   bool compute_equiv_mappings(){ return _compute_equiv_mappings; }
+   void compute_equiv_mappings(bool choice) { _compute_equiv_mappings = choice; }
+
+   std::list<int*> & getEquivalentG1toG2() { return _equiv_G1toG2; }
+   std::list<int*> & getEquivalentG2toG1() { return _equiv_G2toG1; }
+
 
   /**
    * @brief Refine the mapping given in input as G1_to_G2 and G2_ti_G1 from g1 to g2 and returns a better mapping in these arrays
@@ -36,15 +49,14 @@ template<class NodeAttribute, class EdgeAttribute>
    */
   virtual double mappingCost( Graph<NodeAttribute, EdgeAttribute>* g1, Graph<NodeAttribute, EdgeAttribute>* g2,
 			      int* G1_to_G2,  int* G2_to_G1 ) = 0;
-  
+
   /**
    * @brief Clone the derivated object
    */
   virtual MappingRefinement * clone() const = 0;
-  
-  
+
   virtual ~MappingRefinement(){}
-  
+
 };
 
 

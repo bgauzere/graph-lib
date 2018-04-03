@@ -1,6 +1,6 @@
 IDIR = ./include
 
-## LSAPE directory 
+## LSAPE directory
 #LSAPE_DIR=$(LSAPE_DIR)#/home/bgauzere/Téléchargements/lsape/include/
 
 ## Eigen library
@@ -88,4 +88,4 @@ $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS) $(DEPS_SRC)
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~  $(BINDIR)/*
+	rm -f $(ODIR)/*.o *~ core $(IDIR)/*~  $(BINDIR)/*
