@@ -23,7 +23,7 @@
 #include "RandomWalksGraphEditDistance.h"
 #include "RandomWalksGraphEditDistanceMulti.h"
 #include "IPFPGraphEditDistance.h"
-// #include "GNCCPGraphEditDistance.h"
+#include "GNCCPGraphEditDistance.h"
 
 using namespace std;
 
@@ -102,8 +102,8 @@ int main (int argc, char** argv)
   IPFPGraphEditDistance<int,int> *ed_ipfpe_rw = new IPFPGraphEditDistance<int,int>(cf,ed_rw);
   IPFPGraphEditDistance<int,int> *ed_ipfpe_bunke = new IPFPGraphEditDistance<int,int>(cf,ed_bunke);
 
-  // GNCCPGraphEditDistance<int,int> *ed_gnccp = new GNCCPGraphEditDistance<int,int>(cf);
-  // GNCCPGraphEditDistance<int,int> *ed_gnccp_rw = new GNCCPGraphEditDistance<int,int>(cf,ed_rw);
+  GNCCPGraphEditDistance<int,int> *ed_gnccp = new GNCCPGraphEditDistance<int,int>(cf);
+  GNCCPGraphEditDistance<int,int> *ed_gnccp_rw = new GNCCPGraphEditDistance<int,int>(cf,ed_rw);
 
   
   int g5_am[9] = {6,0,1,
@@ -162,8 +162,8 @@ int main (int argc, char** argv)
   cout << "Distance between g5 and g6 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g5,g6)  << endl;
   cout << "Distance between g5 and g6 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g5,g6)  << endl;
   cout << "Distance between g5 and g6 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g5,g6)  << endl;
-  // cout << "Distance between g5 and g6 avec GNCCP       : " << (*ed_gnccp)(g5,g6)  << endl;
-  // cout << "Distance between g5 and g6 avec GNCCP RW      : " << (*ed_gnccp_rw)(g5,g6)  << endl;
+  cout << "Distance between g5 and g6 avec GNCCP       : " << (*ed_gnccp)(g5,g6)  << endl;
+  cout << "Distance between g5 and g6 avec GNCCP RW      : " << (*ed_gnccp_rw)(g5,g6)  << endl;
 
   
   cout << "Distance between g6 and g5 avec LSAPE Bunke : " << (*ed_bunke)(g6,g5)  << endl;
@@ -172,8 +172,8 @@ int main (int argc, char** argv)
   cout << "Distance between g6 and g5 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g6,g5)  << endl;
   cout << "Distance between g6 and g5 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g6,g5)  << endl;
   cout << "Distance between g6 and g5 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g6,g5)  << endl;
-  // cout << "Distance between g6 and g5 avec GNCCP       : " << (*ed_gnccp)(g6,g5)  << endl;
-  // cout << "Distance between g6 and g5 avec GNCCP RW       : " << (*ed_gnccp_rw)(g6,g5)  << endl;
+  cout << "Distance between g6 and g5 avec GNCCP       : " << (*ed_gnccp)(g6,g5)  << endl;
+  cout << "Distance between g6 and g5 avec GNCCP RW       : " << (*ed_gnccp_rw)(g6,g5)  << endl;
 
   ChemicalDataset<double> AcyclicDataset("/home/bgauzere/work/Datasets/Acyclic/dataset_bps.ds");
   cout << "Distance : " << (*ed_bunke)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
@@ -185,6 +185,10 @@ int main (int argc, char** argv)
   cout << "Distance : " << (*ed_ipfpe_bunke)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
   cout << "Distance : " << (*ed_ipfpe_rw)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
 
+  cout << "Distance : " << (*ed_gnccp)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
+  cout << "Distance : " << (*ed_gnccp_rw)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
+
+  
   delete ed_bunke;
   delete ed_bunke_multi;
   delete ed_rw;

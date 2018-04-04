@@ -37,7 +37,7 @@ public:
 
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G2_to_G1);
+				 unsigned int * G1_to_G2, unsigned int * G2_to_G1);
   
   ~GNCCPGraphEditDistance(){}
 
@@ -54,7 +54,7 @@ template<class NodeAttribute, class EdgeAttribute>
 void GNCCPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 			       Graph<NodeAttribute,EdgeAttribute> * g2,
-			       int * G1_to_G2, int * G2_to_G1){
+			       unsigned int * G1_to_G2, unsigned int * G2_to_G1){
   int n = g1->Size();
   int m = g2->Size();
   
@@ -101,7 +101,9 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   m_Xk= MatrixXd::Ones(n+1, m+1)-m_Xk;
   double *u = new double[n+1];
   double *v = new double[m+1];
-  hungarianLSAPE(Xk,  n+1,  m+1, G1_to_G2,G2_to_G1, u,v,false);
+  //  hungarianLSAPE(Xk,  n+1,  m+1, G1_to_G2,G2_to_G1, u,v,false);
+  lsape::lsapeSolver<double>(Xk,n+1,m+1, G1_to_G2, G2_to_G1, u,v,lsape::ECBP,1);
+
 
 #if DEBUG
   std::cout << " G1_to_G2 :" << std::endl;
