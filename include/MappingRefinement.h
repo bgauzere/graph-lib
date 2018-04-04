@@ -7,6 +7,7 @@
 #ifndef __MAPPINGREFINEMENT_H__
 #define __MAPPINGREFINEMENT_H__
 
+#include <list>
 #include <graph.h>
 
 /**
@@ -23,16 +24,16 @@ template<class NodeAttribute, class EdgeAttribute>
  protected:
 
    bool _compute_equiv_mappings;
-   std::list<int*> _equiv_G1toG2;
-   std::list<int*> _equiv_G2toG1;
+   std::list<unsigned int*> _equiv_G1toG2;
+   std::list<unsigned int*> _equiv_G2toG1;
 
  public:
 
    bool compute_equiv_mappings(){ return _compute_equiv_mappings; }
    void compute_equiv_mappings(bool choice) { _compute_equiv_mappings = choice; }
 
-   std::list<int*> & getEquivalentG1toG2() { return _equiv_G1toG2; }
-   std::list<int*> & getEquivalentG2toG1() { return _equiv_G2toG1; }
+   std::list<unsigned int*> & getEquivalentG1toG2() { return _equiv_G1toG2; }
+   std::list<unsigned int*> & getEquivalentG2toG1() { return _equiv_G2toG1; }
 
 
   /**
@@ -42,13 +43,13 @@ template<class NodeAttribute, class EdgeAttribute>
    * @param fromInit  Allow to set up if the refined mapping should be computed from the given initialization or from a generated one
    */
   virtual void getBetterMapping( Graph<NodeAttribute, EdgeAttribute>* g1, Graph<NodeAttribute, EdgeAttribute>* g2,
-					 int* G1_to_G2,  int* G2_to_G1, bool fromInit=false ) = 0;
+			 	unsigned int* G1_to_G2,  unsigned int* G2_to_G1, bool fromInit=false ) = 0;
 
   /**
    * @brief Compute and return the cost of the given mapping from g1 to g2.
    */
   virtual double mappingCost( Graph<NodeAttribute, EdgeAttribute>* g1, Graph<NodeAttribute, EdgeAttribute>* g2,
-			      int* G1_to_G2,  int* G2_to_G1 ) = 0;
+			      unsigned int* G1_to_G2,  unsigned int* G2_to_G1 ) = 0;
 
   /**
    * @brief Clone the derivated object

@@ -14,6 +14,7 @@
 #define __GL_UTILS_H__
 
 #include <vector>
+#include <list>
 
 inline bool is_mapping_valid(unsigned int mapping, unsigned int nb_nodes){
   return (mapping < nb_nodes);
@@ -32,4 +33,16 @@ T mean(T * tab, int size){
     sum += tab[i];
   return sum/size;
 }
+
+
+void mappings_lsap2lsape( unsigned int* lsapMapping,
+			  unsigned int* rho,
+			  unsigned int* varrho,
+			  int n, int m );
+
+void mappings_lsap2lsape( std::list<unsigned int*> lsapMaps,
+			  std::list<unsigned int*>& G1toG2,
+			  std::list<unsigned int*>& G2toG1,
+			  int n, int m );
+
 #endif // __UTILS_H__

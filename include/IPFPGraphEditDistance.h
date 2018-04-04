@@ -19,7 +19,7 @@ using namespace Eigen;
 #include <lsape.h> // Bistochastic generation and sinkhorn balancing
 
 #include "GraphEditDistance.h"
-#include "MultiGed.h"
+//#include "MultiGed.h"
 #include "IPFPQAP.h"
 #include "gl_utils.h"
 
@@ -44,8 +44,8 @@ protected:
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
 			 Graph<NodeAttribute,EdgeAttribute> * g2,
-			 int * G1_to_G2, int * G2_to_G1, double * XkD);
-
+			 unsigned int * G1_to_G2, unsigned int * G2_to_G1, double * XkD);
+  
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
                          Graph<NodeAttribute,EdgeAttribute> * g2,
@@ -53,22 +53,25 @@ protected:
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
 			 Graph<NodeAttribute,EdgeAttribute> * g2,
-			 std::vector<std::pair<std::pair<int,int>,double> > mappings, double * XkD);
+			 std::vector<std::pair<std::pair<unsigned int,unsigned int>,double> > mappings,
+			 double * XkD);
 
   //This linearCost is efficient for sparse Xk matrices
   // n is nb rows of matrices, m is nb columns
-  virtual double linearCost(double * CostMatrix, int * G1_to_G2,int * G2_to_G1, int n, int m);
+  virtual double linearCost(double * CostMatrix, unsigned int * G1_to_G2,
+			    unsigned int * G2_to_G1, int n, int m);
   // n is nb rows of matrices, m is nb columns
   virtual double linearCost(double * CostMatrix, double * Xk, int n, int m);
 
   // Fill this->linearSubProblem with appropriatelinear problem
   virtual void LinearSubProblem();
-  virtual double getCost(int * G1_to_G2,int * G2_to_G1, int n, int m);
+  virtual double getCost(unsigned int * G1_to_G2,
+			 unsigned int * G2_to_G1, int n, int m);
   virtual double getCost(double * Matrix , int n, int m);
   virtual double getAlpha();
   virtual double getBeta();
 
-  virtual double * mappingsToMatrix(int * G1_to_G2,int * G2_to_G1, int n, int m, double * Matrix);
+  virtual double * mappingsToMatrix(unsigned int * G1_to_G2, unsigned int * G2_to_G1, int n, int m, double * Matrix);
 
 
 
@@ -105,7 +108,7 @@ public:
   */
   virtual void getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G2_to_G1);
+				 unsigned int * G1_to_G2, unsigned int * G2_to_G1);
 
 
   /**
@@ -122,7 +125,8 @@ public:
    */
   virtual void getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 				 Graph<NodeAttribute,EdgeAttribute> * g2,
-				 int * G1_to_G2, int * G2_to_G1, bool fromInit=true);
+				 unsigned int * G1_to_G2,
+				 unsigned int * G2_to_G1, bool fromInit=true);
 
   /**
    * @brief  Perform the Frank-Wlofe algorithm
@@ -131,10 +135,11 @@ public:
 		     Graph<NodeAttribute,EdgeAttribute> * g2);
 
 
-
+  
   virtual double mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
-                      Graph<NodeAttribute,EdgeAttribute> * g2,
-                     int* G1_to_G2, int* G2_to_G1 );
+			      Graph<NodeAttribute,EdgeAttribute> * g2,
+			      unsigned int* G1_to_G2,
+			      unsigned int* G2_to_G1 );
 
 
   /**
@@ -255,19 +260,19 @@ void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::NodeCostMatrix(Graph<N
 
 
 template<class NodeAttribute, class EdgeAttribute>
-double * IPFPGraphEditDistance<NodeAttribute,
-			       EdgeAttribute>::QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
-							     Graph<NodeAttribute,EdgeAttribute> * g2,
-							     double * Matrix, double * XkD){
+double * IPFPGraphEditDistance<NodeAttribute,EdgeAttribute>::
+QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
+	      Graph<NodeAttribute,EdgeAttribute> * g2,
+	      double * Matrix, double * XkD){
   int n = g1->Size();
   int m = g2->Size();
 
-  std::vector<std::pair<std::pair<int,int>, double>> mappings;
+  std::vector<std::pair<std::pair<unsigned int,unsigned int>, double>> mappings;
   for(int i=0;i<n+1;i++)
     for(int j=0;j<m+1;j++){
       double value = Matrix[sub2ind(i,j,n+1)];
       if(value > 0.){
-	std::pair<int,int> tmp = std::pair<int,int>(i,j);
+	std::pair<unsigned int,unsigned int> tmp = std::pair<int,int>(i,j);
 	mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,value));
       }
     }
@@ -281,24 +286,25 @@ double * IPFPGraphEditDistance<NodeAttribute,
 
 
 template<class NodeAttribute, class EdgeAttribute>
-double * IPFPGraphEditDistance<NodeAttribute,
-			       EdgeAttribute>::QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
-							     Graph<NodeAttribute,EdgeAttribute> * g2,
-							     int * G1_to_G2, int * G2_to_G1,double * XkD){
-
+double * IPFPGraphEditDistance<NodeAttribute,EdgeAttribute>::
+QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
+	      Graph<NodeAttribute,EdgeAttribute> * g2,
+	      unsigned int * G1_to_G2,
+	      unsigned int * G2_to_G1,double * XkD){
+  
   int n = g1->Size();
   int m = g2->Size();
 
   //Reconstruction d'un mapping
-  std::vector<std::pair<std::pair<int,int>, double>> mappings;
+  std::vector<std::pair<std::pair<unsigned int,unsigned int>, double>> mappings;
   for (int i =0;i<n;i++){
-    std::pair<int,int> tmp = std::pair<int,int>(i,G1_to_G2[i]);
-    mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
+    std::pair<unsigned int,unsigned int> tmp = std::pair<unsigned int,unsigned int>(i,G1_to_G2[i]);
+    mappings.push_back(std::pair<std::pair<unsigned int,unsigned int>,double>(tmp,1.));
   }
   for (int j =0;j<m;j++)
-    if (G2_to_G1[j] >= n){
-      std::pair<int,int> tmp = std::pair<int,int>(G2_to_G1[j],j);
-      mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
+    if ((int)(G2_to_G1[j]) >= n){
+      std::pair<unsigned int,unsigned int> tmp = std::pair<unsigned int,unsigned int>(G2_to_G1[j],j);
+      mappings.push_back(std::pair<std::pair<unsigned int,unsigned int>,double>(tmp,1.));
     }
   if (!(this->XkD))
     XkD=new double[(n+1)*(m+1)];
@@ -310,11 +316,11 @@ double * IPFPGraphEditDistance<NodeAttribute,
 
 
 template<class NodeAttribute, class EdgeAttribute>
-double * IPFPGraphEditDistance<NodeAttribute,
-			       EdgeAttribute>::QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
-							     Graph<NodeAttribute,EdgeAttribute> * g2,
-							     std::vector<std::pair<std::pair<int,int>,double> > mappings,
-							     double * quadraticTerm){
+double * IPFPGraphEditDistance<NodeAttribute,EdgeAttribute>::
+QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
+	      Graph<NodeAttribute,EdgeAttribute> * g2,
+	      std::vector<std::pair<std::pair<unsigned int,unsigned int>,double> > mappings,
+	      double * quadraticTerm){
   int n = g1->Size();
   int m = g2->Size();
 
@@ -326,7 +332,7 @@ double * IPFPGraphEditDistance<NodeAttribute,
   for(int j = 0; j < n+1; j++){ // Attention : dans le papier sspr, condition sur x_jl /= 0. En effet, inutile pour le cas ou on multiplie a droite par le mapping. Mais nécessaire quand on utilise XtD dans le sous probleme
     for(int l = 0; l < m+1;l++){
 
-      std::vector<std::pair<std::pair<int,int>,double> >::iterator it = mappings.begin();
+      std::vector<std::pair<std::pair<unsigned int, unsigned int>,double> >::iterator it = mappings.begin();
       for(;it != mappings.end();it++){
 	int i = it->first.first;
 	int k = it->first.second;
@@ -395,7 +401,7 @@ template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
-                   int * G1_to_G2, int * G2_to_G1 )
+                   unsigned int * G1_to_G2, unsigned int * G2_to_G1 )
 {
   //Compute Mapping init
   if (this->_ed_init)
@@ -410,7 +416,8 @@ template<class NodeAttribute, class EdgeAttribute>
 void IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                   Graph<NodeAttribute,EdgeAttribute> * g2,
-                  int * G1_to_G2, int * G2_to_G1, bool fromInit)
+                  unsigned int * G1_to_G2,
+		  unsigned int * G2_to_G1, bool fromInit)
 {
   this->_n = g1->Size();
   this->_m = g2->Size();
@@ -432,20 +439,23 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
     for (int i=0; i<(this->_n+1)*(this->_m+1); i++) this->Xk[i] = (int)(this->Xk[i]);
 
     //TODO virer le 100
-    std::list<int*> lsapEquivMaps = MultiGed<NodeAttribute, EdgeAttribute>::getKOptimalMappings(this->Xk, this->_n, this->_m, 100);
-    MultiGed<NodeAttribute, EdgeAttribute>::mappings_lsap2lsape(
-      lsapEquivMaps,
-      this->_equiv_G1toG2, this->_equiv_G2toG1,
-      this->_n, this->_m
-    );
+    std::list<unsigned int*> lsapEquivMaps;
+    __attribute__((unused)) double min_cost =
+      lsape::lsapeSolutions<double>(this->Xk,this->_n+1,this->_m+1,100,
+				    lsapEquivMaps, lsape::ECBP);
 
-    for (std::list<int*>::iterator it=lsapEquivMaps.begin(); it != lsapEquivMaps.end();  it++)
+    mappings_lsap2lsape(lsapEquivMaps,
+			this->_equiv_G1toG2, this->_equiv_G2toG1,
+			this->_n, this->_m);
+
+    for (std::list<unsigned int*>::iterator it=lsapEquivMaps.begin(); it != lsapEquivMaps.end();  it++)
       delete [] (*it);
   }
   else{
     double *u = new double[this->_n+1];
     double *v = new double[this->_m+1];
-    hungarianLSAPE(this->Xk,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+    //hungarianLSAPE(this->Xk,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+    lsape::lsapeSolver<double>(this->Xk,this->_n+1, this->_m+1, G1_to_G2, G2_to_G1, u,v,lsape::ECBP,1);
 
     // Save also the mapping in the list of equivalent mappings
     this->_equiv_G1toG2.clear();
@@ -525,8 +535,8 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
 
 
   double *u = new double[this->_n+1];
-  double *v = new double[this->_m+1];  int * G1_to_G2 = new int[this->_n];
-  int * G2_to_G1 = new int[this->_m];
+  double *v = new double[this->_m+1];  unsigned int * G1_to_G2 = new unsigned int[this->_n];
+  unsigned int * G2_to_G1 = new unsigned int[this->_m];
   bool flag_continue = true;
 
   //BipartiteGraphEditDistanceMulti<int,int> ed_multi(this->cf, 30); // To know how many solutions to lsap per iteration
@@ -534,7 +544,8 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
     this->XkD = QuadraticTerm(g1,g2,this->Xk,this->XkD);
     this->LinearSubProblem();//    should call it gradient direction
 
-    hungarianLSAPE(this->linearSubProblem,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+    //hungarianLSAPE(this->linearSubProblem,  this->_n+1,  this->_m+1, G1_to_G2,G2_to_G1, u,v,false);
+    lsape::lsapeSolver<double>(this->linearSubProblem,this->_n+1, this->_m+1, G1_to_G2, G2_to_G1, u,v,lsape::ECBP,1);
     //bkp1 is the matrix version of mapping G1_to_G2 and G2_to_G1, so a binary matrix
     this->bkp1 = mappingsToMatrix(G1_to_G2,G2_to_G1,  this->_n,  this->_m,this->bkp1);
     this->R.push_back(linearCost(this->linearSubProblem,G1_to_G2, G2_to_G1,  this->_n,  this->_m));
@@ -639,12 +650,12 @@ IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
-linearCost(double * CostMatrix, int * G1_to_G2,int * G2_to_G1, int n, int m){
+linearCost(double * CostMatrix, unsigned int * G1_to_G2, unsigned int * G2_to_G1, int n, int m){
   double sum = 0.0;
   for(int i=0;i<n;i++)
     sum += CostMatrix[sub2ind(i,G1_to_G2[i],n+1)];
   for(int j=0;j<m;j++)
-    if(G2_to_G1[j] >= n)
+    if((int)(G2_to_G1[j]) >= n)
       sum+= CostMatrix[sub2ind(G2_to_G1[j],j,n+1)];
   return sum;
 }
@@ -656,7 +667,7 @@ linearCost(double * CostMatrix, double * X, int n, int m){
   double sum = 0.0;
   for(int i=0;i<n;i++)
     for(int j=0;j<m;j++)
-      sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)]; //XXX is that not n+1 ?
+      sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)]; //XXX is that not n+1 ?: n parameter is the size of the matrix, not the size of graph
   return sum;
 }
 
@@ -682,7 +693,7 @@ getCost(double * Matrix, int n, int m){
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
-getCost(int * G1_to_G2,int * G2_to_G1, int n, int m){
+getCost(unsigned int * G1_to_G2,unsigned int * G2_to_G1, int n, int m){
 
   return linearCost(this->XkD,G1_to_G2, G2_to_G1,n,m)+ this->Lterm;
 }
@@ -702,12 +713,12 @@ getBeta(){
 
 template<class NodeAttribute, class EdgeAttribute>
 double * IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
-mappingsToMatrix(int * G1_to_G2,int * G2_to_G1, int n, int m, double * Matrix){
+mappingsToMatrix(unsigned int * G1_to_G2,unsigned int * G2_to_G1, int n, int m, double * Matrix){
   memset(Matrix,0,sizeof(double)*(n+1)*(m+1));
   for (int i =0;i<n;i++)
     Matrix[sub2ind(i,G1_to_G2[i],n+1)] = 1;
   for (int j =0;j<m;j++)
-    if (G2_to_G1[j] >= n)
+    if ((int)(G2_to_G1[j]) >= n)
       Matrix[sub2ind(G2_to_G1[j],j,n+1)] = 1;
   return Matrix;
 }
@@ -718,7 +729,8 @@ template<class NodeAttribute, class EdgeAttribute>
 double IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::
 mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
              Graph<NodeAttribute,EdgeAttribute> * g2,
-             int* G1_to_G2 , int* G2_to_G1)
+             unsigned int* G1_to_G2 ,
+	     unsigned int* G2_to_G1)
 {
   return this->GedFromMapping(g1, g2, G1_to_G2, g1->Size(), G2_to_G1, g2->Size());
 }

@@ -22,7 +22,7 @@
 #include "BipartiteGraphEditDistanceMulti.h"
 #include "RandomWalksGraphEditDistance.h"
 #include "RandomWalksGraphEditDistanceMulti.h"
-// #include "IPFPGraphEditDistance.h"
+#include "IPFPGraphEditDistance.h"
 // #include "GNCCPGraphEditDistance.h"
 
 using namespace std;
@@ -99,8 +99,8 @@ int main (int argc, char** argv)
   RandomWalksGraphEditDistance *ed_rw = new RandomWalksGraphEditDistance(cf,3);
   RandomWalksGraphEditDistance *ed_rw_multi = new RandomWalksGraphEditDistanceMulti(cf,3,10);
 
-  // IPFPGraphEditDistance<int,int> *ed_ipfpe_rw = new IPFPGraphEditDistance<int,int>(cf,ed_rw);
-  // IPFPGraphEditDistance<int,int> *ed_ipfpe_bunke = new IPFPGraphEditDistance<int,int>(cf,ed_bunke);
+  IPFPGraphEditDistance<int,int> *ed_ipfpe_rw = new IPFPGraphEditDistance<int,int>(cf,ed_rw);
+  IPFPGraphEditDistance<int,int> *ed_ipfpe_bunke = new IPFPGraphEditDistance<int,int>(cf,ed_bunke);
 
   // GNCCPGraphEditDistance<int,int> *ed_gnccp = new GNCCPGraphEditDistance<int,int>(cf);
   // GNCCPGraphEditDistance<int,int> *ed_gnccp_rw = new GNCCPGraphEditDistance<int,int>(cf,ed_rw);
@@ -160,8 +160,8 @@ int main (int argc, char** argv)
   cout << "Distance between g5 and g6 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g5,g6)  << endl;
   cout << "Distance between g5 and g6 avec LSAPE RW    : " << (*ed_rw)(g5,g6)  << endl;
   cout << "Distance between g5 and g6 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g5,g6)  << endl;
-  // cout << "Distance between g5 and g6 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g5,g6)  << endl;
-  // cout << "Distance between g5 and g6 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g5,g6)  << endl;
+  cout << "Distance between g5 and g6 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g5,g6)  << endl;
+  cout << "Distance between g5 and g6 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g5,g6)  << endl;
   // cout << "Distance between g5 and g6 avec GNCCP       : " << (*ed_gnccp)(g5,g6)  << endl;
   // cout << "Distance between g5 and g6 avec GNCCP RW      : " << (*ed_gnccp_rw)(g5,g6)  << endl;
 
@@ -170,8 +170,8 @@ int main (int argc, char** argv)
   cout << "Distance between g6 and g5 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g6,g5)  << endl;
   cout << "Distance between g6 and g5 avec LSAPE RW    : " << (*ed_rw)(g6,g5)  << endl;
   cout << "Distance between g6 and g5 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g6,g5)  << endl;
-  // cout << "Distance between g6 and g5 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g6,g5)  << endl;
-  // cout << "Distance between g6 and g5 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g6,g5)  << endl;
+  cout << "Distance between g6 and g5 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g6,g5)  << endl;
+  cout << "Distance between g6 and g5 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g6,g5)  << endl;
   // cout << "Distance between g6 and g5 avec GNCCP       : " << (*ed_gnccp)(g6,g5)  << endl;
   // cout << "Distance between g6 and g5 avec GNCCP RW       : " << (*ed_gnccp_rw)(g6,g5)  << endl;
 
@@ -182,12 +182,15 @@ int main (int argc, char** argv)
   cout << "Distance : " << (*ed_rw)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
   cout << "Distance : " << (*ed_rw_multi)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
 
+  cout << "Distance : " << (*ed_ipfpe_bunke)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
+  cout << "Distance : " << (*ed_ipfpe_rw)(AcyclicDataset[85],AcyclicDataset[112])  << endl;
+
   delete ed_bunke;
   delete ed_bunke_multi;
   delete ed_rw;
   delete ed_rw_multi;
-  // delete ed_ipfpe_bunke;
-  // delete ed_ipfpe_rw;
+  delete ed_ipfpe_bunke;
+  delete ed_ipfpe_rw;
   // delete ed_gnccp;
   delete cf;
   delete g6;

@@ -39,4 +39,45 @@ void print_array(double* arr, int n, int m){
   }
 }
 
+void mappings_lsap2lsape( unsigned int* lsapMapping,
+			  unsigned int* rho,
+			  unsigned int* varrho,
+			  int n, int m ){
+  for (int j=0; j<m; j++){ // connect all to epsilon by default
+    varrho[j] = n;
+  }
+
+  for (int i=0; i<n; i++){
+    if ((int)(lsapMapping[i]) >= m)
+      rho[i] = m; // i -> epsilon
+    else{
+      rho[i] = lsapMapping[i];
+      varrho[lsapMapping[i]] = i;
+    }
+  }
+}
+
+
+
+void mappings_lsap2lsape( std::list<unsigned int*> lsapMaps,
+			  std::list<unsigned int*>& G1toG2,
+			  std::list<unsigned int*>& G2toG1,
+			  int n, int m ){
+  G1toG2.clear();
+  G2toG1.clear();
+  for ( std::list<unsigned int*>::iterator it=lsapMaps.begin();
+        it != lsapMaps.end();  it++ )
+  {
+    unsigned int* lsapMapping = *it;
+    unsigned int* rho = new unsigned int[n];
+    unsigned int* varrho = new unsigned int[m];
+
+    mappings_lsap2lsape(lsapMapping, rho, varrho, n, m);
+
+    G1toG2.push_back(rho);
+    G2toG1.push_back(varrho);
+  }
+}
+
+
 //double abs(double x) { return (x >= 0) ? x : -x; }
