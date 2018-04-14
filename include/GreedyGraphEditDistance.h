@@ -9,7 +9,7 @@
 #ifndef __GREEDYBIPARTITEGED_H__
 #define __GREEDYBIPARTITEGED_H__
 
-
+#include <lsape.h>
 #include "BipartiteGraphEditDistanceMulti.h"
 
 
@@ -40,7 +40,7 @@ public:
    * @return  A list of mappings given as arrays of int. For each mapping M, `M[i]` is the mapping, in g2, of node i in g1
    * @note  Each array is allocated here and have to be deleted manually
    */
-  virtual std::list<int*> getMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
+  virtual std::list<unsigned int*> getMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
 				      Graph<NodeAttribute,EdgeAttribute> * g2,
 				      int k );
 
@@ -52,7 +52,7 @@ public:
 
 
 template<class NodeAttribute, class EdgeAttribute>
-std::list<int*> GreedyGraphEditDistance<NodeAttribute, EdgeAttribute>::
+std::list<unsigned int*> GreedyGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 	     Graph<NodeAttribute,EdgeAttribute> * g2,
 	     int k)
@@ -71,12 +71,14 @@ getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
     }
   }
   // the returned mappings
-  std::list<int*> mappings;
-
-  cDigraph<int> dg = greedySortDigraph<int, int>(Ci, n+1, m+1);
-  AllPerfectMatchingsEC<int> apm(dg,n,m);
-  apm.enumPerfectMatchings(dg, this->_nep);
-  mappings = apm.getPerfectMatchings();
+  std::list<unsigned int*> mappings;
+  __attribute__((unused)) double min_cost = lsape::lsapeSolutions<int>(Ci,n+1,m+1,k,
+									  mappings, lsape::ECBP);
+  
+  // cDigraph<int> dg = greedySortDigraph<int, int>(Ci, n+1, m+1);
+  // AllPerfectMatchingsEC<int> apm(dg,n,m);
+  // apm.enumPerfectMatchings(dg, this->_nep);
+  // mappings = apm.getPerfectMatchings();
   
   delete [] Ci;
 

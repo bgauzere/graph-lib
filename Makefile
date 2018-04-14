@@ -66,13 +66,13 @@ $(TESTDIR)/chemical-lower-bounds: $(TESTDIR)/computeLowerBounds.cpp $(OBJ)
 $(TESTDIR)/QAPlib: $(TESTDIR)/QAPLib.cpp $(OBJ_QAP)
 	$(CXX)  -D PRINT_TIMES -o $@ $^ $(CXXFLAGS) -ltinyxml
 
-_TEST_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h  BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h RandomWalksGraphEditDistance.h RandomWalksGraphEditDistanceMulti.h IPFPGraphEditDistance.h IPFPQAP.h MappingRefinement.h IPFPZetaGraphEditDistance.h GNCCPGraphEditDistance.h
+_TEST_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h  BipartiteGraphEditDistance.h RiesenCostMatrix.h  RandomWalksCostMatrix.h  CostMatrix.h
 TEST_DEPS = $(patsubst %,$(IDIR)/%,$(_TEST_DEPS))
 
-_TEST_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp  RandomWalksGraphEditDistance.cpp
+_TEST_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp  RandomWalksCostMatrix.cpp
 TEST_DEPS_SRC += $(patsubst %,$(SRCDIR)/%,$(_TEST_DEPS_SRC))
 
-_TEST_OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o
+_TEST_OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksCostMatrix.o
 TEST_OBJ = $(patsubst %,$(ODIR)/%,$(_TEST_OBJ))
 
 $(TESTDIR)/test_graph: $(TEST_DEPS) $(TEST_OBJ) $(TESTDIR)/test_graph.cpp

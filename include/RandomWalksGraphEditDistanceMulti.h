@@ -10,6 +10,7 @@
 #include <list>
 #include "RandomWalksGraphEditDistance.h"
 #include "BipartiteGraphEditDistanceMulti.h"
+#include "BipartiteGraphEditDistance.h"
 
 // activate output for experiments
 //#define XP_OUTPUT 1
@@ -24,19 +25,17 @@
  * @brief Multiple solution version of RandomWalksGraphEditDistance
  */
 class RandomWalksGraphEditDistanceMulti :
-      public RandomWalksGraphEditDistance,
-      public BipartiteGraphEditDistanceMulti<int,int>
-{
-
+  public BipartiteGraphEditDistanceMulti<int,int>,
+  public RandomWalksGraphEditDistance{
+  
 public:
 
   RandomWalksGraphEditDistanceMulti(ConstantEditDistanceCost * costFunction, int k, int nep):
     BipartiteGraphEditDistance<int,int>(costFunction),
-    RandomWalksGraphEditDistance(costFunction, k),
-    BipartiteGraphEditDistanceMulti<int,int>(costFunction, nep)
-  {}
+    BipartiteGraphEditDistanceMulti<int,int>(costFunction, nep),
+    RandomWalksGraphEditDistance(costFunction, k)
 
-
+  {};
 };
 
 #endif // __RANDOMWALKSGRAPHEDITDISTANCEMULTI_H__

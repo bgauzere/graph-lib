@@ -132,7 +132,7 @@ double * computeGraphEditDistance(Dataset< NodeAttribute, EdgeAttribute, Propert
   //double * distances =  dataset->computeGraphEditDistance(ed, true);
   int N = dataset->size();
   double* distances = new double[N*N];
-  struct timeval  tv1, tv2;
+  //struct timeval  tv1, tv2;
   for (int i=0; i<N; i++){
     for (int j=0; j<N; j++){
       #ifdef PRINT_TIMES
@@ -202,20 +202,20 @@ int main (int argc, char** argv)
   } else if(options->method == string("ipfpe_multi_bunke")){
     BipartiteGraphEditDistanceMulti<int,int> *ed_init = new BipartiteGraphEditDistanceMulti<int,int>(cf, options->nep);
     ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
-  } else if(options->method == string("ipfpe_multi_rw")){
-    RandomWalksGraphEditDistanceMulti *ed_init = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
-    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
+  // } else if(options->method == string("ipfpe_multi_rw")){
+  //   RandomWalksGraphEditDistanceMulti *ed_init = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
+  //   ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
   } else if(options->method == string("ipfpe_rw")){
     RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,options->k);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
 
-  } else if(options->method == string("ipfpe_multi_random")){
-    RandomMappingsGED<int,int> *init = new RandomMappingsGED<int,int>();
-    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, init, options->nep, algoIPFP);
+  // } else if(options->method == string("ipfpe_multi_random")){
+  //   RandomMappingsGED<int,int> *init = new RandomMappingsGED<int,int>();
+  //   ed = new MultistartRefinementGraphEditDistance<int,int>(cf, init, options->nep, algoIPFP);
 
-  } else if(options->method == string("ipfpe_multi_greedy")){
-    GreedyGraphEditDistance<int,int> *ed_init = new GreedyGraphEditDistance<int,int>(cf, options->nep);
-    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
+  // } else if(options->method == string("ipfpe_multi_greedy")){
+  //   GreedyGraphEditDistance<int,int> *ed_init = new GreedyGraphEditDistance<int,int>(cf, options->nep);
+  //   ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
 
   } else if(options->method == string("gnccp")){
     //RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,3 );

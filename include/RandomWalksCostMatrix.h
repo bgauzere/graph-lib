@@ -1,5 +1,5 @@
 /**
- * @file RandomWalksGraphEditDistance.h
+ * @file RandomWalksCostMatrix.h
  * @author Benoit <<benoit.gauzere@insa-rouen.fr>> 
  * @version     0.0.1 - Wed Feb  8 2017
  *
@@ -16,16 +16,16 @@
 #include <Eigen/Dense>
 using namespace Eigen;
 
-#include "BipartiteGraphEditDistance.h"
+#include "RiesenCostMatrix.h"
 #include "ConstantGraphEditDistance.h"
 
 #include "SymbolicGraph.h"
 
-class RandomWalksGraphEditDistance:
-public virtual BipartiteGraphEditDistance<int, int>
+class RandomWalksCostMatrix:
+public virtual RiesenCostMatrix<int, int>
 {
 protected:
-  ConstantEditDistanceCost * cf;
+  ConstantEditDistanceCost * _cf;
   int _k;
 
   static int * labeledKron(int *m1, int nb_rows_m1,int nb_cols_m1,
@@ -37,8 +37,8 @@ protected:
 			 Graph<int,int> * g2);
 
 public:
-  RandomWalksGraphEditDistance(ConstantEditDistanceCost * costFunction, int k):
-    BipartiteGraphEditDistance<int,int>(costFunction),cf(costFunction),_k(k){};
+  RandomWalksCostMatrix(ConstantEditDistanceCost * costFunction, int k):
+    RiesenCostMatrix<int,int>(costFunction),_cf(costFunction),_k(k){};
 };
 
-#endif // __RANDOMWALKSGRAPHEDITDISTANCE_H__
+#endif // __RANDOMWALKSCOSTMATRIX_H__

@@ -2,13 +2,14 @@
  * @file MappingGenerator.h
  * @author Evariste <<evariste.daller@unicaen.fr>>
  * @version  Sep  25  2017 
+ * Equivaut à lsapeSolutions. On peut s'en passer ?
  */
 
 #ifndef __MAPPING_GENERATOR_H
 #define __MAPPING_GENERATOR_H
 
 #include <list>
-
+#include "graph.h"
 
 /**
  * @brief A mappings (or assignements) generator between two graphs
@@ -21,8 +22,9 @@ template<class NodeAttribute, class EdgeAttribute>
   /**
    * @brief How to generate the mappings
    */
-  virtual std::list<int*> getMappings( Graph<NodeAttribute, EdgeAttribute>* g1, Graph<NodeAttribute, EdgeAttribute>* g2,
-				       int k ) = 0;
+  virtual std::list<unsigned int*> getMappings( Graph<NodeAttribute, EdgeAttribute>* g1,
+						Graph<NodeAttribute, EdgeAttribute>* g2,
+						int k ) = 0;
 
   virtual MappingGenerator<NodeAttribute, EdgeAttribute>* clone() const = 0;
 

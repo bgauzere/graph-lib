@@ -18,7 +18,8 @@
  */
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistanceMulti:
-  public BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>{
+  virtual public BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>,
+  virtual public MultiLSAPE<NodeAttribute, EdgeAttribute>{
 private:
   int _k;
 
@@ -60,7 +61,7 @@ template<class NodeAttribute, class EdgeAttribute>
 void BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
 getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
-                   int * G1_to_G2, int * G2_to_G1 )
+                   unsigned int * G1_to_G2, unsigned int * G2_to_G1 )
 {
   int n=g1->Size();
   int m=g2->Size();
