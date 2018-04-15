@@ -15,11 +15,10 @@
 #ifndef __BIPARTITEGRAPHEDITDISTANCE_H__
 #define __BIPARTITEGRAPHEDITDISTANCE_H__
 
-#include "lsape.h"
 #include "GraphEditDistance.h"
 #include "gl_utils.h"
 #include "CostMatrix.h"
-
+#include "LinearSolver.h"
 
 /*TODO : 
    - donner la possibilité de récupérer le mapping ?
@@ -33,25 +32,16 @@ class BipartiteGraphEditDistance:
 private:
 
 protected:
-  enum lsape::LSAPE_MODEL  my_solver;
+  LinearSolver<NodeAttribute, EdgeAttribute> * _solver;
   CostMatrix<NodeAttribute,EdgeAttribute> * _CM;
-
+  
 
 public:
   BipartiteGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
-			     CostMatrix<NodeAttribute,EdgeAttribute> * CM):
-    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),my_solver(lsape::ECBP),_CM(CM)
-  {};
-
-  BipartiteGraphEditDistance(EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
 			     CostMatrix<NodeAttribute,EdgeAttribute> * CM,
-			     enum lsape::LSAPE_MODEL f):
-    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),
-    my_solver(f),_CM(CM){};
-
-  void setSolver(enum lsape::LSAPE_MODEL f){
-    this->my_solver = f;
-  }
+			     LinearSolver<NodeAttribute, EdgeAttribute> * solver):
+    GraphEditDistance<NodeAttribute,EdgeAttribute>(costFunction),_solver(solver),_CM(CM)
+  {};
 
   double getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 				Graph<NodeAttribute,EdgeAttribute> * g2,
@@ -87,13 +77,9 @@ getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   // Compute C
   this->_CM->computeCostMatrix(g1,g2);
   //Compute optimal assignement
-  double *u = new double[n+1];
-  double *v = new double[m+1];
   clock_t t = clock();
-  lsape::lsapeSolver<double>(this->_CM->getC(),n+1,m+1, G1_to_G2, G2_to_G1, u,v,my_solver,1);
+  this->_solver->solve(this->_CM->getC(),n+1,m+1, g1,g2,G1_to_G2, G2_to_G1);
   t = clock() - t;
-  delete [] u;
-  delete [] v;
   return ((float)t) / CLOCKS_PER_SEC;
 
 }
@@ -107,13 +93,7 @@ getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   int m=g2->Size();
   // Compute C
   this->_CM->computeCostMatrix(g1,g2);
-  //Compute optimal assignement
-  double *u = new double[n+1];
-  double *v = new double[m+1];
-  lsape::lsapeSolver<double>(this->_CM->getC(),n+1,m+1, G1_to_G2, G2_to_G1, u,v,my_solver,1);
-  delete [] u;
-  delete [] v;
-
+  this->_solver->solve(this->_CM->getC(),n+1, m+1, g1,g2,G1_to_G2, G2_to_G1);
 }
 
 template<class NodeAttribute, class EdgeAttribute>
@@ -122,8 +102,8 @@ getUpperBound(Graph<NodeAttribute,EdgeAttribute> * g1,
 	      Graph<NodeAttribute,EdgeAttribute> * g2,double & comptime){
   int n=g1->Size();
   int m=g2->Size();
-  unsigned int * G1_to_G2 = new unsigned int[n];
-  unsigned int * G2_to_G1 = new unsigned int[m];
+  unsigned int * G1_to_G2 = new unsigned int[n+1];
+  unsigned int * G2_to_G1 = new unsigned int[m+1];
   comptime = this->getTimedOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);
   double ged = this->GedFromMapping(g1,g2,G1_to_G2,n,G2_to_G1,m);
   delete [] G1_to_G2;

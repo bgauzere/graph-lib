@@ -26,6 +26,10 @@
 // #include "IPFPGraphEditDistance.h"
 // #include "GNCCPGraphEditDistance.h"
 
+
+#include "LSAPESolver.h"
+#include "MultiLSAPESolver.h"
+
 using namespace std;
 
 typedef struct{
@@ -98,11 +102,18 @@ int main (int argc, char** argv)
   RiesenCostMatrix<int,int>  * cm_riesen = new RiesenCostMatrix<int,int>(cf);
   RandomWalksCostMatrix  * cm_rw = new RandomWalksCostMatrix(cf,3);
   
+  LSAPESolver<int, int> * solver = new LSAPESolver<int,int>();
   
-  BipartiteGraphEditDistance<int,int> *ed_bunke = new BipartiteGraphEditDistance<int,int>(cf,cm_riesen);
-  // BipartiteGraphEditDistance<int,int> *ed_bunke_multi = new BipartiteGraphEditDistanceMulti<int,int>(cf,10);
-  BipartiteGraphEditDistance<int,int> *ed_rw = new BipartiteGraphEditDistance<int,int>(cf,cm_rw);
-  // RandomWalksGraphEditDistance *ed_rw_multi = new RandomWalksGraphEditDistanceMulti(cf,3,10);
+  MultiLSAPESolver<int,int> * multi_solver = new MultiLSAPESolver<int,int>(10);
+  
+  BipartiteGraphEditDistance<int,int> *ed_bunke = new BipartiteGraphEditDistance<int,int>(cf,cm_riesen,solver);
+  BipartiteGraphEditDistance<int,int> *ed_bunke_multi = new BipartiteGraphEditDistance<int,int>(cf,cm_riesen, multi_solver);
+  multi_solver->setGED(ed_bunke);
+  
+  BipartiteGraphEditDistance<int,int> *ed_rw = new BipartiteGraphEditDistance<int,int>(cf,cm_rw,solver);
+
+  BipartiteGraphEditDistance<int,int> *ed_rw_multi = new BipartiteGraphEditDistance<int,int>(cf,cm_rw,multi_solver);
+  
 
   // IPFPGraphEditDistance<int,int> *ed_ipfpe_rw = new IPFPGraphEditDistance<int,int>(cf,ed_rw);
   // IPFPGraphEditDistance<int,int> *ed_ipfpe_bunke = new IPFPGraphEditDistance<int,int>(cf,ed_bunke);
@@ -162,9 +173,9 @@ int main (int argc, char** argv)
 
 
   cout << "Distance between g5 and g6 avec LSAPE Bunke : " << (*ed_bunke)(g5,g6)  << endl;
-  // cout << "Distance between g5 and g6 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g5,g6)  << endl;
+  cout << "Distance between g5 and g6 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g5,g6)  << endl;
   cout << "Distance between g5 and g6 avec LSAPE RW    : " << (*ed_rw)(g5,g6)  << endl;
-  // cout << "Distance between g5 and g6 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g5,g6)  << endl;
+  cout << "Distance between g5 and g6 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g5,g6)  << endl;
   // cout << "Distance between g5 and g6 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g5,g6)  << endl;
   // cout << "Distance between g5 and g6 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g5,g6)  << endl;
   // cout << "Distance between g5 and g6 avec GNCCP       : " << (*ed_gnccp)(g5,g6)  << endl;
@@ -172,9 +183,9 @@ int main (int argc, char** argv)
 
   
   cout << "Distance between g6 and g5 avec LSAPE Bunke : " << (*ed_bunke)(g6,g5)  << endl;
-  // cout << "Distance between g6 and g5 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g6,g5)  << endl;
+  cout << "Distance between g6 and g5 avec LSAPE Bunke Multi : " << (*ed_bunke_multi)(g6,g5)  << endl;
   cout << "Distance between g6 and g5 avec LSAPE RW    : " << (*ed_rw)(g6,g5)  << endl;
-  // cout << "Distance between g6 and g5 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g6,g5)  << endl;
+  cout << "Distance between g6 and g5 avec LSAPE RW Multi    : " << (*ed_rw_multi)(g6,g5)  << endl;
   // cout << "Distance between g6 and g5 avec IPFPE Bunke : " << (*ed_ipfpe_bunke)(g6,g5)  << endl;
   // cout << "Distance between g6 and g5 avec IPFPE RW    : " << (*ed_ipfpe_rw)(g6,g5)  << endl;
   // cout << "Distance between g6 and g5 avec GNCCP       : " << (*ed_gnccp)(g6,g5)  << endl;

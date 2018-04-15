@@ -28,7 +28,7 @@ public:
   CostMatrix(EditDistanceCost<NodeAttribute,EdgeAttribute> * cf):_cf(cf),_C(NULL),_n(0),_m(0){};
   
   virtual void computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
-				 Graph<NodeAttribute,EdgeAttribute> * g2);
+				 Graph<NodeAttribute,EdgeAttribute> * g2){};
   virtual double * getC(){return this->_C;}
 
   ~CostMatrix(){

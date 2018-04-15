@@ -6,7 +6,7 @@ IDIR = ./include
 ## Eigen library
 EIGEN_DIR=/home/bgauzere/src/eigen/
 
-CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR) -Wall  -std=c++11 -O3 #-Werror
+CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR) -Wall  -std=c++11 -g #-Werror
 
 BINDIR = ./bin
 TESTDIR = ./test
@@ -66,7 +66,7 @@ $(TESTDIR)/chemical-lower-bounds: $(TESTDIR)/computeLowerBounds.cpp $(OBJ)
 $(TESTDIR)/QAPlib: $(TESTDIR)/QAPLib.cpp $(OBJ_QAP)
 	$(CXX)  -D PRINT_TIMES -o $@ $^ $(CXXFLAGS) -ltinyxml
 
-_TEST_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h  BipartiteGraphEditDistance.h RiesenCostMatrix.h  RandomWalksCostMatrix.h  CostMatrix.h
+_TEST_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h  BipartiteGraphEditDistance.h RiesenCostMatrix.h  RandomWalksCostMatrix.h  CostMatrix.h LinearSolver.h LSAPESolver.h MultiLSAPESolver.h
 TEST_DEPS = $(patsubst %,$(IDIR)/%,$(_TEST_DEPS))
 
 _TEST_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp  RandomWalksCostMatrix.cpp
