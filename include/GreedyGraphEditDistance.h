@@ -15,7 +15,7 @@
 
 template <class NodeAttribute, class EdgeAttribute>
 class GreedyGraphEditDistance :
-  public BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>
+  public BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>
 {
 
 protected:

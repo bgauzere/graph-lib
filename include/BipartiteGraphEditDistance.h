@@ -14,12 +14,13 @@
 
 #ifndef __BIPARTITEGRAPHEDITDISTANCE_H__
 #define __BIPARTITEGRAPHEDITDISTANCE_H__
+#include <list>
 
 #include "GraphEditDistance.h"
 #include "gl_utils.h"
 #include "CostMatrix.h"
 #include "LinearSolver.h"
-
+#include "MappingGenerator.h"
 /*TODO : 
    - donner la possibilité de récupérer le mapping ?
    - Spécifier le solver
@@ -27,7 +28,8 @@
 
 template<class NodeAttribute, class EdgeAttribute>
 class BipartiteGraphEditDistance:
-  public GraphEditDistance<NodeAttribute, EdgeAttribute>
+  public GraphEditDistance<NodeAttribute, EdgeAttribute>,
+  public MappingGenerator<NodeAttribute, EdgeAttribute>
 {
 private:
 
@@ -52,6 +54,8 @@ public:
   double getUpperBound(Graph<NodeAttribute,EdgeAttribute> * g1,
 		       Graph<NodeAttribute,EdgeAttribute> * g2,
 		       double & time);
+  virtual std::list<unsigned int*> getMappings( Graph<NodeAttribute, EdgeAttribute>* g1,
+						Graph<NodeAttribute, EdgeAttribute>* g2);
   
 
   virtual ~BipartiteGraphEditDistance(){
@@ -109,6 +113,18 @@ getUpperBound(Graph<NodeAttribute,EdgeAttribute> * g1,
   delete [] G1_to_G2;
   delete [] G2_to_G1;
   return ged;
+}
+
+template<class NodeAttribute, class EdgeAttribute>
+std::list<unsigned int*> BipartiteGraphEditDistance<NodeAttribute,EdgeAttribute>::
+getMappings( Graph<NodeAttribute, EdgeAttribute>* g1,
+	     Graph<NodeAttribute, EdgeAttribute>* g2){
+  int n=g1->Size();
+  int m=g2->Size();
+  // Compute C
+  this->_CM->computeCostMatrix(g1,g2);
+  return this->_solver->getSolutions(this->_CM->getC(),n+1, m+1, g1,g2);
+
 }
 
 

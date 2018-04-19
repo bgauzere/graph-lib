@@ -23,12 +23,12 @@ template<class NodeAttribute, class EdgeAttribute>
    * @brief How to generate the mappings
    */
   virtual std::list<unsigned int*> getMappings( Graph<NodeAttribute, EdgeAttribute>* g1,
-						Graph<NodeAttribute, EdgeAttribute>* g2,
-						int k ) = 0;
-
+						Graph<NodeAttribute, EdgeAttribute>* g2) = 0;
+ 
   virtual MappingGenerator<NodeAttribute, EdgeAttribute>* clone() const = 0;
 
   virtual ~MappingGenerator(){};
+
 };
 
 

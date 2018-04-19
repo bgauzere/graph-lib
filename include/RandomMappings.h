@@ -1,8 +1,6 @@
 #ifndef __RANDOMMAPPINGS_H__
 #define __RANDOMMAPPINGS_H__
-
-
-#include "BipartiteGraphEditDistanceMulti.h"
+#include <random>
 #include "MappingGenerator.h"
 
 template<class NodeAttribute, class EdgeAttribute>
@@ -10,12 +8,11 @@ class RandomMappings :
   public MappingGenerator<NodeAttribute, EdgeAttribute>
 {
 protected:
-
+  int _k;
   std::default_random_engine randGen;
-
 public:
 
-  RandomMappings(unsigned int seed = 123)
+  RandomMappings(int k, unsigned int seed = 123):_k(k)
   {
     randGen.seed(seed);
   }
@@ -24,9 +21,8 @@ public:
 
 public:
 
-  virtual std::list<int*> getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
-				       Graph<NodeAttribute,EdgeAttribute> * g2,
-				       int k = -1 );
+  virtual std::list<unsigned int*> getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
+						Graph<NodeAttribute,EdgeAttribute> * g2);
 
 
   virtual RandomMappings<NodeAttribute, EdgeAttribute> * clone() const {
@@ -43,8 +39,8 @@ class RandomMappingsGED :
 
 public:
 
-  RandomMappingsGED(unsigned int seed = 123) :
-    RandomMappings<NodeAttribute, EdgeAttribute>(seed)
+  RandomMappingsGED(int k, unsigned int seed = 123) :
+    RandomMappings<NodeAttribute, EdgeAttribute>(k, seed)
   {}
   
   ~RandomMappingsGED(){}
@@ -52,8 +48,7 @@ public:
 public:
 
   virtual std::list<unsigned int*> getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
-				       Graph<NodeAttribute,EdgeAttribute> * g2,
-				       int k = -1 );
+						Graph<NodeAttribute,EdgeAttribute> * g2);
 
 };
 
@@ -64,10 +59,9 @@ public:
 template<class NodeAttribute, class EdgeAttribute>
 std::list<unsigned int*> RandomMappings<NodeAttribute, EdgeAttribute>::
 getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
-	     Graph<NodeAttribute,EdgeAttribute> * g2,
-	     int k )
+	     Graph<NodeAttribute,EdgeAttribute> * g2)
 {
-  if (k < 0) k = 100;
+  if (this->_k < 0) this->_k = 100;
 
   int n = g1->Size();
   int m = g2->Size();
@@ -76,7 +70,7 @@ getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 
   int mx = std::max(n,m);
 
-  for (int i=0; i<k; i++){
+  for (int i=0; i<this->_k; i++){
     unsigned int* _map = new unsigned int[mx];
     for (int a=0; a<m; a++)  _map[a] = a;
     for (int a=m; a<mx; a++) _map[a] = -1; // if m<max(n,m) : complete with -1
@@ -103,17 +97,16 @@ getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 template<class NodeAttribute, class EdgeAttribute>
 std::list<unsigned int*> RandomMappingsGED<NodeAttribute, EdgeAttribute>::
 getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
-	     Graph<NodeAttribute,EdgeAttribute> * g2,
-	     int k )
+	     Graph<NodeAttribute,EdgeAttribute> * g2)
 {
-  if (k < 0) k = 100;
+  if (this->_k < 0) this->_k = 100;
   
   int n = g1->Size();
   int m = g2->Size();
   
   std::list<unsigned int*> mappings;
   
-  for (int i=0; i<k; i++){
+  for (int i=0; i<this->_k; i++){
     unsigned int* _map = new unsigned int[n+m];
     for (int a=0; a<n+m; a++) _map[a] = a;
     

@@ -60,11 +60,10 @@ public:
    */
   MultistartRefinementGraphEditDistance( EditDistanceCost<NodeAttribute,EdgeAttribute> * costFunction,
 					 MappingGenerator<NodeAttribute,EdgeAttribute> * gen,
-					 int n_edit_paths,
 					 MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm
 					 ):
     GraphEditDistance<NodeAttribute,EdgeAttribute> (costFunction),
-    MultistartMappingRefinement<NodeAttribute, EdgeAttribute> (gen, n_edit_paths),
+    MultistartMappingRefinement<NodeAttribute, EdgeAttribute> (gen),
     method(algorithm),
     cleanMethod(false)
   {}
@@ -74,7 +73,7 @@ public:
                         const MultistartRefinementGraphEditDistance<NodeAttribute, EdgeAttribute>& other
                         ):
     GraphEditDistance<NodeAttribute,EdgeAttribute> (other.cf),
-    MultistartMappingRefinement<NodeAttribute, EdgeAttribute> (other.initGen->clone(), other.k),
+    MultistartMappingRefinement<NodeAttribute, EdgeAttribute> (other.initGen->clone()),
     method(other.method->clone()),
     cleanMethod(true)
   {}
@@ -215,7 +214,7 @@ const std::list<unsigned int*>& MultistartRefinementGraphEditDistance<NodeAttrib
 getBetterMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2 )
 {
-  std::list<unsigned int*> mappings = this->initGen->getMappings(g1, g2, this->k);
+  std::list<unsigned int*> mappings = this->initGen->getMappings(g1, g2);
   const std::list<unsigned int*>& refined = this->getBetterMappingsFromSet(method, g1, g2, mappings);
 
   // Delete original (bipartite) mappings

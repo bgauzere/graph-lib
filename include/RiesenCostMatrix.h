@@ -15,7 +15,7 @@
 
 #include "CostMatrix.h"
 #include "gl_utils.h"
-#include "lsape.h"
+#include <lsape.h>
 template<class NodeAttribute, class EdgeAttribute>
 class RiesenCostMatrix:
   public CostMatrix<NodeAttribute, EdgeAttribute>

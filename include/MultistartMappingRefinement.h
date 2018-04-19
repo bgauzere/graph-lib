@@ -32,7 +32,6 @@ class MultistartMappingRefinement
 protected:
 
   MappingGenerator<NodeAttribute, EdgeAttribute> * initGen; //!< Generator of initializations 
-  int k; //!< Number of initial mapping to generate from \ref initGen
   std::list<unsigned int*> refinedMappings; //!< The last set of refined mappings
 
 public:
@@ -95,11 +94,8 @@ public:
                             std::list<unsigned int*>& mappings );
 
 
-  MultistartMappingRefinement( MappingGenerator<NodeAttribute, EdgeAttribute> * gen,
-                               int nSol
-                             ):
-    initGen(gen),
-    k(nSol)
+  MultistartMappingRefinement( MappingGenerator<NodeAttribute, EdgeAttribute> * gen):
+    initGen(gen)
   {}
 
   virtual ~MultistartMappingRefinement(){}
@@ -121,7 +117,7 @@ getBestMapping( MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm,
   struct timeval  tv1, tv2;
   gettimeofday(&tv1, NULL);
 
-  std::list<unsigned int*> mappings = initGen->getMappings(g1, g2, k);
+  std::list<unsigned int*> mappings = initGen->getMappings(g1, g2);
   gettimeofday(&tv2, NULL);
 
   this->getBestMappingFromSet(algorithm, g1, g2, G1_to_G2, G2_to_G1, mappings);
@@ -153,7 +149,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
   // Multithread
   #ifdef _OPENMP
     gettimeofday(&tv1, NULL);
-    unsigned int** arrayMappings = new int*[mappings.size()];
+    unsigned int** arrayMappings = new unsigned int*[mappings.size()];
     int* arrayCosts = new int[mappings.size()];
     unsigned int* arrayLocal_G1_to_G2 = new unsigned int[n * mappings.size()];
     unsigned int* arrayLocal_G2_to_G1 = NULL;
@@ -240,7 +236,7 @@ getBestMappingFromSet( MappingRefinement<NodeAttribute, EdgeAttribute> * algorit
 
     gettimeofday(&tv1, NULL);
 
-    int i_optim;
+    int i_optim = -1;
     for (unsigned int i=0; i<mappings.size(); i++){
       if (cost > arrayCosts[i] || cost == -1){
          cost = arrayCosts[i];
@@ -288,7 +284,7 @@ getBetterMappings( MappingRefinement<NodeAttribute, EdgeAttribute> * algorithm,
   struct timeval  tv1, tv2;
   gettimeofday(&tv1, NULL);
 
-  std::list<unsigned int*> mappings = initGen->getMappings(g1, g2, k);
+  std::list<unsigned int*> mappings = initGen->getMappings(g1, g2);
   gettimeofday(&tv2, NULL);
 
   return this->getBetterMappingsFromSet(algorithm, g1, g2, mappings);

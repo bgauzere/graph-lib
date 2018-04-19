@@ -22,10 +22,10 @@
 #include "ConstantGraphEditDistance.h"
 #include "CMUCostFunction.h"
 #include "BipartiteGraphEditDistance.h"
-#include "BipartiteGraphEditDistanceMulti.h"
-#include "GreedyGraphEditDistance.h"
-#include "RandomWalksGraphEditDistance.h"
-#include "RandomWalksGraphEditDistanceMulti.h"
+#include "RiesenCostMatrix.h"
+#include "RandomWalksCostMatrix.h"
+#include "LSAPESolver.h"
+#include "MultiLSAPESolver.h"
 #include "IPFPGraphEditDistance.h"
 #include "RandomMappings.h"
 #include "MultistartRefinementGraphEditDistance.h"
@@ -49,13 +49,11 @@ void usage (char * s)
   cout << "\t lsape_multi_bunke" << endl;
   cout << "\t lsape_rw" << endl;
   cout << "\t lsape_multi_rw" << endl;
-  cout << "\t lsape_multi_greedy" << endl << endl;
   cout << "\t ipfpe_flat" << endl;
   cout << "\t ipfpe_bunke" << endl;
   cout << "\t ipfpe_multi_bunke " << endl;
   cout << "\t ipfpe_rw" << endl;
   cout << "\t ipfpe_multi_rw" << endl;
-  cout << "\t ipfpe_multi_greedy" << endl;
   cout << "\t ipfpe_multi_random" << endl;
   cout << "\t gnccp" << endl;
 }
@@ -146,8 +144,8 @@ double * computeGraphEditDistance(Dataset< NodeAttribute, EdgeAttribute, Propert
         cout << ((double)(tv2.tv_usec - tv1.tv_usec)/1000000 + (double)(tv2.tv_sec - tv1.tv_sec)) << ", " ;
       #endif
 
-      cout << (int)distances[sub2ind(i,j,N)];
-      cout << endl;
+      // cout << (int)distances[sub2ind(i,j,N)];
+      // cout << endl;
     }
   }
   return distances;
@@ -178,47 +176,44 @@ int main (int argc, char** argv)
   }
 
   GraphEditDistance<int,int>* ed;
-  if(options->method == string("lsape_bunke"))
-    ed = new BipartiteGraphEditDistance<int,int>(cf);
-  else if( options->method == string("lsape_multi_bunke") )
-    ed = new BipartiteGraphEditDistanceMulti<int,int>(cf, options->nep);
-  else if( options->method == string("lsape_rw"))
-    ed = new RandomWalksGraphEditDistance(cf,options->k);
-  else if( options->method == string("lsape_multi_rw") )
-    ed = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
-  else if( options->method == string("lsape_multi_greedy") )
-    ed = new GreedyGraphEditDistance<int,int>(cf, options->nep);
-  //else if( options->method == string("multi_random") )
-  //  ed = new RandomInitForIPFP<int,int>(cf, options->nep);
+  RiesenCostMatrix<int,int>  * cm_riesen = new RiesenCostMatrix<int,int>(cf);
+  RandomWalksCostMatrix  * cm_rw = new RandomWalksCostMatrix(cf,options->k);
+  
+  LSAPESolver<int, int> * solver = new LSAPESolver<int,int>();
+  MultiLSAPESolver<int,int> * multi_solver = new MultiLSAPESolver<int,int>(options->nep);
 
+  if(options->method == string("lsape_bunke"))
+    ed = new BipartiteGraphEditDistance<int,int>(cf,cm_riesen,solver);
+  else if( options->method == string("lsape_multi_bunke") ){
+    ed = new BipartiteGraphEditDistance<int,int>(cf, cm_riesen, multi_solver);
+    multi_solver->setGED(ed);
+  }
+  else if( options->method == string("lsape_rw"))
+    ed = new BipartiteGraphEditDistance<int,int>(cf,cm_rw,solver);
+  else if( options->method == string("lsape_multi_rw") ){
+    ed = new BipartiteGraphEditDistance<int,int>(cf, cm_rw,multi_solver);
+    multi_solver->setGED(ed);
+  }
   else if(options->method == string("ipfpe_flat")){
     algoIPFP->continuousFlatInit(true);
     ed = algoIPFP->clone();
-  }
-
-  else if(options->method == string("ipfpe_bunke")){
-    BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf);
+  } else if(options->method == string("ipfpe_bunke")){
+    BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf,cm_riesen,solver);
+    ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
+  } else if(options->method == string("ipfpe_rw")){
+    BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf,cm_rw, multi_solver);
     ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
   } else if(options->method == string("ipfpe_multi_bunke")){
-    BipartiteGraphEditDistanceMulti<int,int> *ed_init = new BipartiteGraphEditDistanceMulti<int,int>(cf, options->nep);
-    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
-  // } else if(options->method == string("ipfpe_multi_rw")){
-  //   RandomWalksGraphEditDistanceMulti *ed_init = new RandomWalksGraphEditDistanceMulti(cf, options->k, options->nep);
-  //   ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
-  } else if(options->method == string("ipfpe_rw")){
-    RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,options->k);
-    ed =new IPFPGraphEditDistance<int,int>(cf,ed_init);
-
-  // } else if(options->method == string("ipfpe_multi_random")){
-  //   RandomMappingsGED<int,int> *init = new RandomMappingsGED<int,int>();
-  //   ed = new MultistartRefinementGraphEditDistance<int,int>(cf, init, options->nep, algoIPFP);
-
-  // } else if(options->method == string("ipfpe_multi_greedy")){
-  //   GreedyGraphEditDistance<int,int> *ed_init = new GreedyGraphEditDistance<int,int>(cf, options->nep);
-  //   ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, options->nep, algoIPFP);
-
+    BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf, cm_riesen,multi_solver);
+    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, algoIPFP);
+  } else if(options->method == string("ipfpe_multi_rw")){
+    BipartiteGraphEditDistance<int,int> *ed_init = new BipartiteGraphEditDistance<int,int>(cf, cm_rw, multi_solver);
+    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, ed_init, algoIPFP);
+  } else if(options->method == string("ipfpe_multi_random")){
+    RandomMappingsGED<int,int> *init = new RandomMappingsGED<int,int>(options->k);
+    ed = new MultistartRefinementGraphEditDistance<int,int>(cf, init, algoIPFP);
   } else if(options->method == string("gnccp")){
-    //RandomWalksGraphEditDistance *ed_init = new RandomWalksGraphEditDistance(cf,3 );
+    //BipartiteGraphEditDistance *ed_init = new BipartiteGraphEditDistance(cf,cm_riesen,solver );
     ed = new GNCCPGraphEditDistance<int,int>(cf);//,ed_init);
 
   } else{
@@ -231,7 +226,7 @@ int main (int argc, char** argv)
   double * distances = computeGraphEditDistance(dataset,ed,options->shuffle, options->nep);
 
   //Output average distances
-  //cout << mean(distances,dataset->size()*dataset->size())<< endl;
+  cout << mean(distances,dataset->size()*dataset->size())<< endl;
 
 
   delete algoIPFP;

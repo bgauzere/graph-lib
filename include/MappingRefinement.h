@@ -8,7 +8,7 @@
 #define __MAPPINGREFINEMENT_H__
 
 #include <list>
-#include <graph.h>
+#include "graph.h"
 
 /**
  * @brief An algorithm refining a mapping from an initialization.

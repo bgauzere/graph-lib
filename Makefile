@@ -6,20 +6,20 @@ IDIR = ./include
 ## Eigen library
 EIGEN_DIR=/home/bgauzere/src/eigen/
 
-CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR) -Wall  -std=c++11 -g #-Werror
+CXXFLAGS = -I$(IDIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR) -Wall  -std=c++11 -fopenmp -O3 # -g -Werror
 
 BINDIR = ./bin
 TESTDIR = ./test
 ODIR = ./obj
 SRCDIR = ./src
 
-_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h MultiGed.h BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h RandomWalksGraphEditDistance.h RandomWalksGraphEditDistanceMulti.h IPFPGraphEditDistance.h  MultistartRefinementGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h CMUCostFunction.h CMUGraph.h  CMUDataset.h LetterCostFunction.h LetterGraph.h LetterDataset.h BipartiteLowerBoundGraphEditDistance.h
+_DEPS = graph.h  gl_utils.h SymbolicGraph.h GraphEditDistance.h ConstantGraphEditDistance.h Dataset.h MultiGed.h BipartiteGraphEditDistance.h BipartiteGraphEditDistanceMulti.h RandomWalksGraphEditDistance.h RandomWalksGraphEditDistanceMulti.h IPFPGraphEditDistance.h  MultistartRefinementGraphEditDistance.h IPFPZetaGraphEditDistance.h  GNCCPGraphEditDistance.h CMUCostFunction.h CMUGraph.h  CMUDataset.h LetterCostFunction.h LetterGraph.h LetterDataset.h BipartiteLowerBoundGraphEditDistance.h RandomWalksCostMatrix.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp RandomWalksGraphEditDistanceMulti.cpp  CMUCostFunction.cpp  CMUGraph.cpp  CMUDataset.cpp  LetterCostFunction.cpp  LetterGraph.cpp LetterDataset.cpp 
+_SRCDEPS = gl_utils.cpp  SymbolicGraph.cpp ConstantGraphEditDistance.cpp RandomWalksGraphEditDistance.cpp RandomWalksGraphEditDistanceMulti.cpp  CMUCostFunction.cpp  CMUGraph.cpp  CMUDataset.cpp  LetterCostFunction.cpp  LetterGraph.cpp LetterDataset.cpp RandomWalksCostMatrix.cpp
 DEPS_SRC += $(patsubst %,$(SRCDIR)/%,$(_DEPS_SRC))
 
-_OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEditDistance.o CMUCostFunction.o CMUGraph.o CMUDataset.o LetterGraph.o LetterCostFunction.o LetterDataset.o
+_OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o CMUCostFunction.o CMUGraph.o CMUDataset.o LetterGraph.o LetterCostFunction.o LetterDataset.o RandomWalksCostMatrix.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _OBJ_QAP = gl_utils.o QAPLibGraph.o QAPLibCostFunction.o QAPLibDataset.o
