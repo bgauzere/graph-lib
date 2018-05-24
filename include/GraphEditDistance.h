@@ -61,8 +61,8 @@ public:
 
   double GedFromMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 			Graph<NodeAttribute,EdgeAttribute> * g2,
-			unsigned int * G1toG2, int n,
-			unsigned int * G2toG1, int m);
+			unsigned int * G1toG2, unsigned int n,
+			unsigned int * G2toG1, unsigned int m);
 
   virtual double operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
 			    Graph<NodeAttribute,EdgeAttribute> * g2);
@@ -85,14 +85,14 @@ public:
 template<class NodeAttribute, class EdgeAttribute>
 double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<NodeAttribute, EdgeAttribute> * g1,
 								       Graph<NodeAttribute, EdgeAttribute> * g2,
-								       unsigned int * G1toG2, int n,
-								       unsigned int * G2toG1, int m){
+								       unsigned int * G1toG2, unsigned int n,
+								       unsigned int * G2toG1, unsigned int m){
   int node_ins =0, node_sub=0, node_del = 0,
     edge_ins=0, edge_sub = 0, edge_del = 0;
   
   /*Edit distance computation*/
   double cost = 0.0;
-  for (int i=0; i<n; ++i)//We process each G1 node's appariemment
+  for (unsigned int i=0; i<n; ++i)//We process each G1 node's appariemment
     if(! is_mapping_valid(G1toG2[i],m)){ //node onto esp, Deletion
       cost += cf->NodeDeletionCost((*g1)[i],g1); 
       node_del ++;
@@ -102,7 +102,7 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
       node_sub ++;
     }
   
-  for (int i=0; i<m; ++i)//We process each G2 node's appariemment
+  for (unsigned int i=0; i<m; ++i)//We process each G2 node's appariemment
     //We only care about G2 node's insertions
     if (G2toG1[i]>= n){
       cost += cf->NodeInsertionCost((*g2)[i],g2); 
@@ -114,14 +114,14 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
   // bool * g2_processed_edges = new bool[g2->getNbEdges()*2]; // Fois deux ??
   // memset(g2_processed_edges,0,sizeof(bool)*g2->getNbEdges()*2);
   double cost_edges = 0.0;
-  for (long i =0; i<n; ++i){ // G1's edges traversal
+  for (unsigned int i =0; i<n; ++i){ // G1's edges traversal
     GEdge<EdgeAttribute> *p = (*g1)[i]->getIncidentEdges();
     while (p){
       /*2 possibilities : edge is deleted, or subtitued
 	Subtitution condition : e = (start, end) with start and end mapped onto G2 in f_start and f_end, 
 	and there is an edge between f_start and f_end*/
-	int start = i;
-	int end = p->IncidentNode();
+	unsigned int start = i;
+	unsigned int end = p->IncidentNode();
 	unsigned int f_start = G1toG2[start];
 	unsigned int f_end = G1toG2[end];
       
@@ -148,11 +148,11 @@ double GraphEditDistance<NodeAttribute, EdgeAttribute>::GedFromMapping(Graph<Nod
     }
   }
    
-  for (int i=0; i<m; ++i){
+  for (unsigned int i=0; i<m; ++i){
     GEdge<EdgeAttribute> *p = (*g2)[i]->getIncidentEdges();
     while(p){
-      int start = i;
-      int end = p->IncidentNode();
+      unsigned int start = i;
+      unsigned int end = p->IncidentNode();
       unsigned int f_start = G2toG1[start];
       unsigned int f_end = G2toG1[end];
       if(( is_mapping_valid(f_start,n)) && is_mapping_valid(f_end,n)){
@@ -198,8 +198,8 @@ template<class NodeAttribute, class EdgeAttribute>
 double GraphEditDistance<NodeAttribute, EdgeAttribute>::
 operator()(Graph<NodeAttribute,EdgeAttribute> * g1,
 	   Graph<NodeAttribute,EdgeAttribute> * g2){
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   unsigned int * G1_to_G2 = new unsigned int[n];
   unsigned int * G2_to_G1 = new unsigned int[m];
   this->getOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);

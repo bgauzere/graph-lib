@@ -51,10 +51,10 @@ public:
    */
   virtual void getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                                   Graph<NodeAttribute,EdgeAttribute> * g2,
-                                  int * G1_to_G2, int * G2_to_G1 );
+                                  unsigned int * G1_to_G2, unsigned int * G2_to_G1 );
 
 
-  virtual std::list<int*> getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
+  virtual std::list<unsigned int*> getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
                                        Graph<NodeAttribute,EdgeAttribute> * g2,
                                        int k = -1 );
   /**
@@ -94,7 +94,7 @@ template<class NodeAttribute, class EdgeAttribute>
 void BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
 getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
-                   int * G1_to_G2, int * G2_to_G1 )
+                   unsigned int * G1_to_G2, unsigned int * G2_to_G1 )
 {
   delete [] this->C;
   this->computeCostMatrix(g1, g2);
@@ -103,14 +103,14 @@ getOptimalMapping (Graph<NodeAttribute,EdgeAttribute> * g1,
 
 
 template<class NodeAttribute, class EdgeAttribute>
-std::list<int*> BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
+std::list<unsigned int*> BipartiteGraphEditDistanceMulti<NodeAttribute, EdgeAttribute>::
 getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
              Graph<NodeAttribute,EdgeAttribute> * g2,
              int k )
 {
   if (k == -1) k = this->_nep;
   this->computeCostMatrix(g1, g2);
-  std::list<int*> maps = MultiGed<NodeAttribute, EdgeAttribute>::getKOptimalMappings(this->C, g1->Size(), g2->Size(), k);
+  std::list<unsigned int*> maps = MultiGed<NodeAttribute, EdgeAttribute>::getKOptimalMappings(this->C, g1->Size(), g2->Size(), k);
 
   delete [] this->C; this->C = NULL;
   return maps;
@@ -123,11 +123,11 @@ operator() (Graph<NodeAttribute,EdgeAttribute> * g1,
             Graph<NodeAttribute,EdgeAttribute> * g2,
             const int& k)
 {
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
 
-  int* G1_to_G2 = new int[n];
-  int* G2_to_G1 = new int[m];
+  unsigned int* G1_to_G2 = new unsigned int[n];
+  unsigned int* G2_to_G1 = new unsigned int[m];
 
   if (this->_nep != k) this->_nep = k;
   getOptimalMapping(g1, g2, G1_to_G2, G2_to_G1);

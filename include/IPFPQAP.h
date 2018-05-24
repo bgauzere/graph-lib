@@ -4,7 +4,7 @@
 
 #include <Eigen/Dense>
 using namespace Eigen;
-#include "hungarian-lsap.hh"
+#include "lsap.h"
 #include "GraphEditDistance.h"
 #include "MappingRefinement.h"
 #include "gl_utils.h"
@@ -32,8 +32,8 @@ protected:
   double oldLterm = 0;
   double * Xkp1tD = 0;
   double * bkp1 = 0;
-  int _n = -1;
-  int _m = -1;
+  unsigned int _n = -1;
+  unsigned int _m = -1;
   int k = -1;
   bool _directed = false;
   std::vector<double> S;
@@ -44,7 +44,7 @@ protected:
 
   void (*_MappingInit)(Graph<NodeAttribute,EdgeAttribute> * g1,
                        Graph<NodeAttribute,EdgeAttribute> * g2,
-                       int * G1_to_G2, int * G2_to_G2);
+                       unsigned int * G1_to_G2, unsigned int * G2_to_G2);
 
   virtual
   void NodeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -53,7 +53,7 @@ protected:
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
                          Graph<NodeAttribute,EdgeAttribute> * g2,
-                         int * G1_to_G2, double * XkD);
+                         unsigned int * G1_to_G2, double * XkD);
 
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
@@ -63,22 +63,22 @@ protected:
   virtual
   double * QuadraticTerm(Graph<NodeAttribute,EdgeAttribute> * g1,
                          Graph<NodeAttribute,EdgeAttribute> * g2,
-                         std::vector<std::pair<std::pair<int,int>,double> > mappings, double * XkD);
+                         std::vector<std::pair<std::pair<unsigned int,unsigned int>,double> > mappings, double * XkD);
 
   //This linearCost is efficient for sparse Xk matrices
   // n is nb rows of matrices, m is nb columns
-  virtual double linearCost(double * CostMatrix, int * G1_to_G2, int n, int m);
+  virtual double linearCost(double * CostMatrix, unsigned int * G1_to_G2, unsigned int n, unsigned int m);
   // n is nb rows of matrices, m is nb columns
-  virtual double linearCost(double * CostMatrix, double * Xk, int n, int m);
+  virtual double linearCost(double * CostMatrix, double * Xk, unsigned int n, unsigned int m);
 
   // Fill this->linearSubProblem with appropriatelinear problem
   virtual void LinearSubProblem();
-  virtual double getCost(int * G1_to_G2, int n, int m);
-  virtual double getCost(double * Matrix , int n, int m);
+  virtual double getCost(unsigned int * G1_to_G2, unsigned int n, unsigned int m);
+  virtual double getCost(double * Matrix , unsigned int n, unsigned int m);
   virtual double getAlpha();
   virtual double getBeta();
 
-  virtual double * mappingsToMatrix(int * G1_to_G2, int n, int m, double * Matrix);
+  virtual double * mappingsToMatrix(unsigned int * G1_to_G2, unsigned int n, unsigned int m, double * Matrix);
 
 
 
@@ -97,14 +97,14 @@ public:
    */
   virtual void getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                                  Graph<NodeAttribute,EdgeAttribute> * g2,
-                                 int * G1_to_G2, int* G2_to_G1=NULL, bool fromInit=true);
+                                 unsigned int * G1_to_G2, unsigned int* G2_to_G1=NULL, bool fromInit=true);
 
   /**
    * Get an optimal mapping from the continunous initialization given by Xk0
    */
   virtual void getBetterMappingFromInit( Graph<NodeAttribute,EdgeAttribute> * g1,
                                          Graph<NodeAttribute,EdgeAttribute> * g2,
-                                         int* G1_to_G2, double * X0 = NULL);
+                                         unsigned int* G1_to_G2, double * X0 = NULL);
 
   virtual void IPFPalgorithm(Graph<NodeAttribute,EdgeAttribute> * g1,
                      Graph<NodeAttribute,EdgeAttribute> * g2);
@@ -112,7 +112,7 @@ public:
 
   virtual double mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
                       Graph<NodeAttribute,EdgeAttribute> * g2,
-                      int* G1_to_G2, int* G2_to_G1 = NULL );
+                      unsigned int* G1_to_G2, unsigned int* G2_to_G1 = NULL );
 
 
   /**
@@ -131,11 +131,11 @@ public:
    *  On the next IPFP algorithm call, the initialization \f$X_0\f$ will be translated to \f$\frac{1}{2}\times(X_0+J)\f$.
    *  If <code>nJ==NULL</code>, then the geometrical barycenter of doubly stochastic matrices \f$J = (1/n)\f$ will be used
    */
-  virtual void recenterInit(double* nJ, int n);
+  virtual void recenterInit(double* nJ, unsigned int n);
 
   IPFPQAP * clone() const { return new IPFPQAP(*this); }
 
-  void setMaxIter(int mi){ this->maxIter=mi; }
+  void setMaxIter(unsigned int mi){ this->maxIter=mi; }
   void setEpsilon(double eps){ this->epsilon = eps; }
 
   virtual ~IPFPQAP(){
@@ -153,20 +153,20 @@ public:
 
 template<class NodeAttribute, class EdgeAttribute>
 void IPFPQAP<NodeAttribute, EdgeAttribute>::
-recenterInit(double * nJ, int n)
+recenterInit(double * nJ, unsigned int n)
 {
   if ( this->J != NULL) delete[] this->J;
   this->J = new double[n*n];
 
   this->recenter = true;
   if (nJ == NULL){
-    for (int i=0; i<n; i++)
-      for (int j=0; j<n; j++)
+    for (unsigned int i=0; i<n; i++)
+      for (unsigned int j=0; j<n; j++)
         this->J[sub2ind(i,j,n)] = 1.0/n;
   }
   else{
-    for (int i=0; i<n; i++)
-      for (int j=0; j<n; j++)
+    for (unsigned int i=0; i<n; i++)
+      for (unsigned int j=0; j<n; j++)
         this->J[sub2ind(i,j,n)] = nJ[sub2ind(i,j,n)];
   }
 }
@@ -177,12 +177,12 @@ void IPFPQAP<NodeAttribute, EdgeAttribute>::
 NodeCostMatrix( Graph<NodeAttribute,EdgeAttribute> * g1,
                 Graph<NodeAttribute,EdgeAttribute> * g2)
 {
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
 
   this->C = new double[n*m];
-  for(int i=0;i<n;i++)
-    for(int j=0;j<m;j++)
+  for(unsigned int i=0;i<n;i++)
+    for(unsigned int j=0;j<m;j++)
       C[sub2ind(i,j,n)] = this->costFunction->NodeSubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
 }
 
@@ -193,16 +193,16 @@ QuadraticTerm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2,
                double * Matrix, double * XkD)
 {
-  int n = g1->Size();
-  int m = g2->Size();
+  unsigned int n = g1->Size();
+  unsigned int m = g2->Size();
 
-  std::vector<std::pair<std::pair<int,int>, double>> mappings;
-  for(int i=0;i<n;i++)
-    for(int j=0;j<m;j++){
+  std::vector<std::pair<std::pair<unsigned int,unsigned int>, double>> mappings;
+  for(unsigned int i=0;i<n;i++)
+    for(unsigned int j=0;j<m;j++){
       double value = Matrix[sub2ind(i,j,n)];
       if(value > 0.){
-        std::pair<int,int> tmp = std::pair<int,int>(i,j);
-        mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,value));
+        std::pair<unsigned int,unsigned int> tmp = std::pair<unsigned int,unsigned int>(i,j);
+        mappings.push_back(std::pair<std::pair<unsigned int,unsigned int>,double>(tmp,value));
       }
     }
   if (! XkD)
@@ -217,18 +217,18 @@ template<class NodeAttribute, class EdgeAttribute>
 double * IPFPQAP<NodeAttribute, EdgeAttribute>::
 QuadraticTerm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2,
-               int * G1_to_G2,double * XkD )
+               unsigned int * G1_to_G2,double * XkD )
 {
 
-  int n = g1->Size();
-  int m = g2->Size();
+  unsigned int n = g1->Size();
+  unsigned int m = g2->Size();
 
   //Reconstruction d'un mapping
-  std::vector<std::pair<std::pair<int,int>, double>> mappings;
-  for (int i =0;i<n;i++){
+  std::vector<std::pair<std::pair<unsigned int,unsigned int>, double>> mappings;
+  for (unsigned int i =0;i<n;i++){
     if (G1_to_G2[i] >= 0){
-      std::pair<int,int> tmp = std::pair<int,int>(i,G1_to_G2[i]);
-      mappings.push_back(std::pair<std::pair<int,int>,double>(tmp,1.));
+      std::pair<unsigned int,unsigned int> tmp = std::pair<unsigned int,unsigned int>(i,G1_to_G2[i]);
+      mappings.push_back(std::pair<std::pair<unsigned int,unsigned int>,double>(tmp,1.));
     }
   }
   if (! XkD)
@@ -244,25 +244,25 @@ template<class NodeAttribute, class EdgeAttribute>
 double * IPFPQAP<NodeAttribute, EdgeAttribute>::
 QuadraticTerm( Graph<NodeAttribute,EdgeAttribute> * g1,
                Graph<NodeAttribute,EdgeAttribute> * g2,
-               std::vector<std::pair<std::pair<int,int>,double> > mappings,
+               std::vector<std::pair<std::pair<unsigned int,unsigned int>,double> > mappings,
                double * quadraticTerm )
 {
-  int n = g1->Size();
-  int m = g2->Size();
+  unsigned int n = g1->Size();
+  unsigned int m = g2->Size();
 
   if (! quadraticTerm)
     quadraticTerm=new double[n*m];
 
   memset(quadraticTerm,0,sizeof(double)*n*m);
 
-  for(int j = 0; j < n; j++){
-    for(int l = 0; l < m;l++){
+  for(unsigned int j = 0; j < n; j++){
+    for(unsigned int l = 0; l < m;l++){
 
-      std::vector<std::pair<std::pair<int,int>,double> >::iterator it = mappings.begin();
-      int __i=0;
+      std::vector<std::pair<std::pair<unsigned int,unsigned int>,double> >::iterator it = mappings.begin();
+      unsigned int __i=0;
       for(;it != mappings.end();it++){
-        int i = it->first.first;
-        int k = it->first.second;
+        unsigned int i = it->first.first;
+        unsigned int k = it->first.second;
 
         if(i != j  &&  k != l){
           GEdge<EdgeAttribute> * e1 = NULL;
@@ -301,21 +301,21 @@ template<class NodeAttribute, class EdgeAttribute>
 void IPFPQAP<NodeAttribute, EdgeAttribute>::
 getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                    Graph<NodeAttribute,EdgeAttribute> * g2,
-                   int * G1_to_G2, int* G2_to_G1 )
+                   unsigned int * G1_to_G2, unsigned int* G2_to_G1 )
 {
   //Compute Mapping init
   // => shuffleize
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   unsigned seed = 22463276112;
 
-  std::vector<int> perm(n);
-  for (int i=0; i<m; i++) perm[i] = i;
-  for (int i=m; i<n; i++) perm[i] = -1;
+  std::vector<unsigned int> perm(n);
+  for (unsigned int i=0; i<m; i++) perm[i] = i;
+  for (unsigned int i=m; i<n; i++) perm[i] = -1;
   std::shuffle(perm.begin(), perm.end(), std::default_random_engine(seed));
 
-  for (int i=0; i<n; i++) {
+  for (unsigned int i=0; i<n; i++) {
     G1_to_G2[i] = perm[i];
     std::cerr << G1_to_G2[i] << " ";
   }
@@ -323,11 +323,11 @@ getOptimalMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
 
   getOptimalMappingFromInit(g1, g2, G1_to_G2);
 
-  for (int i=0; i<n; i++)
+  for (unsigned int i=0; i<n; i++)
     if (G1_to_G2[i] >= 0)
       G2_to_G1[G1_to_G2[i]] = i;
 
-  for (int j=n; j<m; j++)
+  for (unsigned int j=n; j<m; j++)
     G2_to_G1[j] = -1;
 }
 */
@@ -338,7 +338,7 @@ template<class NodeAttribute, class EdgeAttribute>
 void IPFPQAP<NodeAttribute, EdgeAttribute>::
 getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
                   Graph<NodeAttribute,EdgeAttribute> * g2,
-                  int * G1_to_G2, int* G2_to_G1, bool fromInit )
+                  unsigned int * G1_to_G2, unsigned int* G2_to_G1, bool fromInit )
 {
   this->_n = g1->Size();
   this->_m = g2->Size();
@@ -349,8 +349,8 @@ getBetterMapping( Graph<NodeAttribute,EdgeAttribute> * g1,
     this->Xk = this->mappingsToMatrix(G1_to_G2,this->_n,this->_m,this->Xk);
   }
   else{
-    for (int j=0; j<this->_m; j++)
-      for (int i=0; i<this->_n; i++)
+    for (unsigned int j=0; j<this->_m; j++)
+      for (unsigned int i=0; i<this->_n; i++)
         this->Xk[sub2ind(i,j,this->_n)] = 1.0/this->_n;
   }
 
@@ -364,7 +364,7 @@ template<class NodeAttribute, class EdgeAttribute>
 void IPFPQAP<NodeAttribute, EdgeAttribute>::
 getBetterMappingFromInit( Graph<NodeAttribute,EdgeAttribute> * g1,
                            Graph<NodeAttribute,EdgeAttribute> * g2,
-                           int* G1_to_G2, double * X0)
+                           unsigned int* G1_to_G2, double * X0)
 {
   this->_n = g1->Size();
   this->_m = g2->Size();
@@ -373,8 +373,8 @@ getBetterMappingFromInit( Graph<NodeAttribute,EdgeAttribute> * g1,
     this->Xk = new double[(this->_n) * (this->_m)];
 
   if (this->Xk != X0){
-    for (int j=0; j<this->_m; j++)
-      for (int i=0; i<this->_n; i++)
+    for (unsigned int j=0; j<this->_m; j++)
+      for (unsigned int i=0; i<this->_n; i++)
 	this->Xk[sub2ind(i,j,this->_n)] = X0[sub2ind(i,j,this->_n)];
   }
 
@@ -386,7 +386,7 @@ getBetterMappingFromInit( Graph<NodeAttribute,EdgeAttribute> * g1,
   m_Xk= m_Xk *-1;
   double *u = new double[this->_n];
   double *v = new double[this->_m];
-  hungarianLSAP<double, int>(this->Xk,  this->_n,  this->_m, G1_to_G2, u,v);
+  lsape::hungarianLSAP<double>(this->Xk,  this->_n,  this->_m, G1_to_G2, u,v);
   delete [] this->Xk; this->Xk=NULL;
   delete [] u;
   delete [] v;
@@ -403,9 +403,9 @@ IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
 
   // Recenter the init mapping ?
   if (this->recenter){
-    if (this->J == NULL) this->recenterInit(NULL, this->_n); // @see recenterInit(double*, int)
-    for (int j=0; j<this->_n;  j++)
-      for (int i=0; i<this->_n;  i++)
+    if (this->J == NULL) this->recenterInit(NULL, this->_n); // @see recenterInit(double*, unsigned int)
+    for (unsigned int j=0; j<this->_n;  j++)
+      for (unsigned int i=0; i<this->_n;  i++)
         this->Xk[sub2ind(i,j,this->_n)] = (this->Xk[sub2ind(i,j,this->_n)] + this->J[sub2ind(i,j,this->_n)]) / 2;
   }
 
@@ -445,19 +445,19 @@ IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
 
 
   double *u = new double[this->_n];
-  double *v = new double[this->_m];  int * G1_to_G2 = new int[this->_n];
+  double *v = new double[this->_m];  unsigned int * G1_to_G2 = new unsigned int[this->_n];
   bool flag_continue = true;
 
-  //BipartiteGraphEditDistanceMulti<int,int> ed_multi(this->cf, 30); // To know how many solutions to lsap per iteration
+  //BipartiteGraphEditDistanceMulti<unsigned int,unsigned int> ed_multi(this->cf, 30); // To know how many solutions to lsap per iteration
   while((k < this->maxIter) && flag_continue){ //TODO : fixer un epsilon, param ?
     this->XkD = QuadraticTerm(g1, g2, Xk, this->XkD);
     this->LinearSubProblem();//    should call it gradient direction
 
-    hungarianLSAP<double,int>(linearSubProblem,  this->_n,  this->_m, G1_to_G2, u,v);
+    lsape::hungarianLSAP<double>(linearSubProblem,  this->_n,  this->_m, G1_to_G2, u,v);
     //bkp1 is the matrix version of mapping G1_to_G2 so a binary matrix
     this->bkp1 = mappingsToMatrix(G1_to_G2,  this->_n,  this->_m,this->bkp1);
     R.push_back(linearCost(linearSubProblem,G1_to_G2,  this->_n,  this->_m));
-    //std::list<int*> mappings = ed_multi.getKOptimalMappings(g1, g2, linearSubProblem, 30);
+    //std::list<unsigned int*> mappings = ed_multi.getKOptimalMappings(g1, g2, linearSubProblem, 30);
     //std::cout << mappings.size() << ", ";
 
 #if DEBUG
@@ -554,20 +554,20 @@ IPFPalgorithm( Graph<NodeAttribute,EdgeAttribute> * g1,
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPQAP<NodeAttribute, EdgeAttribute>::
-linearCost(double * CostMatrix, int * G1_to_G2, int n, int m){
+linearCost(double * CostMatrix, unsigned int * G1_to_G2, unsigned int n, unsigned int m){
   double sum = 0.0;
-  for(int i=0;i<n;i++)
+  for(unsigned int i=0;i<n;i++)
     if (G1_to_G2[i]>=0) sum += CostMatrix[sub2ind(i,G1_to_G2[i],n)];
   return sum;
 }
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPQAP<NodeAttribute, EdgeAttribute>::
-linearCost(double * CostMatrix, double * X, int n, int m){
+linearCost(double * CostMatrix, double * X, unsigned int n, unsigned int m){
   //Todo : optimiser avec dot product ?
   double sum = 0.0;
-  for(int i=0;i<n;i++)
-    for(int j=0;j<m;j++)
+  for(unsigned int i=0;i<n;i++)
+    for(unsigned int j=0;j<m;j++)
       sum += CostMatrix[sub2ind(i,j,n)] * X[sub2ind(i,j,n)];
   return sum;
 }
@@ -587,13 +587,13 @@ LinearSubProblem(){
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPQAP<NodeAttribute, EdgeAttribute>::
-getCost(double * Matrix, int n, int m){
+getCost(double * Matrix, unsigned int n, unsigned int m){
   return linearCost(this->XkD,Matrix, n,m )+ this->Lterm;
 }
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPQAP<NodeAttribute, EdgeAttribute>::
-getCost(int * G1_to_G2, int n, int m){
+getCost(unsigned int * G1_to_G2, unsigned int n, unsigned int m){
 
   return linearCost(this->XkD,G1_to_G2, n, m)+ this->Lterm;
 }
@@ -613,9 +613,9 @@ getBeta(){
 
 template<class NodeAttribute, class EdgeAttribute>
 double * IPFPQAP<NodeAttribute, EdgeAttribute>::
-mappingsToMatrix(int * G1_to_G2, int n, int m, double * Matrix){
+mappingsToMatrix(unsigned int * G1_to_G2, unsigned int n, unsigned int m, double * Matrix){
   memset(Matrix,0,sizeof(double)*n*m);
-  for (int i =0;i<n;i++){
+  for (unsigned int i =0;i<n;i++){
     //if (G1_to_G2[i] >= m) std::cout << G1_to_G2[i] << std::endl;
     if (G1_to_G2[i] >= 0)  Matrix[sub2ind(i,G1_to_G2[i],n)] = 1;
   }
@@ -627,11 +627,11 @@ template<class NodeAttribute, class EdgeAttribute>
 double IPFPQAP<NodeAttribute, EdgeAttribute>::
 mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
              Graph<NodeAttribute,EdgeAttribute> * g2,
-             int* G1_to_G2 , int* G2_to_G1)
+             unsigned int* G1_to_G2 , unsigned int* G2_to_G1)
 {
   //*
-  int n = g1->Size(); this->_n = n;
-  int m = g2->Size(); this->_m = m;
+  unsigned int n = g1->Size(); this->_n = n;
+  unsigned int m = g2->Size(); this->_m = m;
 
   this->_directed = true;
 
@@ -656,8 +656,8 @@ mappingCost( Graph<NodeAttribute,EdgeAttribute> * g1,
 
   /*
   double cost = 0.0;
-  for (int i=0; i<g1->Size(); i++){
-    for (int j=0; j<g1->Size(); j++){
+  for (unsigned int i=0; i<g1->Size(); i++){
+    for (unsigned int j=0; j<g1->Size(); j++){
       GEdge<EdgeAttribute> * e1 = g1->getEdge(i,j);
       GEdge<EdgeAttribute> * e2 = g2->getEdge(G1_to_G2[i], G1_to_G2[j]);
       if (e1 && e2)

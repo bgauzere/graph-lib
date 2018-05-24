@@ -40,7 +40,7 @@ public:
    * @return  A list of mappings given as arrays of int. For each mapping M, `M[i]` is the mapping, in g2, of node i in g1
    * @note  Each array is allocated here and have to be deleted manually
    */
-  virtual std::list<int*> getMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
+  virtual std::list<unsigned int*> getMappings(Graph<NodeAttribute,EdgeAttribute> * g1,
 				      Graph<NodeAttribute,EdgeAttribute> * g2,
 				      int k );
 
@@ -52,31 +52,31 @@ public:
 
 
 template<class NodeAttribute, class EdgeAttribute>
-std::list<int*> GreedyGraphEditDistance<NodeAttribute, EdgeAttribute>::
+std::list<unsigned int*> GreedyGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getMappings( Graph<NodeAttribute,EdgeAttribute> * g1,
 	     Graph<NodeAttribute,EdgeAttribute> * g2,
 	     int k)
 {
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   
   this->computeCostMatrix(g1, g2);
   
   // Compute integer cost matrix
   int* Ci = new int[(n+1)*(m+1)];
 
-  for (int j=0; j<=m; j++){
-    for (int i=0; i<=n; i++){
+  for (unsigned int j=0; j<=m; j++){
+    for (unsigned int i=0; i<=n; i++){
       Ci[sub2ind(i,j,n+1)] = (int)(this->C[sub2ind(i,j,n+1)]);
     }
   }
   // the returned mappings
-  std::list<int*> mappings;
+  std::list<unsigned int*> mappings;
 
-  cDigraph<int> dg = greedySortDigraph<int, int>(Ci, n+1, m+1);
-  AllPerfectMatchingsEC<int> apm(dg,n,m);
+  lsape::cDigraph<unsigned int> dg = lsape::greedySortDigraph<int, unsigned int>(Ci, n+1, m+1);
+  lsape::AllPerfectMatchingsEC<unsigned int> apm(dg, n, m, mappings);
   apm.enumPerfectMatchings(dg, this->_nep);
-  mappings = apm.getPerfectMatchings();
+  //mappings = apm.getPerfectMatchings();
   
   delete [] Ci;
 

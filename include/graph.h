@@ -24,7 +24,7 @@ private:
   /** The next neighbourhood node. */
   GEdge *next; 
   /** The rank of the node in the graph array. */
-  int incident_node; //XXX : How is it difficult to link a GNode ?
+  unsigned int incident_node; //XXX : How is it difficult to link a GNode ?
   /** The number identifiing a given edge. */
    int edge_id;
 
@@ -38,7 +38,7 @@ public:
     * @param adj the next edge (in a list).
     * @param attr the label.
     */
-   GEdge( int n, GEdge *adj, EdgeAttribute attr ): next(adj), incident_node(n), edge_id(-1), attr(attr) {};
+   GEdge( unsigned int n, GEdge *adj, EdgeAttribute attr ): next(adj), incident_node(n), edge_id(-1), attr(attr) {};
 
   
    /**
@@ -48,7 +48,7 @@ public:
     * @param adj the next edge (in a list).
     * @param attr the label.
     */
-   GEdge( int n, GEdge *adj, int i, EdgeAttribute attr): next(adj), incident_node(n), edge_id(i), attr(attr) {};
+   GEdge( unsigned int n, GEdge *adj, int i, EdgeAttribute attr): next(adj), incident_node(n), edge_id(i), attr(attr) {};
 
    /**
     * Deletes the edge
@@ -59,14 +59,14 @@ public:
     * Returns the number of the incident incident_node.
     * @return	the number of the connected incident_node.
     */
-   int IncidentNode() const { return incident_node; };
+   unsigned int IncidentNode() const { return incident_node; };
 
   /**
    * Sets the incident node for a given edge.
    * @param new_node	the number of the connected incident_node.
    * XXX: take care of symmetric edges
    */
-  void  setIncidentNode(int new_node)  {  this->incident_node = new_node; };
+  void  setIncidentNode(unsigned int new_node)  {  this->incident_node = new_node; };
 
    /**
     * Returns the next edge in the list of edge. Useful to traverse all incident edges from a node (const version).
@@ -105,7 +105,7 @@ private:
   /** The list of incident edges. */
   GEdge<EdgeAttribute> *adjacents;
   /** The id of the node in the graph. */
-  int item;
+  unsigned int item;
 
 public :
   /** The attribute of the node.
@@ -119,7 +119,7 @@ public :
    * @param i	the identifier of the node in the graph.
    * @param attr  the label associated to the node.
    */
-  GNode<NodeAttribute, EdgeAttribute>( int i, NodeAttribute attr ): adjacents(0), item(i), attr(attr) { };
+  GNode<NodeAttribute, EdgeAttribute>( unsigned int i, NodeAttribute attr ): adjacents(0), item(i), attr(attr) { };
 
   /*
    * Node destructor.
@@ -147,7 +147,7 @@ public :
    * XXX: Check for directed graphs.
    * XXX: Only manage GNode ?
    */
-  GEdge<EdgeAttribute> * Connect( int incidentNode, EdgeAttribute label ) { //XXX: Check for link already here
+  GEdge<EdgeAttribute> * Connect( unsigned int incidentNode, EdgeAttribute label ) { //XXX: Check for link already here
     return ( adjacents=new GEdge<EdgeAttribute>( incidentNode, adjacents, label ) );
   };
   
@@ -161,7 +161,7 @@ public :
    * XXX: Only manage GNode ?
    * XXX: Check for integrity of edge_id
    */
-  GEdge<EdgeAttribute> * Connect( int incidentNode, int edge_id, EdgeAttribute attr){
+  GEdge<EdgeAttribute> * Connect( unsigned int incidentNode, int edge_id, EdgeAttribute attr){
     return ( adjacents=new GEdge<EdgeAttribute>( incidentNode, adjacents, edge_id, attr ) );
   };
 
@@ -169,8 +169,8 @@ public :
    * Returns the degree of a node 
    * @return the degree
    */
-  int Degree(){
-    int degree = 0;
+  unsigned int Degree(){
+    unsigned int degree = 0;
     GEdge<EdgeAttribute>* p = adjacents;
     while(p) {degree ++;p=p->Next();}
     return degree;	       
@@ -208,14 +208,14 @@ public :
    * Returns the index of the referenced object.
    * @return	the index.
    */
-  int Item() const { return item; }
+  unsigned int Item() const { return item; }
 
   /**
    * Sets the new index of the referenced object.
    * @param i	the new index.
    * @return	the new index of the object.
    */
-  int Item( int i ) { return item=i; }
+  unsigned int Item( unsigned int i ) { return item=i; }
 };
 
 /** @brief A 2D graph.
@@ -227,8 +227,8 @@ template< class NodeAttribute, class EdgeAttribute>
 class Graph {
 protected :
   std::vector<GNode<NodeAttribute, EdgeAttribute> *> tnode; //List of nodes. tnode[i] corresponds to node with id i
-  int nbNodes;
-  int nbEdges;
+  unsigned int nbNodes;
+  unsigned int nbEdges;
   bool _directed;
 
   friend class GEdge<EdgeAttribute>;
@@ -251,11 +251,11 @@ public :
     nbEdges(0),
     _directed(g._directed)
   {
-    for (int i=0; i<g.Size(); i++){
+    for (unsigned int i=0; i<g.Size(); i++){
       this->Add(new GNode<NodeAttribute,EdgeAttribute> (i, g[i]->attr));
     }
 
-    for (int i=0; i<g.Size(); i++){
+    for (unsigned int i=0; i<g.Size(); i++){
       GEdge<int> *p = g[i]->getIncidentEdges();
       while(p){
         this->Link(i, p->IncidentNode(), p->attr);
@@ -280,7 +280,7 @@ public :
    * Deletes the graph.
    */
   virtual ~Graph(){
-    for (int i=0;i<nbNodes;i++) {
+    for (unsigned int i=0;i<nbNodes;i++) {
       if (tnode[i])
 	delete tnode[i];
     }
@@ -295,14 +295,14 @@ public :
    * Returns the number of nodes.
    * @return	the size.
    */
-  int Size() const { return nbNodes; };
+  unsigned int Size() const { return nbNodes; };
   /**
    * Returns the number of edges.
    * @return	the number of edges.
    * XXX: Accord it with graph theory terms order and size
    */
   
-  int getNbEdges() const { return _directed?nbEdges:nbEdges/2; }
+  unsigned int getNbEdges() const { return _directed?nbEdges:nbEdges/2; }
   /**
    * Creates a new graph with no data.
    * @param directed true for creating a directed graph.
@@ -315,21 +315,21 @@ public :
    * @param id	the identifier.
    * @return	the corresponding node.
    */
-  GNode<NodeAttribute, EdgeAttribute> *operator[]( int id ){ return(tnode[id]); }
+  GNode<NodeAttribute, EdgeAttribute> *operator[]( unsigned int id ){ return(tnode[id]); }
 
   /**
    * Returns the node with the  specified identifier (const version).
    * @param id	the identifier.
    * @return	the corresponding node.
    */
-  const GNode<NodeAttribute, EdgeAttribute> *operator[]( int pos ) const { return(tnode[pos]); }
+  const GNode<NodeAttribute, EdgeAttribute> *operator[]( unsigned int pos ) const { return(tnode[pos]); }
    
   /**
    * Adds a new node to the graph. 
    * @param node the new Node
    * @return  id of the node.
    */
-  int Add( GNode<NodeAttribute, EdgeAttribute>* node ){
+  unsigned int Add( GNode<NodeAttribute, EdgeAttribute>* node ){
     tnode.push_back(node);
     nbNodes ++;
     return tnode.size();
@@ -341,7 +341,7 @@ public :
    * @param s	the node to be deleted.
    * @return	SUCCESS or FAILURE.
    */
-  GNode<NodeAttribute, EdgeAttribute> * Del( int s ){
+  GNode<NodeAttribute, EdgeAttribute> * Del( unsigned int s ){
     GNode<NodeAttribute, EdgeAttribute> *oldNode;
     oldNode = tnode[s];
     tnode[s] = NULL;
@@ -357,7 +357,7 @@ public :
    * @return created <code>GEdge</code>.
    */
   
-  GEdge<EdgeAttribute> * Link(int firstNode, int secondNode , EdgeAttribute label){
+  GEdge<EdgeAttribute> * Link(unsigned int firstNode, unsigned int secondNode , EdgeAttribute label){
     GEdge<EdgeAttribute> * e = NULL;
     if (tnode[firstNode] != NULL && tnode[secondNode] != NULL){
       e = tnode[firstNode]->Connect(secondNode,nbEdges,label);
@@ -375,7 +375,7 @@ public :
    * Returns true if both nodes are linked.
    * @return TRUE if edge exists, FALSE otherwise.
    */
-  bool isLinked(int firstNode, int secondNode) const {
+  bool isLinked(unsigned int firstNode, unsigned int secondNode) const {
     // Re-implemented from getEdge to keep const qualifier
    GEdge<EdgeAttribute> *p = tnode[firstNode]->getIncidentEdges();
     while(p){
@@ -393,7 +393,7 @@ public :
    * @param secondNode sedond incident node connecting the desired edge
    * @return TRUE if edge exists, FALSE otherwise.
    */
-  GEdge<EdgeAttribute> * getEdge(int firstNode, int secondNode){
+  GEdge<EdgeAttribute> * getEdge(unsigned int firstNode, unsigned int secondNode){
     GEdge<EdgeAttribute> *p = tnode[firstNode]->getIncidentEdges();
     while(p){
       if (p->IncidentNode() == secondNode)
@@ -410,7 +410,7 @@ public :
    * @param p the edge
    * @return the symmetric <code>GEdge</code> of p. NULL if not found.
    */
-  GEdge<EdgeAttribute> * getSymmetricEdge(int nodeId,const GEdge<EdgeAttribute> * p){
+  GEdge<EdgeAttribute> * getSymmetricEdge(unsigned int nodeId,const GEdge<EdgeAttribute> * p){
    if(!_directed){
       return getEdge(p->IncidentNode(), nodeId);
    }
@@ -421,19 +421,19 @@ public :
    */
   void shuffleize(){
     // set some values:
-    std::vector<int> perm;
-    for (int i=0; i<nbNodes; ++i) perm.push_back(i);
+    std::vector<unsigned int> perm;
+    for (unsigned int i=0; i<nbNodes; ++i) perm.push_back(i);
     // using built-in random generator:
     std::random_shuffle ( perm.begin(), perm.end() ); //seed ?
     std::vector<GNode<NodeAttribute,EdgeAttribute>*> new_tnode;
-    std::vector<int> inv_tnode(Size());
+    std::vector<unsigned int> inv_tnode(Size());
     //Modification of list nodes
-    for(int i=0;i<nbNodes;i++){
+    for(unsigned int i=0;i<nbNodes;i++){
       new_tnode.push_back(tnode[perm[i]]);
       inv_tnode[perm[i]] = i;
     }
     //Application of node permuations to graph'edges
-    for(int i=0;i<nbNodes;i++){
+    for(unsigned int i=0;i<nbNodes;i++){
       GEdge<EdgeAttribute> *p = tnode[i]->getIncidentEdges();
       while(p){
 	p->setIncidentNode(inv_tnode[p->IncidentNode()]);
@@ -441,7 +441,7 @@ public :
       }
     }
     //Update the list of nodes
-    for(int i=0;i<nbNodes;i++)tnode[i] = new_tnode[i];
+    for(unsigned int i=0;i<nbNodes;i++)tnode[i] = new_tnode[i];
   }
 }; //End of class graph
 
@@ -461,7 +461,7 @@ void Graph<NodeAttribute,EdgeAttribute>::GraphLoadGXL(const char * filename,
   
 
   TiXmlHandle hdl(&doc);
-  std::map<int,int> id_to_index;
+  std::map<int,unsigned int> id_to_index;
   //TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement().FirstChildElement().Element();
   TiXmlElement *elem = hdl.FirstChildElement().FirstChildElement("graph").FirstChildElement().Element();
   while (elem){

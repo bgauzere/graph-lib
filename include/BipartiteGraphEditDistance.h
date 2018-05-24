@@ -93,8 +93,8 @@ double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 		       Graph<NodeAttribute,EdgeAttribute> * g2,
 		       unsigned int * G1_to_G2, unsigned int * G2_to_G1){
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   // Compute C
   delete [] this->C;
   computeCostMatrix(g1,g2);
@@ -115,8 +115,8 @@ void BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2,
 		  unsigned int * G1_to_G2, unsigned int * G2_to_G1){
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   // Compute C
   delete [] this->C;
   computeCostMatrix(g1,g2);
@@ -135,8 +135,8 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
 		 GNode<NodeAttribute,EdgeAttribute> * v2,
 		 Graph<NodeAttribute,EdgeAttribute> * g1,
 		 Graph<NodeAttribute,EdgeAttribute> * g2){
-  int n=v1->Degree();
-  int m=v2->Degree();
+  unsigned int n=v1->Degree();
+  unsigned int m=v2->Degree();
 
   GEdge<EdgeAttribute> * e1 = v1->getIncidentEdges(); //edge from v1 in G1
   GEdge<EdgeAttribute> * _e2 = v2->getIncidentEdges(); //edge from v2 in G2
@@ -145,9 +145,9 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
 
   double * local_C = new double[(n+1) * (m+1)];
   memset(local_C,0,sizeof(double)*(n+1) * (m+1));
-  for (int i=0;e1;i++){
+  for (unsigned int i=0;e1;i++){
     e2 = _e2; 
-    for (int j=0;e2;j++){
+    for (unsigned int j=0;e2;j++){
       local_C[sub2ind(i,j,n+1)] = this->cf->EdgeSubstitutionCost(e1,e2,g1,g2);
       // this->cf->NodeSubstitutionCost((*g1)[e1->IncidentNode()],
       // 								 (*g2)[e2->IncidentNode()],
@@ -158,12 +158,12 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
   }
 
   e1 = v1->getIncidentEdges();
-  for (int i=0;e1;i++){
+  for (unsigned int i=0;e1;i++){
     local_C[sub2ind(i,m,n+1)] = this->cf->EdgeDeletionCost(e1,g1); //this->cf->NodeDeletionCost((*g1)[e1->IncidentNode()],g1) +
     e1 = e1->Next();
   }
   e2 = v2->getIncidentEdges();
-  for (int j=0;e2;j++){
+  for (unsigned int j=0;e2;j++){
     local_C[sub2ind(n, j, n+1)] = this->cf->EdgeInsertionCost(e2,g2); //this->cf->NodeInsertionCost((*g2)[e2->IncidentNode()],g2) +
     e2 = e2->Next();
   }
@@ -180,9 +180,9 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
 
   lsape::lsapeSolver<double>(local_C,n+1,m+1, rho, varrho, u,v,my_solver,1);
   double cost=0.0;
-  for (int i =0;i<n+1;i++)
+  for (unsigned int i =0;i<n+1;i++)
     cost += u[i];
-  for (int j =0;j<m+1;j++)
+  for (unsigned int j =0;j<m+1;j++)
     cost += v[j];
   delete [] u;delete [] v;
   delete [] rho;delete [] varrho;
@@ -194,11 +194,11 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
 template<class NodeAttribute, class EdgeAttribute>
 double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 DeletionCost(GNode<NodeAttribute,EdgeAttribute> * v1,Graph<NodeAttribute,EdgeAttribute> * g1){
-  int n=v1->Degree();
+  unsigned int n=v1->Degree();
 
   GEdge<EdgeAttribute> * e1 = v1->getIncidentEdges();
   double cost = 0.0;
-  for (int i=0;i<n;i++, e1 = e1->Next())
+  for (unsigned int i=0;i<n;i++, e1 = e1->Next())
     cost += this->cf->EdgeDeletionCost(e1,g1); //this->cf->NodeDeletionCost((*g1)[e1->IncidentNode()],g1) +
   
   return cost + this->cf->NodeDeletionCost(v1,g1);
@@ -207,11 +207,11 @@ DeletionCost(GNode<NodeAttribute,EdgeAttribute> * v1,Graph<NodeAttribute,EdgeAtt
 template<class NodeAttribute, class EdgeAttribute>
 double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 InsertionCost(GNode<NodeAttribute,EdgeAttribute> * v2,Graph<NodeAttribute,EdgeAttribute> * g2){
-  int n=v2->Degree();
+  unsigned int n=v2->Degree();
 
   GEdge<EdgeAttribute> * e2 = v2->getIncidentEdges();
   double cost = 0.0;
-  for (int i=0;i<n;i++, e2 = e2->Next())
+  for (unsigned int i=0;i<n;i++, e2 = e2->Next())
     cost  += this->cf->EdgeInsertionCost(e2,g2);// this->cf->NodeInsertionCost((*g2)[e2->IncidentNode()],g2) +
   return cost + this->cf->NodeInsertionCost(v2,g2);
 }
@@ -223,22 +223,22 @@ computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 
   //delete [] C;
 
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   // if (C != NULL){
   //   delete [] C;
   //   C = NULL;
   // }
   C = new double[(n+1) * (m+1)];
   C = (double*)memset(C,0,sizeof(double)*(n+1) * (m+1));
-  for (int i =0;i<n;i++)
-    for(int j = 0;j<m;j++)
+  for (unsigned int i =0;i<n;i++)
+    for(unsigned int j = 0;j<m;j++)
       C[sub2ind(i,j,n+1)] = this->SubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
   
-  for (int i =0;i<n;i++)
+  for (unsigned int i =0;i<n;i++)
     C[sub2ind(i,m,n+1)] = this->DeletionCost((*g1)[i],g1);
 
-  for (int j =0;j<m;j++)
+  for (unsigned int j =0;j<m;j++)
     C[sub2ind(n,j,n+1)] = this->InsertionCost((*g2)[j],g2);
 
   C[sub2ind(n,m,n+1)] = 0;
@@ -248,8 +248,8 @@ template<class NodeAttribute, class EdgeAttribute>
 double BipartiteGraphEditDistance<NodeAttribute, EdgeAttribute>::
 getUpperBound(Graph<NodeAttribute,EdgeAttribute> * g1,
 	      Graph<NodeAttribute,EdgeAttribute> * g2,double & comptime){
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   unsigned int * G1_to_G2 = new unsigned int[n];
   unsigned int * G2_to_G1 = new unsigned int[m];
   comptime = this->getTimedOptimalMapping(g1,g2,G1_to_G2,G2_to_G1);

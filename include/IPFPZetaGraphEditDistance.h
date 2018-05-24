@@ -27,8 +27,8 @@ private:
   double _zeta;
 protected:
   virtual void LinearSubProblem();
-  virtual   double getCost(int * G1_to_G2,int * G2_to_G1, int n, int m);
-  virtual   double getCost(double * , int n, int m);
+  virtual   double getCost(unsigned int * G1_to_G2,unsigned int * G2_to_G1, unsigned int n, unsigned int m);
+  virtual   double getCost(double * , unsigned int n, unsigned int m);
   virtual   double getAlpha();
   virtual   double getBeta();
   
@@ -48,13 +48,13 @@ public:
     return this->Xk;
   }
 
-  void setCurrentMatrix(double * Matrix, int n, int m ){//N and m are matrix sizes
+  void setCurrentMatrix(double * Matrix, unsigned int n, unsigned int m ){//N and m are matrix sizes
     if(this->Xk == NULL)
       this->Xk = new double[n*m];
     memcpy(this->Xk,Matrix,n*m*sizeof(double));  
   }
 
-  void setCurrentMatrix(int * G1_to_G2, int * G2_to_G1, int n, int m ){//N and m are graph sizes
+  void setCurrentMatrix(unsigned int * G1_to_G2, unsigned int * G2_to_G1, unsigned int n, unsigned int m ){//N and m are graph sizes
     if(this->Xk == NULL)
       this->Xk = new double[(n+1)*(m+1)];
     this->mappingsToMatrix(G1_to_G2,G2_to_G1,n,m, this->Xk);
@@ -79,7 +79,7 @@ LinearSubProblem(){
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPZetaGraphEditDistance<NodeAttribute, EdgeAttribute>::
-getCost(double * Matrix, int n, int m){
+getCost(double * Matrix, unsigned int n, unsigned int m){
   double S_k = IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::getCost(Matrix, n, m);
   return S_k*(1-fabs(this->_zeta)) + this->_zeta*this->linearCost(this->Xk,this->Xk,n+1,m+1);
 }
@@ -87,7 +87,7 @@ getCost(double * Matrix, int n, int m){
 
 template<class NodeAttribute, class EdgeAttribute>
 double IPFPZetaGraphEditDistance<NodeAttribute, EdgeAttribute>::
-getCost(int * G1_to_G2,int * G2_to_G1, int n, int m){
+getCost(unsigned int * G1_to_G2,unsigned int * G2_to_G1, unsigned int n, unsigned int m){
   double S_k = IPFPGraphEditDistance<NodeAttribute, EdgeAttribute>::getCost(G1_to_G2,G2_to_G1, n, m);
   return S_k*(1-fabs(this->_zeta)) + this->_zeta*this->linearCost(this->bkp1,this->bkp1,n+1,m+1);
 }

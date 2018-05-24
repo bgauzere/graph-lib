@@ -199,13 +199,13 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
       {
   	 char * s = new char[255];
   	 file.getline(s, 255); // The first line is useless
-  	 int  mynbNodes, mynbEdges;
+  	 unsigned int  mynbNodes, mynbEdges;
   	 file >> mynbNodes;
   	 file >> mynbEdges;
 
      float coord;
      std::string index;
-  	 for(int i=0; i<mynbNodes; i++)
+  	 for(unsigned int i=0; i<mynbNodes; i++)
   	    {
   	       // ignore x y and z coordinates
   	       file >> coord; file >> coord; file >> coord;
@@ -215,8 +215,8 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
   	    }
   	    
   	 // Creation of the edges
-  	 int start, end, label;
-  	 for (int i=0; i<mynbEdges; i++)
+  	 unsigned int start, end, label;
+  	 for (unsigned int i=0; i<mynbEdges; i++)
   	    {
   	       file >> start; file >> end; file >> label;
   	       Link(start-1, end-1, label);
@@ -234,15 +234,15 @@ SymbolicGraph::SymbolicGraph(const char * filename):Graph<int,int>(false){
   }
 }
 
-SymbolicGraph::SymbolicGraph(int * am, int nb_nodes, bool directed):Graph<int,int>(directed){
-  for(int n = 0; n<nb_nodes; n++){ //We traverse diagonal for node labels
+SymbolicGraph::SymbolicGraph(int * am, unsigned int nb_nodes, bool directed):Graph<int,int>(directed){
+  for(unsigned int n = 0; n<nb_nodes; n++){ //We traverse diagonal for node labels
     Add(new GNode<int,int>(n,am[sub2ind(n,n, nb_nodes)]));
   }
    
-  for(int n = 0; n<nb_nodes; n++){
-    int start= (directed)?0:n+1;
-    for(int m = start; m<nb_nodes; m++) {
-      int edge = am[n+nb_nodes*m];
+  for(unsigned int n = 0; n<nb_nodes; n++){
+    unsigned int start= (directed)?0:n+1;
+    for(unsigned int m = start; m<nb_nodes; m++) {
+      unsigned int edge = am[n+nb_nodes*m];
       if(edge > 0){
 	Link(n,m,edge);
       }
@@ -255,15 +255,15 @@ int * SymbolicGraph::getLabeledAdjacencyMatrix(){
   memset(am,0,sizeof(int)*Size()*Size());
   map<int,int> conv_nodes;
   int index = 1;
-  for(int i=0;i<Size();i++)
+  for(unsigned int i=0;i<Size();i++)
     if(conv_nodes.find((*this)[i]->attr) == conv_nodes.end())
       conv_nodes[(*this)[i]->attr] = index++;
   
-  for(int i=0;i<Size();i++){
+  for(unsigned int i=0;i<Size();i++){
     am[sub2ind(i,i,Size())] = conv_nodes[(*this)[i]->attr];
     GEdge<int> * e = (*this)[i]->getIncidentEdges();
     while(e){
-      int j = e->IncidentNode();
+      unsigned int j = e->IncidentNode();
       am[sub2ind(i,j,Size())] = e->attr;
       e=e->Next();
     }
@@ -276,7 +276,7 @@ bool writeCTfile(Graph<int,int>& graph, std::ofstream& output){
   try{
     output << "Generated graph" << std::endl;
     output << graph.Size() << " " << graph.getNbEdges() << std::endl;
-    for (int i=0; i<graph.Size(); i++){
+    for (unsigned int i=0; i<graph.Size(); i++){
       int label = graph[i]->attr;
       std::map<std::string, int>::iterator it = AtomTable.begin();
       while (it != AtomTable.end() && it->second != label) it++;
@@ -287,8 +287,8 @@ bool writeCTfile(Graph<int,int>& graph, std::ofstream& output){
         output << "?" << std::endl;
     }
     
-    for (int i=0; i<graph.Size(); i++){
-      for (int j=0; j<i; j++){
+    for (unsigned int i=0; i<graph.Size(); i++){
+      for (unsigned int j=0; j<i; j++){
         if (graph.isLinked(i,j))
           output << i+1 << " " << j+1 << "  " << graph.getEdge(i,j)->attr << "  0" << std::endl;
       }

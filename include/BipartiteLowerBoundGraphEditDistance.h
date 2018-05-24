@@ -108,8 +108,8 @@ double BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute>::
 getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
 		       Graph<NodeAttribute,EdgeAttribute> * g2,
 		       unsigned int * G1_to_G2,unsigned int * G2_to_G1, double & opt_cost){
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   // Compute C
   delete [] this->C;
   computeCostMatrix(g1,g2);
@@ -134,9 +134,9 @@ getTimedOptimalMapping(Graph<NodeAttribute,EdgeAttribute> * g1,
   lsape::lsapeSolver<double>(C,n+1,m+1, G1_to_G2, G2_to_G1, u,v,my_solver,1);
   t = clock() - t;
   opt_cost =0.0;
-  for (int i =0;i<n+1;i++)
+  for (unsigned int i =0;i<n+1;i++)
     opt_cost += u[i];
-  for (int j =0;j<m+1;j++)
+  for (unsigned int j =0;j<m+1;j++)
     opt_cost += v[j];
 
   // for (int i =0;i<n+1;i++)
@@ -158,8 +158,8 @@ template<class NodeAttribute, class EdgeAttribute>
 double BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute>::
 getLowerBound(Graph<NodeAttribute,EdgeAttribute> * g1,
 	      Graph<NodeAttribute,EdgeAttribute> * g2, double & time){
-  int n = g1->Size();
-  int m = g2->Size();
+  unsigned int n = g1->Size();
+  unsigned int m = g2->Size();
   unsigned int * G1_to_G2 = new unsigned int[n+1];
   unsigned int * G2_to_G1 = new unsigned int[m+1];
   double lower_bound = 0.0;
@@ -195,8 +195,8 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
 		 GNode<NodeAttribute,EdgeAttribute> * v2,
 		 Graph<NodeAttribute,EdgeAttribute> * g1,
 		 Graph<NodeAttribute,EdgeAttribute> * g2){
-  int n=v1->Degree();
-  int m=v2->Degree();
+  unsigned int n=v1->Degree();
+  unsigned int m=v2->Degree();
 
   GEdge<EdgeAttribute> * e1 = v1->getIncidentEdges(); //edge from v1 in G1
   GEdge<EdgeAttribute> * _e2 = v2->getIncidentEdges(); //edge from v2 in G2
@@ -238,9 +238,9 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
   lsape::lsapeSolver<double>(local_C,n+1,m+1, rho, varrho, u,v,my_solver,1);
   
   double cost=0.0;
-  for (int i =0;i<n+1;i++)
+  for (unsigned int i =0;i<n+1;i++)
     cost += u[i];
-  for (int j =0;j<m+1;j++)
+  for (unsigned int j =0;j<m+1;j++)
     cost += v[j];
   delete [] u;delete [] v;
   delete [] rho;delete [] varrho;
@@ -255,11 +255,11 @@ SubstitutionCost(GNode<NodeAttribute,EdgeAttribute> * v1,
 template<class NodeAttribute, class EdgeAttribute>
 double BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute>::
 DeletionCost(GNode<NodeAttribute,EdgeAttribute> * v1,Graph<NodeAttribute,EdgeAttribute> * g1){
-  int n=v1->Degree();
+  unsigned int n=v1->Degree();
 
   GEdge<EdgeAttribute> * e1 = v1->getIncidentEdges();
   double cost = 0.0;
-  for (int i=0;i<n;i++, e1 = e1->Next())
+  for (unsigned int i=0;i<n;i++, e1 = e1->Next())
     cost += this->cf->EdgeDeletionCost(e1,g1); //this->cf->NodeDeletionCost((*g1)[e1->IncidentNode()],g1) +
   
   return 0.5*cost + this->cf->NodeDeletionCost(v1,g1);
@@ -272,7 +272,7 @@ InsertionCost(GNode<NodeAttribute,EdgeAttribute> * v2,Graph<NodeAttribute,EdgeAt
 
   GEdge<EdgeAttribute> * e2 = v2->getIncidentEdges();
   double cost = 0.0;
-  for (int i=0;i<n;i++, e2 = e2->Next())
+  for (unsigned int i=0;i<n;i++, e2 = e2->Next())
     cost  += this->cf->EdgeInsertionCost(e2,g2);// this->cf->NodeInsertionCost((*g2)[e2->IncidentNode()],g2) +
   return 0.5*cost + this->cf->NodeInsertionCost(v2,g2);
 }
@@ -281,19 +281,19 @@ template<class NodeAttribute, class EdgeAttribute>
 void BipartiteLowerBoundEditDistance<NodeAttribute, EdgeAttribute>::
 computeCostMatrix(Graph<NodeAttribute,EdgeAttribute> * g1,
 		  Graph<NodeAttribute,EdgeAttribute> * g2){
-  int n=g1->Size();
-  int m=g2->Size();
+  unsigned int n=g1->Size();
+  unsigned int m=g2->Size();
   this->C = new double[(n+1) * (m+1)];
   memset(this->C,0,sizeof(double)*(n+1) * (m+1));
-  for (int i =0;i<n;i++)
-    for(int j = 0;j<m;j++){
+  for (unsigned int i =0;i<n;i++)
+    for(unsigned int j = 0;j<m;j++){
       // std::cout << i << "," << j << std::endl;
       this->C[sub2ind(i,j,n+1)] = this->SubstitutionCost((*g1)[i],(*g2)[j],g1,g2);
     }
-  for (int i =0;i<n;i++)
+  for (unsigned int i =0;i<n;i++)
     this->C[sub2ind(i,m,n+1)] = this->DeletionCost((*g1)[i],g1);
 
-  for (int j =0;j<m;j++)
+  for (unsigned int j =0;j<m;j++)
     this->C[sub2ind(n,j,n+1)] = this->InsertionCost((*g2)[j],g2);
 
   this->C[sub2ind(n,m,n+1)] = 0;

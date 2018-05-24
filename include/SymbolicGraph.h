@@ -48,7 +48,7 @@ public:
    * @param nb_nodes specify the graph size
    * @param directed TRUE if graph encoded by am is directed, FALSE otherwise
    */
-  SymbolicGraph(int * am, int nb_nodes, bool directed);
+  SymbolicGraph(int * am, unsigned int nb_nodes, bool directed);
 
 
   /* Return a n*n int array encoding the adjacency matrix corresponding to current graph.
