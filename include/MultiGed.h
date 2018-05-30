@@ -237,6 +237,7 @@ getKOptimalMappings( double* C, unsigned int n, unsigned int m,  const int& k)
   // Add the first one to the list
   // mappings.push_front(rhoperm);
 
+  delete [] rhoperm;
   delete [] Clsap;
   delete [] epsAssign;
   delete [] u;
