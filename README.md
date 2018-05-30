@@ -129,4 +129,22 @@ the nodes of g2 and is accessible via `ECMapping::r(unsigned int)`. The cost of 
   cout << endl;
 ```
 
+#### Compile with your code
+
+To compile your code, you will have to tell your compiler where are the templated headers of the library and the dependencies, 
+and to link tinyxml. With G++, add to your flags : 
+
+```
+CXXFLAGS += -I$(GRAPHLIB_DIR) -I$(LSAPE_DIR) -I$(EIGEN_DIR)
+CXXFLAGS += -ltinyxml
+```
+
+and set the three variables properly. The library needs also C++11 standard : `CXXFLAGS += -std=c++11`.
+Then you can use the static library as a list of compiled object files, for example in a makefile:
+
+```
+myTarget: my  dependancies  graphlib.a
+	$(CXX) -o $@ $^ $(CXXFLAGS)
+```
+
 
