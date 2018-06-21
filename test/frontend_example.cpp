@@ -17,6 +17,7 @@ int main(int argc, char** argv){
 
   /* Load a dataset */
   ChemicalDataset<double>  dataset(argv[1]);
+  dataset.shuffleize();
 
   /* Set some options from the default */
   ged_opts opts = default_refined_opts;
@@ -47,7 +48,7 @@ int main(int argc, char** argv){
    *****************************/
   
   Graph<int,int>& g1 = *(dataset[0]);
-  Graph<int,int>& g2 = *(dataset[2]);
+  Graph<int,int>& g2 = *(dataset[1]);
 
   cout << endl;
   cout << " A good mapping from G1 to G2 : " << endl;

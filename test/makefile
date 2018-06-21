@@ -19,7 +19,7 @@ _OBJ = gl_utils.o SymbolicGraph.o ConstantGraphEditDistance.o RandomWalksGraphEd
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
-all: $(TESTDIR)/frontend
+all: $(TESTDIR)/frontend_example
 
 
 $(TESTDIR)/frontend_example: $(TESTDIR)/frontend_example.cpp $(STATIC_GRAPH_LIB)
