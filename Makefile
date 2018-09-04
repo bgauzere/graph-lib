@@ -31,7 +31,7 @@ _OBJ_QAP = gl_utils.o QAPLibGraph.o QAPLibCostFunction.o QAPLibDataset.o
 OBJ_QAP = $(patsubst %,$(ODIR)/%,$(_OBJ_QAP))
 
 # all: $(BINDIR)/test_GraphEditDistance $(BINDIR)/contestGraphEditDistance
-all:$(TESTDIR)/test_graph $(TESTDIR)/chemical-edit-distances $(BINDIR)/graphlib.a
+all: multithread $(BINDIR)/graphlib.a
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: $(TESTDIR)/chemical-lower-bounds
