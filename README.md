@@ -15,13 +15,16 @@ or with csh (in your .cshrc):
 
     setenv LSAPE_DIR /path/to/your/local/lsape/include/
 
+You can download a compatible version of LSAPE [here](https://daller.users.greyc.fr/ressources/lsape-for-graphlib.zip)
+
 #### TinyXML
 
 This toolbox uses [TinyXML](http://www.grinninglizard.com/tinyxml/) to parse Graphml and GXL graph formats.
 
 #### Eigen
 
-You'll need also the [Eigen library](http://eigen.tuxfamily.org/index.php) in version 3.2 or higher
+You'll need also the [Eigen library](http://eigen.tuxfamily.org/index.php) in version 3.2 or higher. You may need to update the makefile with your local eigen's headers directory.
+A compatible version is also available [here](https://daller.users.greyc.fr/ressources/eigen3.tar.gz).
 
 #### OpenMP
 
@@ -77,6 +80,7 @@ Methods can be :
 * **ipfpe_multi_random** - Multistart IPFP with random discrete initializations
 * **gnccp** - GNCCP algorithm
 
+You can find some of the datasets used in the experiments of [this article](https://hal-normandie-univ.archives-ouvertes.fr/hal-01664529v1) on the [GREYC's Chemistry datasets webpage](https://brunl01.users.greyc.fr/CHEMISTRY/index.html).
 
 #### Use the toolbox in your code
 
@@ -147,4 +151,11 @@ myTarget: my  dependancies  graphlib.a
 	$(CXX) -o $@ $^ $(CXXFLAGS)
 ```
 
+## Citation
 
+If you use part of the implemented methods, please cite the corresponding article :
+
+* **lsape_rw** - [Approximate Graph Edit Distance Guided by Bipartite Matching of Bags of Walks](https://bougleux.users.greyc.fr/articles/ssspr14-approxged.pdf)
+* **ipfpe_bunke**, **ipfpe_rw** [Graph Edit Distance as a Quadratic Assignment Problem](https://bougleux.users.greyc.fr/articles/ged-prl.pdf)
+* **gnccp** [Approximating Graph Edit Distance using GNCCP](https://bougleux.users.greyc.fr/articles/gauzere-sspr2016.pdf)
+* **lsape_multi_xxx**, **ipfpe_multi_xxx** [Approximate Graph Edit Distance by Several Local Searches in Parallel](https://bougleux.users.greyc.fr/articles/icpram18-multistart-ged.pdf)
